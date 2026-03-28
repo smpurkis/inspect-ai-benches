@@ -1,0 +1,33 @@
+
+================================================================================
+  MULTI-ROUND BENCH — avg score per task  (format: avg[n] / max)
+================================================================================
+
+Task                        gpt-4.1-mini  
+------------------------------------------
+cifar10-burn                 err/missing  
+distrib-log-recon         0.3750[2]/0.3750
+ext4-recovery             0.1667[5]/0.1667
+git-leak-sanitize         0.4077[4]/0.6154
+nim-bytecode-vm           0.4583[4]/0.6389
+pandas-to-polars          0.0952[5]/0.0952
+physics-sim               0.2037[3]/0.2222
+pokemon-sapphire          0.3632[5]/0.6364
+rust-py-linalg            0.1630[3]/0.2000
+samscript                 0.0000[2]/0.0000
+sql-migration             0.2233[5]/0.3000
+text-pokemon              0.2389[5]/0.5000
+wasm-compress             0.0159[3]/0.0476
+------------------------------------------
+AVG of avgs                    0.2259     
+AVG of max scores              0.3164     
+Tasks scored                   12/13      
+
+================================================================================
+  MODEL SUMMARY
+================================================================================
+  gpt-4.1-mini
+    Tasks scored  : 12/13
+    Avg of avgs   : 0.2259
+    Avg of maxes  : 0.3164  ← 'best possible' score
+    Total runs    : 46

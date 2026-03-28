@@ -1,0 +1,1 @@
+{"model": "oss-120b-low", "task": "cifar10-burn-optimise", "round": 3, "elapsed": 386.3884189128876, "rc": 0, "score": 0.185185}

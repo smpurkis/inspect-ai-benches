@@ -1,0 +1,1 @@
+{"model": "gpt-5", "task": "cifar10-burn-optimise", "round": 4, "elapsed": 890.2412626743317, "rc": 0, "score": 0.296296}

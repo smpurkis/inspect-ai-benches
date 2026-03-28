@@ -1,0 +1,1 @@
+{"model": "oss-120b-low", "task": "pandas-to-polars", "round": 1, "elapsed": 278.5541687011719, "rc": 0, "score": 0.095238}

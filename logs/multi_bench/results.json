@@ -1,0 +1,1394 @@
+[
+  {
+    "model": "gpt-5",
+    "task": "cifar10-burn-optimise",
+    "elapsed": 686.2342476844788,
+    "rc": 0,
+    "score": 0.638889,
+    "round": 1
+  },
+  {
+    "model": "gpt-5",
+    "task": "distributed-log-reconstruction-stepwise",
+    "elapsed": 421.90324807167053,
+    "rc": 0,
+    "score": 0.969697,
+    "round": 1
+  },
+  {
+    "model": "gpt-5",
+    "task": "ext4-recovery-stepwise",
+    "elapsed": 564.2616627216339,
+    "rc": 0,
+    "score": 1.0,
+    "round": 1
+  },
+  {
+    "model": "gpt-5",
+    "task": "git-leak-recovery-and-sanitize",
+    "elapsed": 433.2884407043457,
+    "rc": 0,
+    "score": 0.641026,
+    "round": 1
+  },
+  {
+    "model": "gpt-5",
+    "task": "nim-bytecode-vm-stepwise",
+    "elapsed": 741.9194221496582,
+    "rc": 0,
+    "score": 1.0,
+    "round": 1
+  },
+  {
+    "model": "gpt-5",
+    "task": "pandas-to-polars",
+    "elapsed": 918.6658852100372,
+    "rc": 0,
+    "score": 0.452381,
+    "round": 1
+  },
+  {
+    "model": "gpt-5",
+    "task": "physics-simulation-stepwise",
+    "elapsed": 382.592182636261,
+    "rc": 0,
+    "score": 0.305556,
+    "round": 1
+  },
+  {
+    "model": "gpt-5",
+    "task": "pokemon-sapphire-episode",
+    "elapsed": 418.08301401138306,
+    "rc": 0,
+    "score": 0.636364,
+    "round": 1
+  },
+  {
+    "model": "gpt-5",
+    "task": "rust-python-linear-algebra-extension",
+    "elapsed": 331.49027585983276,
+    "rc": 0,
+    "score": 0.311111,
+    "round": 1
+  },
+  {
+    "model": "gpt-5",
+    "task": "samscript-interpreter",
+    "elapsed": 738.1864793300629,
+    "rc": 0,
+    "score": 0.307692,
+    "round": 1
+  },
+  {
+    "model": "gpt-5",
+    "task": "sql-migration-rebuild-stepwise",
+    "elapsed": 131.80483603477478,
+    "rc": 0,
+    "score": 0.316667,
+    "round": 1
+  },
+  {
+    "model": "gpt-5",
+    "task": "text-pokemon-battle-engine",
+    "elapsed": 337.4008119106293,
+    "rc": 0,
+    "score": 0.583333,
+    "round": 1
+  },
+  {
+    "model": "gpt-5",
+    "task": "wasm-compression-stepwise",
+    "elapsed": 274.90090918540955,
+    "rc": 0,
+    "score": 0.309524,
+    "round": 1
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "distributed-log-reconstruction-stepwise",
+    "elapsed": 197.43089294433594,
+    "rc": 0,
+    "score": 0.645833,
+    "round": 1
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "ext4-recovery-stepwise",
+    "elapsed": 69.76717710494995,
+    "rc": 0,
+    "score": 0.277778,
+    "round": 1
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "git-leak-recovery-and-sanitize",
+    "elapsed": 326.1784963607788,
+    "rc": 0,
+    "score": 0.923077,
+    "round": 1
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "nim-bytecode-vm-stepwise",
+    "elapsed": 217.7262213230133,
+    "rc": 0,
+    "score": 1.0,
+    "round": 1
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "pandas-to-polars",
+    "elapsed": 384.46353125572205,
+    "rc": 0,
+    "score": 0.571429,
+    "round": 1
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "physics-simulation-stepwise",
+    "elapsed": 71.0905282497406,
+    "rc": 0,
+    "score": 0.305556,
+    "round": 1
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "pokemon-sapphire-episode",
+    "elapsed": 295.86542773246765,
+    "rc": 0,
+    "score": 0.939394,
+    "round": 1
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "rust-python-linear-algebra-extension",
+    "elapsed": 219.30481719970703,
+    "rc": 0,
+    "score": 0.288889,
+    "round": 1
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "samscript-interpreter",
+    "elapsed": 362.36226511001587,
+    "rc": 0,
+    "score": 0.307692,
+    "round": 1
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "sql-migration-rebuild-stepwise",
+    "elapsed": 108.10429644584656,
+    "rc": 0,
+    "score": 0.948718,
+    "round": 1
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "text-pokemon-battle-engine",
+    "elapsed": 121.64104700088501,
+    "rc": 0,
+    "score": 0.583333,
+    "round": 1
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "wasm-compression-stepwise",
+    "elapsed": 234.73748660087585,
+    "rc": 0,
+    "score": 0.142857,
+    "round": 1
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "distributed-log-reconstruction-stepwise",
+    "round": 3,
+    "elapsed": 461.6715908050537,
+    "rc": 0,
+    "score": 0.375
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "distributed-log-reconstruction-stepwise",
+    "round": 4,
+    "elapsed": 427.49718260765076,
+    "rc": 0,
+    "score": 0.375
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "ext4-recovery-stepwise",
+    "round": 1,
+    "elapsed": 161.06947135925293,
+    "rc": 0,
+    "score": 0.166667
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "ext4-recovery-stepwise",
+    "round": 2,
+    "elapsed": 76.13468265533447,
+    "rc": 0,
+    "score": 0.166667
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "ext4-recovery-stepwise",
+    "round": 3,
+    "elapsed": 325.02065443992615,
+    "rc": 0,
+    "score": 0.166667
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "ext4-recovery-stepwise",
+    "round": 4,
+    "elapsed": 272.648099899292,
+    "rc": 0,
+    "score": 0.166667
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "ext4-recovery-stepwise",
+    "round": 5,
+    "elapsed": 184.80460619926453,
+    "rc": 0,
+    "score": 0.166667
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "git-leak-recovery-and-sanitize",
+    "round": 1,
+    "elapsed": 90.01587176322937,
+    "rc": 0,
+    "score": 0.233333
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "git-leak-recovery-and-sanitize",
+    "round": 2,
+    "elapsed": 159.33938694000244,
+    "rc": 0,
+    "score": 0.166667
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "git-leak-recovery-and-sanitize",
+    "round": 4,
+    "elapsed": 246.06406950950623,
+    "rc": 0,
+    "score": 0.615385
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "git-leak-recovery-and-sanitize",
+    "round": 5,
+    "elapsed": 272.920480966568,
+    "rc": 0,
+    "score": 0.615385
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "nim-bytecode-vm-stepwise",
+    "round": 1,
+    "elapsed": 332.64636611938477,
+    "rc": 0,
+    "score": 0.638889
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "nim-bytecode-vm-stepwise",
+    "round": 2,
+    "elapsed": 297.7522757053375,
+    "rc": 0,
+    "score": 0.305556
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "nim-bytecode-vm-stepwise",
+    "round": 3,
+    "elapsed": 380.38266587257385,
+    "rc": 0,
+    "score": 0.444444
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "nim-bytecode-vm-stepwise",
+    "round": 4,
+    "elapsed": 227.73858952522278,
+    "rc": 0,
+    "score": 0.444444
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "pandas-to-polars",
+    "round": 1,
+    "elapsed": 160.4122598171234,
+    "rc": 0,
+    "score": 0.095238
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "pandas-to-polars",
+    "round": 2,
+    "elapsed": 162.2836949825287,
+    "rc": 0,
+    "score": 0.095238
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "pandas-to-polars",
+    "round": 3,
+    "elapsed": 150.66339588165283,
+    "rc": 0,
+    "score": 0.095238
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "pandas-to-polars",
+    "round": 4,
+    "elapsed": 579.7692949771881,
+    "rc": 0,
+    "score": 0.095238
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "pandas-to-polars",
+    "round": 5,
+    "elapsed": 163.32583045959473,
+    "rc": 0,
+    "score": 0.095238
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "physics-simulation-stepwise",
+    "round": 3,
+    "elapsed": 699.7292194366455,
+    "rc": 0,
+    "score": 0.222222
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "physics-simulation-stepwise",
+    "round": 4,
+    "elapsed": 469.96155309677124,
+    "rc": 0,
+    "score": 0.166667
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "physics-simulation-stepwise",
+    "round": 5,
+    "elapsed": 452.29772114753723,
+    "rc": 0,
+    "score": 0.222222
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "pokemon-sapphire-episode",
+    "round": 1,
+    "elapsed": 159.9848177433014,
+    "rc": 0,
+    "score": 0.333333
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "pokemon-sapphire-episode",
+    "round": 2,
+    "elapsed": 194.50509548187256,
+    "rc": 0,
+    "score": 0.282051
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "pokemon-sapphire-episode",
+    "round": 3,
+    "elapsed": 287.1226351261139,
+    "rc": 0,
+    "score": 0.282051
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "pokemon-sapphire-episode",
+    "round": 4,
+    "elapsed": 216.9890067577362,
+    "rc": 0,
+    "score": 0.636364
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "pokemon-sapphire-episode",
+    "round": 5,
+    "elapsed": 189.05126452445984,
+    "rc": 0,
+    "score": 0.282051
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "rust-python-linear-algebra-extension",
+    "round": 3,
+    "elapsed": 693.315749168396,
+    "rc": 0,
+    "score": 0.177778
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "rust-python-linear-algebra-extension",
+    "round": 4,
+    "elapsed": 369.02797627449036,
+    "rc": 0,
+    "score": 0.2
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "rust-python-linear-algebra-extension",
+    "round": 5,
+    "elapsed": 441.15116333961487,
+    "rc": 0,
+    "score": 0.111111
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "samscript-interpreter",
+    "round": 4,
+    "elapsed": 300.4608464241028,
+    "rc": 0,
+    "score": 0.0
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "samscript-interpreter",
+    "round": 5,
+    "elapsed": 316.4496281147003,
+    "rc": 0,
+    "score": 0.0
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 1,
+    "elapsed": 268.25870275497437,
+    "rc": 0,
+    "score": 0.0
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 2,
+    "elapsed": 374.2385265827179,
+    "rc": 0,
+    "score": 0.266667
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 3,
+    "elapsed": 509.6941680908203,
+    "rc": 0,
+    "score": 0.266667
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 4,
+    "elapsed": 590.2569861412048,
+    "rc": 0,
+    "score": 0.3
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 5,
+    "elapsed": 294.2659420967102,
+    "rc": 0,
+    "score": 0.283333
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "text-pokemon-battle-engine",
+    "round": 1,
+    "elapsed": 385.92330837249756,
+    "rc": 0,
+    "score": 0.5
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "text-pokemon-battle-engine",
+    "round": 2,
+    "elapsed": 188.1335005760193,
+    "rc": 0,
+    "score": 0.194444
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "text-pokemon-battle-engine",
+    "round": 3,
+    "elapsed": 524.2852840423584,
+    "rc": 0,
+    "score": 0.5
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "text-pokemon-battle-engine",
+    "round": 4,
+    "elapsed": 193.20438766479492,
+    "rc": 0,
+    "score": 0.0
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "text-pokemon-battle-engine",
+    "round": 5,
+    "elapsed": 785.7254467010498,
+    "rc": 0,
+    "score": 0.0
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "wasm-compression-stepwise",
+    "round": 1,
+    "elapsed": 2996.3287193775177,
+    "rc": 0,
+    "score": 0.0
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "wasm-compression-stepwise",
+    "round": 3,
+    "elapsed": 2593.944360971451,
+    "rc": 0,
+    "score": 0.0
+  },
+  {
+    "model": "gpt-4.1-mini",
+    "task": "wasm-compression-stepwise",
+    "round": 4,
+    "elapsed": 1250.2296829223633,
+    "rc": 0,
+    "score": 0.047619
+  },
+  {
+    "model": "gpt-5",
+    "task": "cifar10-burn-optimise",
+    "round": 2,
+    "elapsed": 609.6892604827881,
+    "rc": 0,
+    "score": 0.638889
+  },
+  {
+    "model": "gpt-5",
+    "task": "cifar10-burn-optimise",
+    "round": 3,
+    "elapsed": 664.2502255439758,
+    "rc": 0,
+    "score": 0.638889
+  },
+  {
+    "model": "gpt-5",
+    "task": "cifar10-burn-optimise",
+    "round": 4,
+    "elapsed": 890.2412626743317,
+    "rc": 0,
+    "score": 0.296296
+  },
+  {
+    "model": "gpt-5",
+    "task": "cifar10-burn-optimise",
+    "round": 5,
+    "elapsed": 322.6806435585022,
+    "rc": 0,
+    "score": 0.296296
+  },
+  {
+    "model": "gpt-5",
+    "task": "distributed-log-reconstruction-stepwise",
+    "round": 2,
+    "elapsed": 488.80181670188904,
+    "rc": 0,
+    "score": 0.969697
+  },
+  {
+    "model": "gpt-5",
+    "task": "distributed-log-reconstruction-stepwise",
+    "round": 3,
+    "elapsed": 376.9332456588745,
+    "rc": 0,
+    "score": 0.969697
+  },
+  {
+    "model": "gpt-5",
+    "task": "distributed-log-reconstruction-stepwise",
+    "round": 4,
+    "elapsed": 774.7980532646179,
+    "rc": 0,
+    "score": 0.969697
+  },
+  {
+    "model": "gpt-5",
+    "task": "distributed-log-reconstruction-stepwise",
+    "round": 5,
+    "elapsed": 439.6629648208618,
+    "rc": 0,
+    "score": 0.969697
+  },
+  {
+    "model": "gpt-5",
+    "task": "ext4-recovery-stepwise",
+    "round": 2,
+    "elapsed": 406.7970361709595,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5",
+    "task": "ext4-recovery-stepwise",
+    "round": 3,
+    "elapsed": 1251.2587990760803,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5",
+    "task": "ext4-recovery-stepwise",
+    "round": 4,
+    "elapsed": 501.33398389816284,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5",
+    "task": "ext4-recovery-stepwise",
+    "round": 5,
+    "elapsed": 554.3910839557648,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5",
+    "task": "git-leak-recovery-and-sanitize",
+    "round": 2,
+    "elapsed": 771.3828883171082,
+    "rc": 0,
+    "score": 0.641026
+  },
+  {
+    "model": "gpt-5",
+    "task": "git-leak-recovery-and-sanitize",
+    "round": 3,
+    "elapsed": 517.5089321136475,
+    "rc": 0,
+    "score": 0.641026
+  },
+  {
+    "model": "gpt-5",
+    "task": "git-leak-recovery-and-sanitize",
+    "round": 4,
+    "elapsed": 1056.4586675167084,
+    "rc": 0,
+    "score": 0.871795
+  },
+  {
+    "model": "gpt-5",
+    "task": "git-leak-recovery-and-sanitize",
+    "round": 5,
+    "elapsed": 1225.1603608131409,
+    "rc": 0,
+    "score": 0.384615
+  },
+  {
+    "model": "gpt-5",
+    "task": "nim-bytecode-vm-stepwise",
+    "round": 2,
+    "elapsed": 469.10889768600464,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5",
+    "task": "nim-bytecode-vm-stepwise",
+    "round": 3,
+    "elapsed": 381.29260516166687,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5",
+    "task": "nim-bytecode-vm-stepwise",
+    "round": 4,
+    "elapsed": 463.08022832870483,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5",
+    "task": "nim-bytecode-vm-stepwise",
+    "round": 5,
+    "elapsed": 684.30229139328,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5",
+    "task": "pandas-to-polars",
+    "round": 2,
+    "elapsed": 1156.3557710647583,
+    "rc": 0,
+    "score": 0.47619
+  },
+  {
+    "model": "gpt-5",
+    "task": "pandas-to-polars",
+    "round": 3,
+    "elapsed": 968.163501739502,
+    "rc": 0,
+    "score": 0.595238
+  },
+  {
+    "model": "gpt-5",
+    "task": "pandas-to-polars",
+    "round": 4,
+    "elapsed": 1216.9695043563843,
+    "rc": 0,
+    "score": 0.52381
+  },
+  {
+    "model": "gpt-5",
+    "task": "pandas-to-polars",
+    "round": 5,
+    "elapsed": 916.3251860141754,
+    "rc": 0,
+    "score": 0.333333
+  },
+  {
+    "model": "gpt-5",
+    "task": "physics-simulation-stepwise",
+    "round": 2,
+    "elapsed": 254.08951473236084,
+    "rc": 0,
+    "score": 0.305556
+  },
+  {
+    "model": "gpt-5",
+    "task": "physics-simulation-stepwise",
+    "round": 3,
+    "elapsed": 201.3011474609375,
+    "rc": 0,
+    "score": 0.305556
+  },
+  {
+    "model": "gpt-5",
+    "task": "physics-simulation-stepwise",
+    "round": 4,
+    "elapsed": 203.8710355758667,
+    "rc": 0,
+    "score": 0.305556
+  },
+  {
+    "model": "gpt-5",
+    "task": "physics-simulation-stepwise",
+    "round": 5,
+    "elapsed": 271.51231145858765,
+    "rc": 0,
+    "score": 0.305556
+  },
+  {
+    "model": "gpt-5",
+    "task": "pokemon-sapphire-episode",
+    "round": 2,
+    "elapsed": 234.50433802604675,
+    "rc": 0,
+    "score": 0.606061
+  },
+  {
+    "model": "gpt-5",
+    "task": "pokemon-sapphire-episode",
+    "round": 3,
+    "elapsed": 890.4782416820526,
+    "rc": 0,
+    "score": 0.969697
+  },
+  {
+    "model": "gpt-5",
+    "task": "pokemon-sapphire-episode",
+    "round": 4,
+    "elapsed": 220.50748920440674,
+    "rc": 0,
+    "score": 0.636364
+  },
+  {
+    "model": "gpt-5",
+    "task": "pokemon-sapphire-episode",
+    "round": 5,
+    "elapsed": 1100.495273590088,
+    "rc": 0,
+    "score": 0.969697
+  },
+  {
+    "model": "gpt-5",
+    "task": "rust-python-linear-algebra-extension",
+    "round": 2,
+    "elapsed": 1780.92098903656,
+    "rc": 0,
+    "score": 0.904762
+  },
+  {
+    "model": "gpt-5",
+    "task": "rust-python-linear-algebra-extension",
+    "round": 4,
+    "elapsed": 1285.4617421627045,
+    "rc": 0,
+    "score": 0.880952
+  },
+  {
+    "model": "gpt-5",
+    "task": "rust-python-linear-algebra-extension",
+    "round": 5,
+    "elapsed": 496.87238216400146,
+    "rc": 0,
+    "score": 0.266667
+  },
+  {
+    "model": "gpt-5",
+    "task": "samscript-interpreter",
+    "round": 3,
+    "elapsed": 1378.836149930954,
+    "rc": 0,
+    "score": 0.205128
+  },
+  {
+    "model": "gpt-5",
+    "task": "samscript-interpreter",
+    "round": 4,
+    "elapsed": 1089.0090475082397,
+    "rc": 0,
+    "score": 0.307692
+  },
+  {
+    "model": "gpt-5",
+    "task": "samscript-interpreter",
+    "round": 5,
+    "elapsed": 1741.6483659744263,
+    "rc": 0,
+    "score": 0.230769
+  },
+  {
+    "model": "gpt-5",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 2,
+    "elapsed": 475.48642349243164,
+    "rc": 0,
+    "score": 0.974359
+  },
+  {
+    "model": "gpt-5",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 3,
+    "elapsed": 91.5400562286377,
+    "rc": 0,
+    "score": 0.316667
+  },
+  {
+    "model": "gpt-5",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 4,
+    "elapsed": 350.73086810112,
+    "rc": 0,
+    "score": 0.948718
+  },
+  {
+    "model": "gpt-5",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 5,
+    "elapsed": 296.4010999202728,
+    "rc": 0,
+    "score": 0.948718
+  },
+  {
+    "model": "gpt-5",
+    "task": "text-pokemon-battle-engine",
+    "round": 2,
+    "elapsed": 508.3036370277405,
+    "rc": 0,
+    "score": 0.555556
+  },
+  {
+    "model": "gpt-5",
+    "task": "text-pokemon-battle-engine",
+    "round": 3,
+    "elapsed": 332.7591779232025,
+    "rc": 0,
+    "score": 0.583333
+  },
+  {
+    "model": "gpt-5",
+    "task": "text-pokemon-battle-engine",
+    "round": 4,
+    "elapsed": 499.72009778022766,
+    "rc": 0,
+    "score": 0.611111
+  },
+  {
+    "model": "gpt-5",
+    "task": "text-pokemon-battle-engine",
+    "round": 5,
+    "elapsed": 670.5488331317902,
+    "rc": 0,
+    "score": 0.638889
+  },
+  {
+    "model": "gpt-5",
+    "task": "wasm-compression-stepwise",
+    "round": 2,
+    "elapsed": 894.8083415031433,
+    "rc": 0,
+    "score": 0.261905
+  },
+  {
+    "model": "gpt-5",
+    "task": "wasm-compression-stepwise",
+    "round": 3,
+    "elapsed": 1810.3390033245087,
+    "rc": 0,
+    "score": 0.333333
+  },
+  {
+    "model": "gpt-5",
+    "task": "wasm-compression-stepwise",
+    "round": 4,
+    "elapsed": 3439.0794773101807,
+    "rc": 0,
+    "score": 0.309524
+  },
+  {
+    "model": "gpt-5",
+    "task": "wasm-compression-stepwise",
+    "round": 5,
+    "elapsed": 989.8494210243225,
+    "rc": 0,
+    "score": 0.261905
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "cifar10-burn-optimise",
+    "round": 1,
+    "elapsed": 2191.854209423065,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "cifar10-burn-optimise",
+    "round": 2,
+    "elapsed": 1800.5922484397888,
+    "rc": 0,
+    "score": 0.944444
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "cifar10-burn-optimise",
+    "round": 3,
+    "elapsed": 842.5405287742615,
+    "rc": 0,
+    "score": 0.611111
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "cifar10-burn-optimise",
+    "round": 4,
+    "elapsed": 1490.378331899643,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "cifar10-burn-optimise",
+    "round": 5,
+    "elapsed": 709.7036333084106,
+    "rc": 0,
+    "score": 0.638889
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "distributed-log-reconstruction-stepwise",
+    "round": 2,
+    "elapsed": 184.29490113258362,
+    "rc": 0,
+    "score": 0.969697
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "distributed-log-reconstruction-stepwise",
+    "round": 3,
+    "elapsed": 78.20534443855286,
+    "rc": 0,
+    "score": 0.645833
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "distributed-log-reconstruction-stepwise",
+    "round": 4,
+    "elapsed": 105.90545082092285,
+    "rc": 0,
+    "score": 0.645833
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "distributed-log-reconstruction-stepwise",
+    "round": 5,
+    "elapsed": 94.47731232643127,
+    "rc": 0,
+    "score": 0.645833
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "ext4-recovery-stepwise",
+    "round": 2,
+    "elapsed": 100.86458110809326,
+    "rc": 0,
+    "score": 0.277778
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "ext4-recovery-stepwise",
+    "round": 3,
+    "elapsed": 135.76692271232605,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "ext4-recovery-stepwise",
+    "round": 4,
+    "elapsed": 89.0286934375763,
+    "rc": 0,
+    "score": 0.222222
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "ext4-recovery-stepwise",
+    "round": 5,
+    "elapsed": 72.37624883651733,
+    "rc": 0,
+    "score": 0.166667
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "git-leak-recovery-and-sanitize",
+    "round": 2,
+    "elapsed": 34.49438190460205,
+    "rc": 0,
+    "score": 0.3
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "git-leak-recovery-and-sanitize",
+    "round": 3,
+    "elapsed": 30.88894033432007,
+    "rc": 0,
+    "score": 0.3
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "git-leak-recovery-and-sanitize",
+    "round": 4,
+    "elapsed": 238.71160912513733,
+    "rc": 0,
+    "score": 0.948718
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "git-leak-recovery-and-sanitize",
+    "round": 5,
+    "elapsed": 254.89256310462952,
+    "rc": 0,
+    "score": 0.974359
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "nim-bytecode-vm-stepwise",
+    "round": 2,
+    "elapsed": 235.18462800979614,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "nim-bytecode-vm-stepwise",
+    "round": 3,
+    "elapsed": 165.26881194114685,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "nim-bytecode-vm-stepwise",
+    "round": 4,
+    "elapsed": 164.14514875411987,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "nim-bytecode-vm-stepwise",
+    "round": 5,
+    "elapsed": 147.62095999717712,
+    "rc": 0,
+    "score": 1.0
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "pandas-to-polars",
+    "round": 2,
+    "elapsed": 301.71126413345337,
+    "rc": 0,
+    "score": 0.642857
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "pandas-to-polars",
+    "round": 3,
+    "elapsed": 232.8643078804016,
+    "rc": 0,
+    "score": 0.571429
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "pandas-to-polars",
+    "round": 4,
+    "elapsed": 270.0051980018616,
+    "rc": 0,
+    "score": 0.595238
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "pandas-to-polars",
+    "round": 5,
+    "elapsed": 302.48201417922974,
+    "rc": 0,
+    "score": 0.571429
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "physics-simulation-stepwise",
+    "round": 2,
+    "elapsed": 54.095702171325684,
+    "rc": 0,
+    "score": 0.305556
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "physics-simulation-stepwise",
+    "round": 3,
+    "elapsed": 71.59306263923645,
+    "rc": 0,
+    "score": 0.305556
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "physics-simulation-stepwise",
+    "round": 4,
+    "elapsed": 59.90001964569092,
+    "rc": 0,
+    "score": 0.305556
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "physics-simulation-stepwise",
+    "round": 5,
+    "elapsed": 57.67588758468628,
+    "rc": 0,
+    "score": 0.305556
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "pokemon-sapphire-episode",
+    "round": 2,
+    "elapsed": 369.98706316947937,
+    "rc": 0,
+    "score": 0.909091
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "pokemon-sapphire-episode",
+    "round": 3,
+    "elapsed": 226.309308052063,
+    "rc": 0,
+    "score": 0.969697
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "pokemon-sapphire-episode",
+    "round": 4,
+    "elapsed": 439.85219049453735,
+    "rc": 0,
+    "score": 0.969697
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "pokemon-sapphire-episode",
+    "round": 5,
+    "elapsed": 554.0340857505798,
+    "rc": 0,
+    "score": 0.939394
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "rust-python-linear-algebra-extension",
+    "round": 2,
+    "elapsed": 395.72965025901794,
+    "rc": 0,
+    "score": 0.809524
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "rust-python-linear-algebra-extension",
+    "round": 3,
+    "elapsed": 285.5226380825043,
+    "rc": 0,
+    "score": 0.809524
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "rust-python-linear-algebra-extension",
+    "round": 4,
+    "elapsed": 291.1053683757782,
+    "rc": 0,
+    "score": 0.809524
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "rust-python-linear-algebra-extension",
+    "round": 5,
+    "elapsed": 335.17212986946106,
+    "rc": 0,
+    "score": 0.857143
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "samscript-interpreter",
+    "round": 2,
+    "elapsed": 276.20181250572205,
+    "rc": 0,
+    "score": 0.307692
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "samscript-interpreter",
+    "round": 3,
+    "elapsed": 239.91223311424255,
+    "rc": 0,
+    "score": 0.307692
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "samscript-interpreter",
+    "round": 4,
+    "elapsed": 242.97420072555542,
+    "rc": 0,
+    "score": 0.307692
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "samscript-interpreter",
+    "round": 5,
+    "elapsed": 259.9148015975952,
+    "rc": 0,
+    "score": 0.307692
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 2,
+    "elapsed": 111.96900177001953,
+    "rc": 0,
+    "score": 0.948718
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 3,
+    "elapsed": 109.93494939804077,
+    "rc": 0,
+    "score": 0.948718
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 4,
+    "elapsed": 135.41482162475586,
+    "rc": 0,
+    "score": 0.974359
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "sql-migration-rebuild-stepwise",
+    "round": 5,
+    "elapsed": 136.94906210899353,
+    "rc": 0,
+    "score": 0.948718
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "text-pokemon-battle-engine",
+    "round": 2,
+    "elapsed": 107.80284142494202,
+    "rc": 0,
+    "score": 0.611111
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "text-pokemon-battle-engine",
+    "round": 3,
+    "elapsed": 113.48588395118713,
+    "rc": 0,
+    "score": 0.611111
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "text-pokemon-battle-engine",
+    "round": 4,
+    "elapsed": 95.2136459350586,
+    "rc": 0,
+    "score": 0.583333
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "text-pokemon-battle-engine",
+    "round": 5,
+    "elapsed": 104.07612299919128,
+    "rc": 0,
+    "score": 0.583333
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "wasm-compression-stepwise",
+    "round": 2,
+    "elapsed": 438.2652795314789,
+    "rc": 0,
+    "score": 0.261905
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "wasm-compression-stepwise",
+    "round": 3,
+    "elapsed": 113.56152939796448,
+    "rc": 0,
+    "score": 0.261905
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "wasm-compression-stepwise",
+    "round": 4,
+    "elapsed": 176.48990058898926,
+    "rc": 0,
+    "score": 0.238095
+  },
+  {
+    "model": "gpt-5.4",
+    "task": "wasm-compression-stepwise",
+    "round": 5,
+    "elapsed": 100.1310396194458,
+    "rc": 0,
+    "score": 0.238095
+  }
+]

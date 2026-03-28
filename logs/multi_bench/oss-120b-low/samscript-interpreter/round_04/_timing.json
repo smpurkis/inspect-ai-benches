@@ -1,0 +1,9 @@
+{
+  "model": "oss-120b-low",
+  "task": "samscript-interpreter",
+  "round": 4,
+  "elapsed": 78.4114818572998,
+  "rc": 0,
+  "score": 0.025641,
+  "rerun": true
+}
