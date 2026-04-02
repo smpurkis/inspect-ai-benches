@@ -1,0 +1,29 @@
+{
+  "seed": 2000,
+  "pokemon_1": {
+    "species": "Charmander",
+    "level": 50,
+    "moves": ["Sunny Day", "Flamethrower", "Tackle"],
+    "party": [
+      {"species": "Pikachu", "level": 50, "moves": ["Thunderbolt", "Quick Attack", "Thunder Wave"]}
+    ]
+  },
+  "pokemon_2": {
+    "species": "Squirtle",
+    "level": 50,
+    "moves": ["Rain Dance", "Water Gun", "Ice Beam"],
+    "party": [
+      {"species": "Bulbasaur", "level": 50, "moves": ["Vine Whip", "Toxic", "Tackle"]}
+    ]
+  },
+  "move_choices": [
+    {"pokemon_1": "Sunny Day", "pokemon_2": "Water Gun"},
+    {"pokemon_1": "Flamethrower", "pokemon_2": "Rain Dance"},
+    {"pokemon_1": "Flamethrower", "pokemon_2": "Water Gun"},
+    {"pokemon_1": "Flamethrower", "pokemon_2": "Water Gun"},
+    {"pokemon_1": "Flamethrower", "pokemon_2": "Water Gun"},
+    {"pokemon_1": "Thunderbolt", "pokemon_2": "Vine Whip"},
+    {"pokemon_1": "Thunderbolt", "pokemon_2": "Toxic"},
+    {"pokemon_1": "Thunderbolt", "pokemon_2": "Vine Whip"}
+  ]
+}

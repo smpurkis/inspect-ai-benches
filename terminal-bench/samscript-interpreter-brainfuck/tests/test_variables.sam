@@ -1,0 +1,10 @@
+fn main() {
+    let x = 10
+    print("x = ${x}")
+    x = 20
+    print("x = ${x}")
+    let y = "hello"
+    print("y = ${y}")
+    const PI = 3.14159
+    print("PI = ${PI}")
+}

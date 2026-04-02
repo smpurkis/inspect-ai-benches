@@ -1,0 +1,6 @@
+[0001] 0004: PUSH_INT 1 | stack: [1]
+[0002] 0009: JZ 0016 | stack: []
+[0003] 000c: PUSH_STR "yes" | stack: ["yes"]
+[0004] 0012: PRINTLN | stack: []
+[0005] 0013: JMP 001c | stack: []
+[0006] 001c: HALT | stack: []

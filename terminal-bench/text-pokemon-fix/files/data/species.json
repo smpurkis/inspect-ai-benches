@@ -1,0 +1,42 @@
+{
+  "Pikachu": {
+    "types": ["Electric"],
+    "stats": {"hp": 35, "attack": 55, "defense": 40, "sp_atk": 50, "sp_def": 50, "speed": 90}
+  },
+  "Charmander": {
+    "types": ["Fire"],
+    "stats": {"hp": 39, "attack": 52, "defense": 43, "sp_atk": 60, "sp_def": 50, "speed": 65}
+  },
+  "Squirtle": {
+    "types": ["Water"],
+    "stats": {"hp": 44, "attack": 48, "defense": 65, "sp_atk": 50, "sp_def": 64, "speed": 43}
+  },
+  "Bulbasaur": {
+    "types": ["Grass", "Poison"],
+    "stats": {"hp": 45, "attack": 49, "defense": 49, "sp_atk": 65, "sp_def": 65, "speed": 45}
+  },
+  "Geodude": {
+    "types": ["Rock", "Ground"],
+    "stats": {"hp": 40, "attack": 80, "defense": 100, "sp_atk": 30, "sp_def": 30, "speed": 20}
+  },
+  "Gastly": {
+    "types": ["Ghost", "Poison"],
+    "stats": {"hp": 30, "attack": 35, "defense": 30, "sp_atk": 100, "sp_def": 35, "speed": 80}
+  },
+  "Machop": {
+    "types": ["Fighting"],
+    "stats": {"hp": 70, "attack": 80, "defense": 50, "sp_atk": 35, "sp_def": 35, "speed": 35}
+  },
+  "Abra": {
+    "types": ["Psychic"],
+    "stats": {"hp": 25, "attack": 20, "defense": 15, "sp_atk": 105, "sp_def": 55, "speed": 90}
+  },
+  "Pidgey": {
+    "types": ["Normal", "Flying"],
+    "stats": {"hp": 40, "attack": 45, "defense": 40, "sp_atk": 35, "sp_def": 35, "speed": 56}
+  },
+  "Eevee": {
+    "types": ["Normal"],
+    "stats": {"hp": 55, "attack": 55, "defense": 50, "sp_atk": 45, "sp_def": 65, "speed": 55}
+  }
+}

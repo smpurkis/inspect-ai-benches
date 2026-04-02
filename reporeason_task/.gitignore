@@ -1,0 +1,71 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+build/
+dist/
+eggs/
+*.egg-info/
+*.egg
+wheelhouse/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.env
+.envrc
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.pytest_cache/
+.tox/
+nosetests.xml
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*~
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# mypy / pyright
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# macOS / Linux misc
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs
+*.log
+logs/
+
+# Local config/results
+config.yaml
+results/
+opencode.json
+
+# Preloaded repo archives
+.preloaded_repos/
+
+# Local workspaces
+workspace/

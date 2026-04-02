@@ -1,0 +1,26 @@
+fn main() {
+    let x = 10
+    print("outer x = ${x}")
+
+    if true {
+        let x = 20
+        print("inner x = ${x}")
+        let y = 30
+        print("inner y = ${y}")
+    }
+
+    // x should still be 10 after the block
+    print("outer x after block = ${x}")
+
+    // y should not be accessible here — but we test that
+    // the block-scoped variable doesn't leak
+
+    let counter = 0
+    let i = 0
+    loop {
+        i = i + 1
+        if i >= 3 { break }
+    }
+    // outer counter remains 0 — loop used a separate variable i
+    print("outer counter = ${counter}")
+}

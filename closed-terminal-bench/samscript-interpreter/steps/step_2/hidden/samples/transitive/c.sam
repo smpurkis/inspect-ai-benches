@@ -1,0 +1,3 @@
+fn BASE() {
+    return 42
+}

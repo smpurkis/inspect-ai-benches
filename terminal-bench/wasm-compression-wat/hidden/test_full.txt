@@ -1,0 +1,99 @@
+The QuiltPress compression algorithm operates on sequences of bytes to find repeated patterns.
+This text file is used as a test corpus for the hidden compression roundtrip tests.
+The algorithm builds a dictionary of frequent five-byte chunks found in the input data.
+Each entry in the dictionary represents a five-byte sequence that appears at least three times.
+The encoder scans the input and replaces repeated chunks with compact token references.
+The decoder reads the token references and reconstructs the original byte sequence.
+Compression works best when the input contains many repeated five-byte substrings.
+
+The QuiltPress compression algorithm operates on sequences of bytes to find repeated patterns.
+This text file is used as a test corpus for the hidden compression roundtrip tests.
+The algorithm builds a dictionary of frequent five-byte chunks found in the input data.
+Each entry in the dictionary represents a five-byte sequence that appears at least three times.
+The encoder scans the input and replaces repeated chunks with compact token references.
+The decoder reads the token references and reconstructs the original byte sequence.
+Compression works best when the input contains many repeated five-byte substrings.
+
+The QuiltPress compression algorithm operates on sequences of bytes to find repeated patterns.
+This text file is used as a test corpus for the hidden compression roundtrip tests.
+The algorithm builds a dictionary of frequent five-byte chunks found in the input data.
+Each entry in the dictionary represents a five-byte sequence that appears at least three times.
+The encoder scans the input and replaces repeated chunks with compact token references.
+The decoder reads the token references and reconstructs the original byte sequence.
+Compression works best when the input contains many repeated five-byte substrings.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.
+
+The quick brown fox jumps over the lazy dog near the riverbank every single morning.
+The quick brown fox jumps over the lazy dog near the riverbank every single morning.
+The quick brown fox jumps over the lazy dog near the riverbank every single morning.
+The quick brown fox jumps over the lazy dog near the riverbank every single morning.
+The quick brown fox jumps over the lazy dog near the riverbank every single morning.
+The quick brown fox jumps over the lazy dog near the riverbank every single morning.
+
+WebAssembly is a binary instruction format for a stack-based virtual machine.
+WebAssembly is designed as a portable compilation target for programming languages.
+WebAssembly enables deployment on the web for client and server applications.
+WebAssembly is a binary instruction format for a stack-based virtual machine.
+WebAssembly is designed as a portable compilation target for programming languages.
+WebAssembly enables deployment on the web for client and server applications.
+WebAssembly is a binary instruction format for a stack-based virtual machine.
+WebAssembly is designed as a portable compilation target for programming languages.
+WebAssembly enables deployment on the web for client and server applications.
+
+The WAT text format is a human-readable representation of the binary WASM format.
+Developers write WAT source code and compile it to WASM using the wat2wasm tool.
+The WASM binary can then be executed in any WebAssembly runtime environment.
+The WAT text format is a human-readable representation of the binary WASM format.
+Developers write WAT source code and compile it to WASM using the wat2wasm tool.
+The WASM binary can then be executed in any WebAssembly runtime environment.
+The WAT text format is a human-readable representation of the binary WASM format.
+Developers write WAT source code and compile it to WASM using the wat2wasm tool.
+The WASM binary can then be executed in any WebAssembly runtime environment.
+
+Compression algorithms find patterns in data to reduce storage space requirements.
+Dictionary-based methods build a lookup table of common substrings for reference.
+Token encoding replaces repeated substrings with compact indices into the dictionary.
+Lossless compression guarantees that the original data is perfectly reconstructed.
+Compression algorithms find patterns in data to reduce storage space requirements.
+Dictionary-based methods build a lookup table of common substrings for reference.
+Token encoding replaces repeated substrings with compact indices into the dictionary.
+Lossless compression guarantees that the original data is perfectly reconstructed.
+Compression algorithms find patterns in data to reduce storage space requirements.
+Dictionary-based methods build a lookup table of common substrings for reference.
+Token encoding replaces repeated substrings with compact indices into the dictionary.
+Lossless compression guarantees that the original data is perfectly reconstructed.
+
+The hidden test verifies that the WASM compression implementation is compatible.
+Cross-codec testing ensures that the WASM compressor output can be decoded by Python.
+Both the encoder and decoder must agree on the QPX1 binary format specification.
+The hidden test verifies that the WASM compression implementation is compatible.
+Cross-codec testing ensures that the WASM compressor output can be decoded by Python.
+Both the encoder and decoder must agree on the QPX1 binary format specification.
+The hidden test verifies that the WASM compression implementation is compatible.
+Cross-codec testing ensures that the WASM compressor output can be decoded by Python.
+Both the encoder and decoder must agree on the QPX1 binary format specification.
+
+Format specification requires magic bytes QPX1 at the start of every compressed file.
+Version and method bytes follow the magic to identify the compression variant used.
+Dictionary size is encoded as a fixed-width little-endian integer in the header.
+Format specification requires magic bytes QPX1 at the start of every compressed file.
+Version and method bytes follow the magic to identify the compression variant used.
+Dictionary size is encoded as a fixed-width little-endian integer in the header.
+Format specification requires magic bytes QPX1 at the start of every compressed file.
+Version and method bytes follow the magic to identify the compression variant used.
+Dictionary size is encoded as a fixed-width little-endian integer in the header.
+
+Each dictionary entry stores exactly five raw bytes from the input data stream.
+Token references in the payload use two bytes each for the dictionary index value.
+Literal blocks store raw bytes preceded by a one-byte length count for the block.
+Each dictionary entry stores exactly five raw bytes from the input data stream.
+Token references in the payload use two bytes each for the dictionary index value.
+Literal blocks store raw bytes preceded by a one-byte length count for the block.
+Each dictionary entry stores exactly five raw bytes from the input data stream.
+Token references in the payload use two bytes each for the dictionary index value.
+Literal blocks store raw bytes preceded by a one-byte length count for the block.

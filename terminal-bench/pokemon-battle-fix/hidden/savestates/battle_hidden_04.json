@@ -1,0 +1,89 @@
+{
+  "screen": "battle_main",
+  "player_party": [
+    {
+      "species": "Blaziken",
+      "level": 36,
+      "hp": 108,
+      "max_hp": 108,
+      "attack": 95,
+      "defense": 65,
+      "sp_atk": 85,
+      "sp_def": 65,
+      "speed": 80,
+      "moves": [
+        "Blaze Kick",
+        "Double Kick",
+        "Peck",
+        "Bulk Up"
+      ],
+      "pp": [
+        10,
+        30,
+        35,
+        20
+      ],
+      "status": null,
+      "stat_stages": {
+        "atk": 0,
+        "def": 0,
+        "spa": 0,
+        "spd": 0,
+        "spe": 0
+      }
+    }
+  ],
+  "enemy_trainer": {
+    "name": "Hiker Trent",
+    "active_index": 0,
+    "defeated": false,
+    "party": [
+      {
+        "species": "Geodude",
+        "level": 25,
+        "hp": 70,
+        "max_hp": 70,
+        "attack": 50,
+        "defense": 80,
+        "sp_atk": 25,
+        "sp_def": 25,
+        "speed": 18,
+        "moves": [
+          "Rock Tomb",
+          "Tackle",
+          "Mud Shot",
+          "Sand Attack"
+        ],
+        "pp": [
+          15,
+          35,
+          15,
+          15
+        ],
+        "status": null,
+        "stat_stages": {
+          "atk": 0,
+          "def": 0,
+          "spa": 0,
+          "spd": 0,
+          "spe": 0
+        }
+      }
+    ]
+  },
+  "wild_pokemon": null,
+  "player_position": [
+    5,
+    3
+  ],
+  "player_facing": "DOWN",
+  "map_grid": [],
+  "map_name": "Route 111",
+  "battle_active": true,
+  "battle_won": null,
+  "cursor_position": 0,
+  "flags": {},
+  "inventory": {},
+  "badges": 2,
+  "dialogue_text": "Hiker Trent wants to battle!"
+}

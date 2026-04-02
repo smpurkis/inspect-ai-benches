@@ -1,0 +1,26 @@
+fn factorial(n) {
+    if n <= 1 {
+        return 1
+    }
+    let result = 1
+    let i = 2
+    loop {
+        if i > n { break }
+        result *= i
+        i += 1
+    }
+    return result
+}
+
+fn main() {
+    print("5! = ${factorial(5)}")
+    print("10! = ${factorial(10)}")
+    let a = 17
+    let b = 5
+    print("${a} + ${b} = ${a + b}")
+    print("${a} - ${b} = ${a - b}")
+    print("${a} * ${b} = ${a * b}")
+    print("${a} / ${b} = ${a / b}")
+    print("${a} % ${b} = ${a % b}")
+    print("2 ** 16 = ${2 ** 16}")
+}

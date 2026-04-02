@@ -1,0 +1,48 @@
+fn make_record(name, values) {
+    return {"name": name, "values": values, "count": len(values)}
+}
+
+fn sum_list(items) {
+    let total = 0
+    let i = 0
+    loop {
+        if i >= len(items) { break }
+        total += items[i]
+        i += 1
+    }
+    return total
+}
+
+fn main() {
+    let records = [
+        make_record("alpha", [10, 20, 30]),
+        make_record("beta", [5, 15, 25, 35]),
+        make_record("gamma", [100])
+    ]
+
+    let i = 0
+    loop {
+        if i >= len(records) { break }
+        let r = records[i]
+        let s = sum_list(r["values"])
+        print("${r["name"]}: count=${r["count"]}, sum=${s}")
+        i += 1
+    }
+
+    // Nested list operations
+    let matrix = [[1, 2], [3, 4], [5, 6]]
+    let flat = []
+    let row = 0
+    loop {
+        if row >= len(matrix) { break }
+        let col = 0
+        loop {
+            if col >= len(matrix[row]) { break }
+            flat[len(flat)] = matrix[row][col]
+            col += 1
+        }
+        row += 1
+    }
+    print("flat length: ${len(flat)}")
+    print("flat sum: ${sum_list(flat)}")
+}

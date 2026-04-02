@@ -1,0 +1,32 @@
+fn factorial(n) {
+    if n <= 1 { return 1 }
+    let result = 1
+    let i = 2
+    loop {
+        if i > n { break }
+        result *= i
+        i += 1
+    }
+    return result
+}
+
+fn fibonacci(n) {
+    let a = 0
+    let b = 1
+    let i = 0
+    loop {
+        if i >= n { break }
+        let temp = a + b
+        a = b
+        b = temp
+        i += 1
+    }
+    return a
+}
+
+fn main() {
+    print("5! = ${factorial(5)}")
+    print("8! = ${factorial(8)}")
+    print("fib(10) = ${fibonacci(10)}")
+    print("fib(15) = ${fibonacci(15)}")
+}

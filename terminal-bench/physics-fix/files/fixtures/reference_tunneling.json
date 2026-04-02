@@ -1,0 +1,21 @@
+{
+  "steps": [
+    {
+      "time": 0.0,
+      "bodies": [
+        {"position": [-2.0, 0.0, 0.0], "velocity": [10.0, 0.0, 0.0], "ke": 50.0, "pe": 0.0},
+        {"position": [2.0, 0.0, 0.0], "velocity": [-10.0, 0.0, 0.0], "ke": 50.0, "pe": 0.0}
+      ],
+      "total_energy": 100.0
+    },
+    {
+      "time": 0.5,
+      "bodies": [
+        {"position": [3.0, 0.0, 0.0], "velocity": [10.0, 0.0, 0.0], "ke": 50.0, "pe": 0.0},
+        {"position": [-3.0, 0.0, 0.0], "velocity": [-10.0, 0.0, 0.0], "ke": 50.0, "pe": 0.0}
+      ],
+      "total_energy": 100.0
+    }
+  ],
+  "collisions": [{"step": 0, "body_a": 0, "body_b": 1, "distance": 0.0}]
+}

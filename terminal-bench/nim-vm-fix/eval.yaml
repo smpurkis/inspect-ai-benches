@@ -1,0 +1,15 @@
+name: nim-vm-fix
+sandbox:
+  type: docker
+  config: compose.yaml
+metadata:
+  difficulty: hard
+  category: systems
+  agent_timeout_sec: 3600
+  verifier_timeout_sec: 3600
+variants:
+  default:
+    prompt: |
+      You are working on a task inside a Docker container.
+      Read /app/files/instructions.md to get started.
+      Work entirely offline. Do not modify test files.

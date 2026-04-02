@@ -1,0 +1,9 @@
+services:
+  default:
+    image: local/whisper-audio-forced-alignment:20260216
+    command: tail -f /dev/null
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: '1'

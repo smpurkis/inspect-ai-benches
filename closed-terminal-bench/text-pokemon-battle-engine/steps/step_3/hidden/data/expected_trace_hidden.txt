@@ -1,0 +1,12 @@
+NOTE: This is a reference description, not byte-exact trace.
+
+The complex scenario involves:
+- Turn 1: Charmander sets Sunny Day, Squirtle uses Water Gun (weakened by sun)
+- Turn 2: Charmander uses Flamethrower (boosted by sun), Squirtle sets Rain Dance (overrides sun)
+- Turn 3+: Weather shifts affect damage calculations
+- After Squirtle faints, Bulbasaur enters
+- Pikachu may replace Charmander via faint switch
+- Poison from Toxic ticks each turn
+- Battle should end deterministically with seed 2000
+
+The trace must be fully deterministic and include all weather/status annotations.

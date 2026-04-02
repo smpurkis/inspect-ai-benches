@@ -1,0 +1,20 @@
+[project]
+name = "reporeason-task"
+version = "0.2.0"
+description = "RepoReason benchmark — Inspect AI tasks for repo-reasoning evaluation"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "inspect-ai>=0.3.183",
+    "jinja2>=3.1.0",
+    "openai>=2.17.0",
+    "pydantic>=2.12.5",
+    "pyyaml>=6.0.3",
+    "requests>=2.32.5",
+    "tqdm>=4.67.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]

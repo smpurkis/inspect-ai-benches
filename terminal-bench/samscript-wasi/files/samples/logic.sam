@@ -1,0 +1,20 @@
+fn classify(n) {
+    if n > 0 {
+        return "positive"
+    } else if n < 0 {
+        return "negative"
+    } else {
+        return "zero"
+    }
+}
+
+fn main() {
+    print("classify(5) = ${classify(5)}")
+    print("classify(-3) = ${classify(-3)}")
+    print("classify(0) = ${classify(0)}")
+    let a = true
+    let b = false
+    print("${a} and ${b} = ${a and b}")
+    print("${a} or ${b} = ${a or b}")
+    print("not ${a} = ${not a}")
+}

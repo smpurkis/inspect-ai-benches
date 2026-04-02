@@ -1,0 +1,17 @@
+fn count_down(from_val) {
+    let i = from_val
+    let parts = ""
+    loop {
+        if i <= 0 { break }
+        if parts != "" {
+            parts = parts .. ", "
+        }
+        parts = parts .. str(i)
+        i -= 1
+    }
+    return parts
+}
+
+fn main() {
+    print("countdown: ${count_down(5)}")
+}

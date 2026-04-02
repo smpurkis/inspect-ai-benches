@@ -1,0 +1,17 @@
+slug = "sqlite-query-optimize-with-plan-constraint"
+name = "SQLite Query Optimize with Plan Constraint"
+difficulty = "hard"
+category = "databases"
+visibility = "public"
+timeout = 3600
+agent_timeout = 7200
+
+[files]
+stub = []
+test = []
+hidden_test = []
+support = []
+
+[validation]
+command = "bash"
+args = ["tests/test.sh"]

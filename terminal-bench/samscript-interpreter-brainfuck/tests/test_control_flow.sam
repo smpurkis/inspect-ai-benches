@@ -1,0 +1,34 @@
+fn main() {
+    // If/else
+    let x = 10
+    if x > 5 {
+        print("x > 5")
+    } else {
+        print("x <= 5")
+    }
+
+    if x > 20 {
+        print("big")
+    } else if x > 5 {
+        print("medium")
+    } else {
+        print("small")
+    }
+
+    // Loop with break
+    let i = 0
+    loop {
+        if i >= 5 { break }
+        print("i = ${i}")
+        i += 1
+    }
+
+    // Loop with continue
+    let j = 0
+    loop {
+        if j >= 10 { break }
+        j += 1
+        if j % 2 == 0 { continue }
+        print("odd: ${j}")
+    }
+}

@@ -1,0 +1,14 @@
+{
+  "seed": 1234,
+  "learning_rate": 0.001,
+  "batch_size": 100,
+  "steps": 500,
+  "num_workers": 0,
+  "deterministic_algorithms": true,
+  "allow_random_augmentation": false,
+  "max_cores": 8,
+  "max_train_seconds": 180.0,
+  "min_public_acc": 0.55,
+  "max_params": 100000,
+  "max_model_bytes": 1000000
+}

@@ -1,0 +1,37 @@
+fn sqrt(x) {
+    // Newton's method
+    if x < 0 {
+        assert(false, "sqrt of negative number")
+    }
+    if x == 0 {
+        return 0
+    }
+    let guess = x / 2
+    let i = 0
+    loop {
+        if i >= 20 { break }
+        let next = (guess + x / guess) / 2
+        if abs_diff(next, guess) < 0.0000001 { break }
+        guess = next
+        i += 1
+    }
+    return guess
+}
+
+fn abs_diff(a, b) {
+    if a > b {
+        return a - b
+    }
+    return b - a
+}
+
+fn abs(x) {
+    if x < 0 {
+        return -x
+    }
+    return x
+}
+
+fn pow(base, exp) {
+    return base ** exp
+}

@@ -1,0 +1,31 @@
+id,name,category,price,stock,created_at
+1,Wireless Mouse,Electronics,29.99,150,2024-01-10 08:00:00
+2,USB Keyboard,Electronics,49.99,80,2024-01-10 08:00:00
+3,HDMI Cable,Electronics,12.99,200,2024-01-10 08:00:00
+4,Webcam HD,Electronics,79.99,45,2024-01-10 08:00:00
+5,Bluetooth Speaker,Electronics,39.99,60,2024-01-10 08:00:00
+6,Phone Charger,Electronics,19.99,300,2024-01-10 08:00:00
+7,Python Cookbook,Books,45.0,30,2024-01-11 09:00:00
+8,SQL Mastery,Books,35.0,50,2024-01-11 09:00:00
+9,Data Science 101,Books,55.0,25,2024-01-11 09:00:00
+10,Clean Code,Books,40.0,40,2024-01-11 09:00:00
+11,Design Patterns,Books,50.0,20,2024-01-11 09:00:00
+12,Algorithms Guide,Books,60.0,15,2024-01-11 09:00:00
+13,Cotton T-Shirt,Clothing,15.99,200,2024-01-12 10:00:00
+14,Denim Jeans,Clothing,39.99,100,2024-01-12 10:00:00
+15,Running Shoes,Clothing,89.99,50,2024-01-12 10:00:00
+16,Winter Jacket,Clothing,129.99,30,2024-01-12 10:00:00
+17,Wool Scarf,Clothing,24.99,80,2024-01-12 10:00:00
+18,Leather Belt,Clothing,34.99,60,2024-01-12 10:00:00
+19,Desk Lamp,Home,32.99,70,2024-01-13 11:00:00
+20,Coffee Maker,Home,89.99,25,2024-01-13 11:00:00
+21,Throw Pillow,Home,18.99,150,2024-01-13 11:00:00
+22,Wall Clock,Home,27.99,40,2024-01-13 11:00:00
+23,Bookshelf,Home,149.99,10,2024-01-13 11:00:00
+24,Candle Set,Home,14.99,90,2024-01-13 11:00:00
+25,Yoga Mat,Sports,25.99,100,2024-01-14 12:00:00
+26,Dumbbells 10kg,Sports,45.99,35,2024-01-14 12:00:00
+27,Jump Rope,Sports,9.99,200,2024-01-14 12:00:00
+28,Water Bottle,Sports,12.99,180,2024-01-14 12:00:00
+29,Resistance Bands,Sports,19.99,120,2024-01-14 12:00:00
+30,Tennis Racket,Sports,79.99,20,2024-01-14 12:00:00

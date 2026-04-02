@@ -1,0 +1,9 @@
+services:
+  default:
+    image: local/ffmpeg-multistage:20260216
+    command: tail -f /dev/null
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: '2'

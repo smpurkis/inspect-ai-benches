@@ -1,0 +1,22 @@
+{
+  "v1_to_v2": {
+    "merchant_id": "merchant_code",
+    "event_date": "event_ts",
+    "revenue": "revenue_cents",
+    "cost": "cost_cents"
+  },
+  "removed_columns": [
+    "tier",
+    "event_month"
+  ],
+  "added_columns": [
+    "currency",
+    "channel"
+  ],
+  "type_changes": {
+    "merchant_code": "string (format: M{id:05d})",
+    "event_ts": "string (ISO 8601 with timezone)",
+    "revenue_cents": "int64 (original * 100)",
+    "cost_cents": "int64 (original * 100)"
+  }
+}

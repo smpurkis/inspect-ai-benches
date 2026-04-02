@@ -1,0 +1,12 @@
+fn abs(x) {
+    if x < 0 { return -x }
+    return x
+}
+
+fn main() {
+    print("abs(-7) = ${abs(-7)}")
+    print("abs(5) = ${abs(5)}")
+    let x = -10
+    print("-x = ${-x}")
+    print("x = ${x}")
+}

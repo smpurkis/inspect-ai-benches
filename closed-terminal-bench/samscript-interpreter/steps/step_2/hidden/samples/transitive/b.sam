@@ -1,0 +1,5 @@
+from c import BASE
+
+fn get_value() {
+    return BASE + 10
+}

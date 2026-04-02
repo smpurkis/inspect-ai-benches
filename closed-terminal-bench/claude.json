@@ -1,0 +1,8 @@
+{
+  "env": {
+    "ANTHROPIC_API_KEY": "purkis-home-blah",
+    "ANTHROPIC_BASE_URL": "http://0.0.0.0:8234",
+    "ANTHROPIC_MODEL": "Qwen3.5-122B-A10B-Q5_K_L-thinking"
+  },
+  "model": "Qwen3.5-122B-A10B-Q5_K_L-thinking"
+}

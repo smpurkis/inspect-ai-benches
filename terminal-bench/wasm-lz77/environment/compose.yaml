@@ -1,0 +1,16 @@
+services:
+  default:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    platform: linux/amd64
+    command:
+    - sh
+    - -c
+    - sleep infinity
+    init: true
+    network_mode: host
+    shm_size: 1g
+    mem_limit: 8g
+    cpus: 8
+    x-default: true

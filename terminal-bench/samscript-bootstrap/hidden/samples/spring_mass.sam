@@ -1,0 +1,64 @@
+fn abs_val(x) {
+    if x < 0 { return -x }
+    return x
+}
+
+fn main() {
+    print("=== Damped Spring-Mass Simulation ===")
+
+    // System parameters: m*x'' = -k*x - c*x'
+    let k = 10
+    let c = 0.5
+    let m = 1
+    let dt = 0.01
+
+    // Initial conditions
+    let x = 2
+    let v = 0
+    let step = 0
+    let max_x = 0
+    let zero_crossings = 0
+    let prev_sign = 1
+
+    // Simulate 1000 steps (10 seconds)
+    loop {
+        if step >= 1000 { break }
+
+        let a = (-k * x - c * v) / m
+        v = v + a * dt
+        x = x + v * dt
+        step += 1
+
+        // Track max absolute displacement
+        let ax = abs_val(x)
+        if ax > max_x { max_x = ax }
+
+        // Count zero crossings
+        let cur_sign = 0
+        if x > 0 { cur_sign = 1 }
+        if x < 0 { cur_sign = -1 }
+        if cur_sign != 0 and prev_sign != 0 and cur_sign != prev_sign {
+            zero_crossings += 1
+        }
+        if cur_sign != 0 { prev_sign = cur_sign }
+
+        // Print at specific steps
+        if step == 100 { print("step 100: x = ${x}") }
+        if step == 250 { print("step 250: x = ${x}") }
+        if step == 500 { print("step 500: x = ${x}") }
+        if step == 750 { print("step 750: x = ${x}") }
+        if step == 1000 { print("step 1000: x = ${x}") }
+    }
+
+    // Energy analysis
+    let ke = 0.5 * m * v * v
+    let pe = 0.5 * k * x * x
+    let energy = ke + pe
+    let initial_energy = 0.5 * k * 2 * 2
+
+    print("zero crossings: ${zero_crossings}")
+    print("max displacement: ${max_x}")
+    print("final energy: ${energy}")
+    print("initial energy: ${initial_energy}")
+    print("energy ratio: ${energy / initial_energy}")
+}

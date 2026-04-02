@@ -1,0 +1,9 @@
+from b import get_value
+
+fn compute() {
+    return get_value() * 2
+}
+
+fn main() {
+    print("result: ${compute()}")
+}

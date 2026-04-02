@@ -1,0 +1,21 @@
+name: wasm-compression-stepwise
+sandbox:
+  type: docker
+  config: compose.yaml
+
+metadata:
+  difficulty: hard
+  category: systems
+  visibility: public
+  slug: wasm-compression-stepwise
+  name: WASM Compression Port and Improvement
+  agent_timeout_sec: 7200
+  verifier_timeout_sec: 3600
+  verifier_command: "set -euo pipefail\n\nif [ \"$PWD\" = \"/\" ]; then\n  echo \"Error: WORKDIR not set\" >&2\n  exit 1\nfi\n\nmkdir -p /logs/verifier\n\npython3 /app/step_3/hidden/verifier.py\n"
+
+variants:
+  default:
+    prompt: |
+      You are working on a multi-step compression algorithm task inside a Docker container.
+      Read /app/step_1/files/instructions.md to get started on Step 1.
+      Work entirely offline. Keep outputs deterministic. Do not modify verifier files.

@@ -1,0 +1,21 @@
+fn double(x) {
+    return x * 2
+}
+
+fn add_then_double(a, b) {
+    let sum = a + b
+    return double(sum)
+}
+
+fn make_greeting(name, prefix = "Hello") {
+    return "${prefix}, ${name}!"
+}
+
+fn main() {
+    print(add_then_double(3, 4))
+    print(add_then_double(10, 5))
+    print(make_greeting("Alice"))
+    print(make_greeting("Bob", "Hi"))
+    let result = double(add_then_double(1, 2))
+    print("nested: ${result}")
+}

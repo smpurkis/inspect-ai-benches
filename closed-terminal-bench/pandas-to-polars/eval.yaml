@@ -1,0 +1,40 @@
+name: pandas-to-polars
+sandbox:
+  type: docker
+  config: compose.yaml
+
+metadata:
+  author_name: Terminal-Bench Contributors
+  author_email: contributors@terminal-bench.ai
+  difficulty: hard
+  category: data-engineering
+  tags:
+    - pandas
+    - polars
+    - etl
+    - window-functions
+    - schema-evolution
+    - lazy-execution
+    - parquet
+  expert_time_estimate_min: 240
+  junior_time_estimate_min: 720
+  agent_timeout_sec: 3600
+  verifier_timeout_sec: 3600
+  verifier_command: |
+    set -euo pipefail
+
+    if [ "$PWD" = "/" ]; then
+      echo "Error: WORKDIR not set" >&2
+      exit 1
+    fi
+
+    mkdir -p /logs/verifier
+
+    python3 /app/step_3/hidden/verifier.py
+
+variants:
+  default:
+    prompt: |
+      You are working on a multi-step data pipeline migration task inside a Docker container.
+      Read /app/step_1/files/instructions.md to get started on Step 1.
+      Work offline. Keep outputs deterministic. Do not modify test files.

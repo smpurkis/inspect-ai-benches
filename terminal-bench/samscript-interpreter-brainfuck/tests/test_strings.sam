@@ -1,0 +1,10 @@
+fn main() {
+    let s = "hello" .. " " .. "world"
+    print(s)
+    let name = "Sam"
+    print("Hello, ${name}!")
+    print("1 + 2 = ${1 + 2}")
+    let x = 42
+    print("The answer is ${x}")
+    print("line1\nline2")
+}

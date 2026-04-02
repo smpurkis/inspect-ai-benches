@@ -1,0 +1,33 @@
+There is a string placeholder, <blank>, in this repo in one of the test files.
+{% if repo_dir %}
+The repo has been cloned into {{ repo_dir }} in your working directory.
+{% endif %}
+The blank is located in:
+{
+    "file_path": "{{ file_path }}",
+    "masked_statement": "{{ masked_statement }}"
+}
+Find the exact characters that should replace <blank> so the test passes.
+The answer must be a string containing the exact characters to insert, including any quotes, brackets, commas, or prefixes shown in the code.
+Do NOT modify, fix, or write any code. Your only job is to find the correct value for <blank> by reading the existing codebase.
+{% if use_bash_tool %}
+You MUST use the bash tool to search the repository under {{ repo_dir }} and locate the exact answer. The tool is read-only; do not write files or run interpreters.
+{% endif %}
+You are running in an agentic loop. Always include a non-empty message or a tool call; empty replies will trigger another loop. The loop stops automatically after your final output.
+You only have a limited number of turns, so get to the answer in as few steps as possible.
+Do NOT use the final answer JSON format at any time except for your single final response.
+Output your FINAL answer ONLY as a single JSON object with string fields and no extra text:
+{
+    "reason": "<your reasoning here>",
+    "answer": "<exact characters to fill <blank>>"
+}
+Your final JSON must conform to this schema:
+{
+  "type": "object",
+  "required": ["reason", "answer"],
+  "additionalProperties": false,
+  "properties": {
+    "reason": {"type": "string"},
+    "answer": {"type": "string"}
+  }
+}

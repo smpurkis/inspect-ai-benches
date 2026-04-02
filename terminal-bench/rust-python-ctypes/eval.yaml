@@ -1,0 +1,15 @@
+name: rust-python-ctypes
+sandbox:
+  type: docker
+  config: compose.yaml
+metadata:
+  difficulty: hard
+  category: systems
+  agent_timeout_sec: 7200
+  verifier_timeout_sec: 3600
+variants:
+  default:
+    prompt: |
+      You are working on a C/Python extension task inside a Docker container.
+      Read /app/files/instructions.md to get started.
+      Work entirely offline. Do not modify test files.

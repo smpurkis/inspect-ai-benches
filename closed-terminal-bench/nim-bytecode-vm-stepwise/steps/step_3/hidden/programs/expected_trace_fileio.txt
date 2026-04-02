@@ -1,0 +1,5 @@
+[0001] 0004: PUSH_STR "traced data" | stack: ["traced data"]
+[0002] 0012: FWRITE "/tmp/trace_io.txt" | stack: []
+[0003] 0026: FREAD "/tmp/trace_io.txt" | stack: ["traced data"]
+[0004] 003a: PRINTLN | stack: []
+[0005] 003b: HALT | stack: []

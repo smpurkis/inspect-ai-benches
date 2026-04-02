@@ -1,0 +1,18 @@
+{
+  "battle_won": true,
+  "whiteout": false,
+  "player_hp": 25,
+  "player_max_hp": 108,
+  "player_pp": [
+    9,
+    30,
+    35,
+    20
+  ],
+  "action_count": 2,
+  "actions": [
+    "A",
+    "A"
+  ],
+  "trainer_defeated": true
+}

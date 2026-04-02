@@ -1,0 +1,31 @@
+fn join_range(start, end_val, sep) {
+    let result = ""
+    let i = start
+    loop {
+        if i > end_val { break }
+        if result != "" {
+            result = result .. sep
+        }
+        result = result .. str(i)
+        i += 1
+    }
+    return result
+}
+
+fn repeat_str(s, n) {
+    let result = ""
+    let i = 0
+    loop {
+        if i >= n { break }
+        result = result .. s
+        i += 1
+    }
+    return result
+}
+
+fn main() {
+    print("range: ${join_range(1, 5, ", ")}")
+    let greeting = "Hello" .. " " .. "WASM"
+    print(greeting)
+    print("repeat(abc, 3) = ${repeat_str("abc", 3)}")
+}

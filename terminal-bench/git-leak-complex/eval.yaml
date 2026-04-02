@@ -1,0 +1,15 @@
+name: git-leak-complex
+sandbox:
+  type: docker
+  config: compose.yaml
+metadata:
+  difficulty: hard
+  category: version-control
+  agent_timeout_sec: 14400
+  verifier_timeout_sec: 7200
+variants:
+  default:
+    prompt: |
+      You are working on a git history sanitization task inside a Docker container.
+      Read /app/files/instructions.md to get started.
+      Work entirely offline. Use standard git tooling only. Do not modify verifier files.

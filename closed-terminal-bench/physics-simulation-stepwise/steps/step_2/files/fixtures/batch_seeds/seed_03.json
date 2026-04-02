@@ -1,0 +1,36 @@
+{
+  "config": {
+    "dt": 0.001,
+    "num_steps": 200,
+    "collision_threshold": 0.1,
+    "gravitational_constant": 1.0
+  },
+  "bodies": [
+    {
+      "mass": 100.0,
+      "position": [
+        -5.0,
+        0.0,
+        0.0
+      ],
+      "velocity": [
+        0.0,
+        -2.23606797749979,
+        0.0
+      ]
+    },
+    {
+      "mass": 100.0,
+      "position": [
+        5.0,
+        0.0,
+        0.0
+      ],
+      "velocity": [
+        0.0,
+        2.23606797749979,
+        0.0
+      ]
+    }
+  ]
+}

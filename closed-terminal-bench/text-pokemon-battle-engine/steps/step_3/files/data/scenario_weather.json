@@ -1,0 +1,20 @@
+{
+  "seed": 1100,
+  "pokemon_1": {
+    "species": "Charmander",
+    "level": 50,
+    "moves": ["Sunny Day", "Flamethrower"]
+  },
+  "pokemon_2": {
+    "species": "Squirtle",
+    "level": 50,
+    "moves": ["Water Gun", "Tackle"]
+  },
+  "move_choices": [
+    {"pokemon_1": "Sunny Day", "pokemon_2": "Water Gun"},
+    {"pokemon_1": "Flamethrower", "pokemon_2": "Water Gun"},
+    {"pokemon_1": "Flamethrower", "pokemon_2": "Water Gun"},
+    {"pokemon_1": "Flamethrower", "pokemon_2": "Water Gun"},
+    {"pokemon_1": "Flamethrower", "pokemon_2": "Water Gun"}
+  ]
+}

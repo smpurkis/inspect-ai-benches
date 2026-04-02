@@ -1,0 +1,4 @@
+id,username,email,created_at,is_active
+21,alice,alice2@example.com,2024-03-01 10:00:00,1
+22,ünïcödé_user,unicode@example.com,2024-03-01 11:00:00,1
+23,empty_email_user,,2024-03-01 12:00:00,1

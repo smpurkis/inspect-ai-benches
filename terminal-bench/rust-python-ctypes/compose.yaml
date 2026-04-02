@@ -1,0 +1,12 @@
+services:
+  default:
+    image: local/c-python-ctypes-linalg:20260331
+    platform: linux/amd64
+    command:
+    - sh
+    - -c
+    - sleep infinity
+    init: true
+    network_mode: host
+    mem_limit: 8g
+    cpus: 8

@@ -1,0 +1,39 @@
+{
+  "reached_exit": true,
+  "talked_to_Sailor": true,
+  "picked_up_Potion": true,
+  "player_position": [
+    8,
+    1
+  ],
+  "action_count": 26,
+  "actions": [
+    "UP",
+    "UP",
+    "UP",
+    "UP",
+    "RIGHT",
+    "RIGHT",
+    "RIGHT",
+    "A",
+    "A",
+    "LEFT",
+    "LEFT",
+    "DOWN",
+    "DOWN",
+    "DOWN",
+    "RIGHT",
+    "RIGHT",
+    "A",
+    "RIGHT",
+    "RIGHT",
+    "RIGHT",
+    "RIGHT",
+    "RIGHT",
+    "UP",
+    "UP",
+    "UP",
+    "UP"
+  ],
+  "whiteout": false
+}

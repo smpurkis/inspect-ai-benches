@@ -1,0 +1,11 @@
+fn inner() {
+    let x = 1 / 0
+}
+
+fn middle() {
+    inner()
+}
+
+fn main() {
+    middle()
+}

@@ -1,0 +1,95 @@
+fn sqrt_newton(x) {
+    if x < 0 { return -1 }
+    if x == 0 { return 0 }
+    let guess = x
+    let i = 0
+    loop {
+        if i >= 50 { break }
+        guess = (guess + x / guess) / 2
+        i += 1
+    }
+    return guess
+}
+
+fn abs_val(x) {
+    if x < 0 { return -x }
+    return x
+}
+
+fn main() {
+    print("=== Numerical Methods ===")
+
+    // Newton's square root
+    print("sqrt(2) = ${sqrt_newton(2)}")
+    print("sqrt(9) = ${sqrt_newton(9)}")
+    print("sqrt(144) = ${sqrt_newton(144)}")
+    print("sqrt(0.25) = ${sqrt_newton(0.25)}")
+
+    // Leibniz series: pi/4 = 1 - 1/3 + 1/5 - 1/7 + ...
+    let pi_est = 0
+    let sign = 1
+    let i = 0
+    loop {
+        if i >= 10000 { break }
+        pi_est = pi_est + sign / (2 * i + 1)
+        sign = sign * -1
+        i += 1
+    }
+    pi_est = pi_est * 4
+    print("pi (10000 terms) = ${pi_est}")
+
+    // Taylor series: e = sum(1/n!) for n=0..19
+    let e_est = 1
+    let factorial = 1
+    let j = 1
+    loop {
+        if j >= 20 { break }
+        factorial = factorial * j
+        e_est = e_est + 1 / factorial
+        j += 1
+    }
+    print("e (20 terms) = ${e_est}")
+
+    // Distance formula: sqrt(3^2 + 4^2) = 5
+    let dist = sqrt_newton(3 * 3 + 4 * 4)
+    print("distance(3, 4) = ${dist}")
+
+    // Numerical derivative of x^2 at x=3 (central difference)
+    let h = 0.0001
+    let x = 3
+    let deriv = ((x + h) ** 2 - (x - h) ** 2) / (2 * h)
+    print("d/dx(x^2) at x=3 = ${deriv}")
+
+    // Trapezoidal rule: integral of x^2 from 0 to 1 (should be ~0.333...)
+    let n = 1000
+    let a = 0
+    let b = 1
+    let dx = (b - a) / n
+    let integral = 0
+    let k = 0
+    loop {
+        if k > n { break }
+        let xk = a + k * dx
+        let yk = xk * xk
+        if k == 0 {
+            integral = integral + yk / 2
+        } else if k == n {
+            integral = integral + yk / 2
+        } else {
+            integral = integral + yk
+        }
+        k += 1
+    }
+    integral = integral * dx
+    print("integral(x^2, 0..1) = ${integral}")
+
+    // Sum of harmonic series: 1 + 1/2 + 1/3 + ... + 1/100
+    let harmonic = 0
+    let m = 1
+    loop {
+        if m > 100 { break }
+        harmonic = harmonic + 1 / m
+        m += 1
+    }
+    print("H(100) = ${harmonic}")
+}

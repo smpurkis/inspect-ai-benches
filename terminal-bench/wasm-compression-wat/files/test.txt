@@ -1,0 +1,26 @@
+QuiltPress compression works by scanning input data for repeated five-byte chunks.
+When a chunk appears three or more times, it gets added to a compact dictionary.
+The encoder then replaces each occurrence with a small token index reference.
+This approach works well for text with repeated words and common phrases.
+
+The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog.
+Pack my box with five dozen liquor jugs. Pack my box with five dozen liquor jugs.
+
+Repeated patterns like abcde abcde abcde abcde abcde abcde help test compression.
+More repeated patterns: hello hello hello hello hello hello hello hello hello.
+Even more patterns: world world world world world world world world world.
+
+The dictionary-based approach means that unique content stays as literal bytes,
+while frequently repeated sequences get compressed into token references.
+Each token reference is just a few bytes pointing into the dictionary,
+which saves significant space when the same five-byte chunk appears many times.
+
+Testing binary robustness: the codec must handle all byte values correctly.
+Testing edge cases: very short inputs, empty inputs, and single bytes.
+Testing large inputs: the codec should scale to kilobytes of data efficiently.
+
+Final padding to ensure enough content for meaningful compression ratios.
+The quick brown fox jumps over the lazy dog one more time for good measure.
+Pack my box with five dozen liquor jugs again to add more repeated chunks.
+QuiltPress compression should reduce this file to well under its original size.

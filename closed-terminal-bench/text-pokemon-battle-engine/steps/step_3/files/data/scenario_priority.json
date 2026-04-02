@@ -1,0 +1,18 @@
+{
+  "seed": 1000,
+  "pokemon_1": {
+    "species": "Machop",
+    "level": 50,
+    "moves": ["Mach Punch", "Karate Chop"]
+  },
+  "pokemon_2": {
+    "species": "Abra",
+    "level": 50,
+    "moves": ["Psychic", "Tackle"]
+  },
+  "move_choices": [
+    {"pokemon_1": "Mach Punch", "pokemon_2": "Psychic"},
+    {"pokemon_1": "Mach Punch", "pokemon_2": "Psychic"},
+    {"pokemon_1": "Mach Punch", "pokemon_2": "Psychic"}
+  ]
+}

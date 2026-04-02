@@ -1,0 +1,27 @@
+fn main() {
+    // print
+    print("testing builtins")
+
+    // len
+    print("len of 'hello': ${len("hello")}")
+    print("len of [1,2,3]: ${len([1, 2, 3])}")
+
+    // type
+    print("type(42): ${type(42)}")
+    print("type('hi'): ${type("hi")}")
+    print("type(true): ${type(true)}")
+    print("type(none): ${type(none)}")
+    print("type([]): ${type([])}")
+    print("type({}): ${type({})}")
+
+    // str and num
+    let s = str(42)
+    print("str(42) = ${s}")
+    let n = num("3.14")
+    print("num('3.14') = ${n}")
+
+    // assert (should not fail)
+    assert(1 == 1)
+    assert(len("abc") == 3, "length check")
+    print("all assertions passed")
+}

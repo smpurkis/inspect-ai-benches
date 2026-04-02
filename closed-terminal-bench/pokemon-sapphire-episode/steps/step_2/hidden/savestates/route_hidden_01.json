@@ -1,0 +1,312 @@
+{
+  "screen": "overworld",
+  "player_party": [
+    {
+      "species": "Blaziken",
+      "level": 36,
+      "hp": 108,
+      "max_hp": 108,
+      "attack": 95,
+      "defense": 65,
+      "sp_atk": 85,
+      "sp_def": 65,
+      "speed": 80,
+      "moves": [
+        "Blaze Kick",
+        "Double Kick",
+        "Peck",
+        "Bulk Up"
+      ],
+      "pp": [
+        10,
+        30,
+        35,
+        20
+      ],
+      "status": null,
+      "stat_stages": {
+        "atk": 0,
+        "def": 0,
+        "spa": 0,
+        "spd": 0,
+        "spe": 0
+      }
+    }
+  ],
+  "enemy_trainer": null,
+  "wild_pokemon": null,
+  "player_position": [
+    1,
+    1
+  ],
+  "player_facing": "RIGHT",
+  "map_grid": [
+    [
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      }
+    ],
+    [
+      {
+        "walkable": false
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": false
+      }
+    ],
+    [
+      {
+        "walkable": false
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": false,
+        "has_npc": true,
+        "npc_name": "Fisherman"
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": false
+      }
+    ],
+    [
+      {
+        "walkable": false
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": false
+      }
+    ],
+    [
+      {
+        "walkable": false
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": false
+      }
+    ],
+    [
+      {
+        "walkable": false
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true,
+        "is_exit": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": false
+      }
+    ],
+    [
+      {
+        "walkable": false
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": true
+      },
+      {
+        "walkable": false
+      }
+    ],
+    [
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      },
+      {
+        "walkable": false
+      }
+    ]
+  ],
+  "map_name": "Route 107",
+  "battle_active": false,
+  "battle_won": null,
+  "cursor_position": 0,
+  "flags": {},
+  "inventory": {},
+  "badges": 1,
+  "dialogue_text": ""
+}
