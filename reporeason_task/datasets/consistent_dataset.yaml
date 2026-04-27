@@ -1,0 +1,175 @@
+- repo_url: https://github.com/tkem/cachetools.git
+  repo_commit_id: 318ed714b089293c22ceccb1fa5b32fd9663e4b3
+  mask:
+    file: tests/__init__.py
+    assertion_statement: self.assertEqual(2, cache.pop(2))
+    masked_statement: self.assertEqual(2, cache.<blank>(2))
+    answer: pop
+- repo_url: https://github.com/pallets/flask.git
+  repo_commit_id: 798e006f435887adceb6aab9b57cde8e20276793
+  mask:
+    file: tests/test_basic.py
+    assertion_statement: assert sorted(rv.allow) == ["GET", "HEAD", "POST"]
+    masked_statement: assert sorted(rv.allow) == <blank>
+    answer: '["GET", "HEAD", "POST"]'
+- repo_url: https://github.com/aio-libs/yarl.git
+  repo_commit_id: e0592a18a9a6ad480e9dbacc997eb493c27fb993
+  mask:
+    file: tests/test_url.py
+    assertion_statement: assert url.raw_host == "1dec::1"
+    masked_statement: assert url.raw_host == "<blank>"
+    answer: 1dec::1
+- repo_url: https://github.com/matplotlib/matplotlib.git
+  repo_commit_id: 10ee372203f424d6dbc8a566e7586d1c6854e0ec
+  mask:
+    file: lib/matplotlib/tests/test_figure.py
+    assertion_statement: assert fig.get_label() == 'whole Figure'
+    masked_statement: assert fig.get_label() == '<blank>'
+    answer: whole Figure
+- repo_url: https://github.com/huggingface/candle.git
+  repo_commit_id: 3b39794c14b1de8ba4c2d10d49354d557a415547
+  mask:
+    file: candle-nn/tests/kv_cache.rs
+    assertion_statement: assert_eq!(cache.positions(8), &[13, 14, 15, 16, 17, 18,
+      19, 20]);
+    masked_statement: assert_eq!(cache.positions(8), <blank>);
+    answer:
+      - '&[13, 14, 15, 16, 17, 18, 19, 20]'
+      - '[13, 14, 15, 16, 17, 18, 19, 20]'
+- repo_url: https://github.com/graphprotocol/graph-node.git
+  repo_commit_id: 8c873482695bcafb0891e8175966a3fddbadefc5
+  mask:
+    file: tests/tests/runner_tests.rs
+    assertion_statement: '    assert_ne!(ds.causality_region, CausalityRegion::ONCHAIN);'
+    masked_statement: '    assert_ne!(ds.causality_region, <blank>);'
+    answer: CausalityRegion::ONCHAIN
+- repo_url: https://github.com/prql/prql.git
+  repo_commit_id: 7ac7fbed11d558b7f670b50286ae9296cb46020d
+  mask:
+    file: prqlc/prqlc/tests/integration/sql.rs
+    assertion_statement: assert_eq!(json.chars().nth(json.len() - 1).unwrap(), '}');
+    masked_statement: assert_eq!(json.chars().nth(json.len() - 1).unwrap(), '<blank>');
+    answer: '}'
+- repo_url: https://github.com/scylladb/scylladb.git
+  repo_commit_id: cc03f5c89d09c609515f37557ac267fe00fe7b56
+  mask:
+    file: test/vector_search/vector_store_client_test.cc
+    assertion_statement: BOOST_CHECK(warns[0] == "Paging is not supported for Vector
+      Search queries. The entire result set has been returned.");
+    masked_statement: BOOST_CHECK(warns[0] == "<blank>");
+    answer: Paging is not supported for Vector Search queries. The entire result set
+      has been returned.
+- repo_url: https://github.com/zephyrproject-rtos/zephyr
+  repo_commit_id: 1e03ea8ff7feb7b4c07a21245f40b169195f0b63
+  mask:
+    file: tests/lib/timespec_util/src/main.c
+    assertion_statement: 'zassert_equal(K_TICK_MAX, IS_ENABLED(CONFIG_TIMEOUT_64BIT)
+      ? INT64_MAX : UINT32_MAX - 1);'
+    masked_statement: zassert_equal(K_TICK_MAX, <blank>);
+    answer: 'IS_ENABLED(CONFIG_TIMEOUT_64BIT) ? INT64_MAX : UINT32_MAX - 1'
+- repo_url: https://github.com/MaterializeInc/materialize
+  repo_commit_id: 9c398ffc8889103a67f3a3fdface6c3dd0ca425d
+  mask:
+    file: src/environmentd/tests/pgwire.rs
+    assertion_statement: assert_eq!(err.message(), "EXPLAIN TIMESTAMP cannot have
+      parameters");
+    masked_statement: assert_eq!(err.message(), "<blank> cannot have parameters");
+    answer: EXPLAIN TIMESTAMP
+- repo_url: https://github.com/bytecodealliance/wasmtime
+  repo_commit_id: f248b5c06d041681a0c9d629d5c4146fe8bac860
+  mask:
+    file: tests/all/instance.rs
+    assertion_statement: assert_eq!(grow.call(&mut store, ())?, -1);
+    masked_statement: assert_eq!(grow.call(&mut store, ())?, <blank>);
+    answer: '-1'
+- repo_url: https://github.com/cockroachdb/pebble
+  repo_commit_id: 6375bc02f08be9fa42d5eba2cc172ed8a2910319
+  mask:
+    file: format_major_version_test.go
+    assertion_statement: require.Equal(t, FormatNewest, FormatMajorVersion(29))
+    masked_statement: require.Equal(t, <blank>, FormatMajorVersion(29))
+    answer: FormatNewest
+- repo_url: https://github.com/grpc/grpc
+  repo_commit_id: c8e1fe111170882745fa8398dbaad722eda4e699
+  mask:
+    file: test/cpp/util/time_test.cc
+    assertion_statement: "  EXPECT_EQ(system_clock::time_point::max(),\n         \
+      \   Timespec2Timepoint(gpr_inf_future(GPR_CLOCK_REALTIME)));"
+    masked_statement: "  EXPECT_EQ(<blank>,\n            Timespec2Timepoint(gpr_inf_future(GPR_CLOCK_REALTIME)));"
+    answer: system_clock::time_point::max()
+- repo_url: https://github.com/go-gitea/gitea
+  repo_commit_id: 288d1f526a70c56b0164255d07dd09d8e571b695
+  mask:
+    file: services/wiki/wiki_test.go
+    assertion_statement: assert.Equal(t, "Home.md", newWikiPath)
+    masked_statement: assert.Equal(t, "<blank>", newWikiPath)
+    answer: Home.md
+- repo_url: https://github.com/containers/podman
+  repo_commit_id: 2467b71c4a070a1469c7b419380c69f7c3cb3402
+  mask:
+    file: pkg/rootless/rootless_test.go
+    assertion_statement: assert.Equal(t, filepath.Join(stateDir, "ns_handles"), result)
+    masked_statement: assert.Equal(t, filepath.Join(stateDir, "<blank>"), result)
+    answer: ns_handles
+- repo_url: https://github.com/lapce/lapce
+  repo_commit_id: b012cef466741528f338879fa708355217fc40bd
+  mask:
+    file: lapce-proxy/src/plugin/wasi/tests.rs
+    assertion_statement: '        Err(err) => assert_eq!(err.kind(), std::io::ErrorKind::NotFound),'
+    masked_statement: '        Err(err) => assert_eq!(err.kind(), <blank>),'
+    answer: std::io::ErrorKind::NotFound
+- repo_url: https://github.com/fastify/fastify
+  repo_commit_id: 4682a78381fcb7b9c382cc734295cfc926e581e4
+  mask:
+    file: test/internals/errors.test.js
+    assertion_statement: t.assert.strictEqual(error.message, 'ReadableStream was locked.
+      You should call releaseLock() method on reader before sending.')
+    masked_statement: t.assert.strictEqual(error.message, '<blank>')
+    answer: ReadableStream was locked. You should call releaseLock() method on reader
+      before sending.
+- repo_url: https://github.com/PrefectHQ/prefect
+  repo_commit_id: 180b879799a649b4c70265e92b080a8e3f10096f
+  mask:
+    file: tests/server/orchestration/api/test_block_schemas.py
+    assertion_statement: "        assert (\n            response.json()[\"detail\"\
+      ]\n            == \"Block schemas for protected block types cannot be deleted.\"\
+      \n        )"
+    masked_statement: "        assert (\n            response.json()[\"detail\"]\n\
+      \            == \"<blank>\"\n        )"
+    answer: Block schemas for protected block types cannot be deleted.
+- repo_url: https://github.com/philhofer/fwd
+  repo_commit_id: 20a13a1f6b7cb47a126dcb75152e21e1383bbaba
+  mask:
+    file: writer_test.go
+    assertion_statement: if wr.BufferSize() != DefaultWriterSize {
+    masked_statement: if wr.BufferSize() != <blank> {
+    answer: DefaultWriterSize
+- repo_url: https://github.com/dtolnay/anyhow
+  repo_commit_id: 54036cc289b754775b884485f486e000bcda2875
+  mask:
+    file: tests/test_macros.rs
+    assertion_statement: assert_eq!("oh no!", bail_literal().unwrap_err().to_string());
+    masked_statement: assert_eq!("oh no!", <blank>().unwrap_err().to_string());
+    answer: bail_literal
+- repo_url: https://github.com/dtolnay/thiserror
+  repo_commit_id: ac14934703ad60ece218e6517caf7ae45f5d074e
+  mask:
+    file: tests/no-std/test.rs
+    assertion_statement: assert_eq!(msg, *b"SourceError -1~~~");
+    masked_statement: assert_eq!(msg, *b"SourceError <blank>");
+    answer: -1~~~
+- repo_url: https://github.com/sindresorhus/p-event
+  repo_commit_id: 670a702a268bcad5ce6bd7e18d5186414b9d5dd6
+  mask:
+    file: test.js
+    assertion_statement: "\t\t\tmessage: 'The `count` option should be at least 0\
+      \ or more',"
+    masked_statement: "\t\t\tmessage: '<blank>',"
+    answer: The `count` option should be at least 0 or more
+- repo_url: https://github.com/matklad/once_cell
+  repo_commit_id: fda60a6c70eb2e25a0c73bf515ec4779df3d2e6c
+  mask:
+    file: tests/it/unsync_once_cell.rs
+    assertion_statement: assert_eq!(format!("{:#?}", cell), "OnceCell(Uninit)");
+    masked_statement: assert_eq!(format!("{:#?}", cell), "<blank>");
+    answer: OnceCell(Uninit)
