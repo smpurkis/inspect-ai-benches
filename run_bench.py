@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Unified benchmark runner for terminal-bench tasks.
+"""Unified benchmark runner for god-bench tasks.
 
 Runs each task as a separate inspect eval (isolated token tracking per task).
-Auto-discovers tasks from terminal-bench/*/run.py.
+Auto-discovers tasks from god-bench/*/run.py (and god-bench/archive/*/run.py).
 
 Usage:
-    uv run python run_bench.py                                    # all tasks, gpt-5, 1 round
-    uv run python run_bench.py --tasks pokemon-battle-fix,ext4-recovery
+    uv run python run_bench.py                                    # god-bench tasks, gpt-5, 1 round
+    uv run python run_bench.py --all                              # include archive tasks too
+    uv run python run_bench.py --tasks physics-fix,samscript-wasi
     uv run python run_bench.py --models gpt-5,gpt-5.4 --rounds 3
     uv run python run_bench.py --parallel 10
     uv run python run_bench.py --report-only
@@ -25,24 +26,37 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-BENCH_DIR = ROOT / "terminal-bench"
+BENCH_DIR = ROOT / "god-bench"
+ARCHIVE_DIR = BENCH_DIR / "archive"
 DEFAULT_LOG_DIR = ROOT / "logs" / "bench"
 
 
-def discover_tasks() -> list[str]:
-    """Find all terminal-bench tasks that have a run.py."""
+def discover_tasks(include_archive: bool = False) -> list[str]:
+    """Find god-bench tasks that have a run.py."""
     tasks = []
     for run_py in sorted(BENCH_DIR.glob("*/run.py")):
         name = run_py.parent.name
-        if name == "common":
+        if name in ("common", "archive"):
             continue
         tasks.append(name)
+    if include_archive:
+        for run_py in sorted(ARCHIVE_DIR.glob("*/run.py")):
+            tasks.append(run_py.parent.name)
     return tasks
+
+
+def _find_task_dir(task: str) -> Path:
+    """Resolve task name to its directory (top-level or archive)."""
+    if (BENCH_DIR / task / "run.py").exists():
+        return BENCH_DIR / task
+    if (ARCHIVE_DIR / task / "run.py").exists():
+        return ARCHIVE_DIR / task
+    return BENCH_DIR / task
 
 
 def read_task_timeout(task: str) -> int:
     """Read agent_timeout_sec from eval.yaml, default 3600."""
-    eval_yaml = BENCH_DIR / task / "eval.yaml"
+    eval_yaml = _find_task_dir(task) / "eval.yaml"
     if eval_yaml.exists():
         import re
         text = eval_yaml.read_text()
@@ -123,7 +137,8 @@ def run_eval(
     log_dir.mkdir(parents=True, exist_ok=True)
 
     timeout = read_task_timeout(task)
-    task_spec = f"terminal-bench/{task}/run.py"
+    task_dir = _find_task_dir(task)
+    task_spec = f"{task_dir.relative_to(ROOT)}/run.py"
 
     cmd = [
         "uv", "run", "inspect", "eval",
@@ -261,8 +276,9 @@ def build_report(results: list[dict], tasks: list[str], models: list[str]) -> st
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run terminal-bench evaluations")
-    parser.add_argument("--tasks", default="", help="Comma-separated task names (default: all)")
+    parser = argparse.ArgumentParser(description="Run god-bench evaluations")
+    parser.add_argument("--tasks", default="", help="Comma-separated task names (default: god-bench only)")
+    parser.add_argument("--all", action="store_true", help="Include archive tasks too")
     parser.add_argument("--models", default="gpt-5", help="Comma-separated model names (default: gpt-5)")
     parser.add_argument("--rounds", type=int, default=1, help="Number of rounds per task (default: 1)")
     parser.add_argument("--parallel", type=int, default=5, help="Max parallel evals (default: 5)")
@@ -271,14 +287,15 @@ def main() -> None:
     args = parser.parse_args()
 
     log_base = Path(args.log_dir)
-    all_tasks = discover_tasks()
+    all_tasks = discover_tasks(include_archive=args.all)
     sel_tasks = [t.strip() for t in args.tasks.split(",") if t.strip()] if args.tasks else all_tasks
     sel_models = [m.strip() for m in args.models.split(",") if m.strip()]
 
-    bad = [t for t in sel_tasks if t not in all_tasks]
+    every_task = discover_tasks(include_archive=True)
+    bad = [t for t in sel_tasks if t not in every_task]
     if bad:
         print(f"Unknown tasks: {', '.join(bad)}")
-        print(f"Available: {', '.join(all_tasks)}")
+        print(f"Available: {', '.join(every_task)}")
         return
 
     if args.report_only:
