@@ -11,5 +11,22 @@ wheels/
 
 # Eval log archives (too large for git)
 *.eval
+
 # Secrets
 .env
+
+# Local runner scripts
+run_*.py
+run_*.sh
+verify_freebies.sh
+cifar_step_detail.py
+show_cifar_detail.py
+
+# Local config / tooling
+.python-version
+claude.json
+.claude/
+workspace/
+
+# Benchmark logs (local runs)
+logs/hardened_bench/
