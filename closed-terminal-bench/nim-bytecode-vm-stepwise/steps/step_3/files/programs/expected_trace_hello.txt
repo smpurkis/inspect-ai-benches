@@ -1,3 +1,0 @@
-[0001] 0004: PUSH_STR "Hello, World!" | stack: ["Hello, World!"]
-[0002] 0014: PRINTLN | stack: []
-[0003] 0015: HALT | stack: []

@@ -1,1 +1,0 @@
-{"distinct_merchants":1061,"join_match_rate":1.0,"mean_qa_score":0.21353,"pct_premium":0.19616,"quarantine_by_error":{"INACTIVE_MERCHANT":5,"INVALID_DATE":4,"MISSING_MERCHANT":4,"NEGATIVE_AMOUNT":4,"NULL_REQUIRED":4},"quarantined_rows":21,"row_count":1198,"run_id":"20241230-000000","schema_version":"v2","top_country":"DE","total_input_rows":1219,"valid_rows":1198}

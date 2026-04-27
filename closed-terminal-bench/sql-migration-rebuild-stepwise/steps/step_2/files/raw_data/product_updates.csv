@@ -1,7 +1,0 @@
-op,product_id,version,name,description,price,stock,category,applied_at
-UPDATE,18,2,Tool Advanced,Advanced Tool with extra features,149.99,25,Tools,2024-02-01 08:00:00
-UPDATE,3,2,Widget Pro,Updated Widget Pro with new features,29.99,85,Electronics,2024-02-05 10:00:00
-DELETE,12,1,,,,,,2024-02-06 14:00:00
-UPDATE,7,2,Gadget Plus,Improved Gadget Plus with better specs,79.99,40,Electronics,2024-02-07 09:00:00
-UPDATE,3,1,Budget Widget,Cheaper alternative widget,9.99,200,Electronics,2024-02-02 07:00:00
-DELETE,25,1,,,,,,2024-02-09 11:00:00

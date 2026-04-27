@@ -1,5 +1,0 @@
-from circular_a import foo
-
-fn bar() {
-    return "bar:" .. foo()
-}

@@ -1,4 +1,0 @@
-{
-  "collision_count": 1,
-  "note": "Two high-speed bodies (v=+/-20) starting at x=-1 and x=+3 with dt=0.4. Minimum approach at t*=0.25 where r=0, well within collision_threshold=0.5. Midpoint check (t=0.5) gives |r|=4.0 > 0.5 so the buggy check misses it. End positions are x=+7 and x=-5, distance=12."
-}
