@@ -28,3 +28,9 @@ workspace/
 
 # Benchmark logs (local runs)
 logs/hardened_bench/
+
+# Misc
+.hive/
+.pytest_cache/
+.ruff_cache/
+logs/
