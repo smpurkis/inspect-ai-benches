@@ -72,8 +72,27 @@ def _ensure_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _weighted_quantile(values: np.ndarray, weights: np.ndarray, q: float) -> float:
+    """Compute weighted quantile using linear interpolation on cumulative weights."""
+    order = np.argsort(values)
+    sorted_vals = values[order]
+    sorted_wts = weights[order]
+    cumw = np.cumsum(sorted_wts)
+    # Normalize cumulative weights to [0, 1] range
+    cumw_norm = (cumw - 0.5 * sorted_wts[order.argsort()][np.argsort(order)])
+    # Simpler: use midpoint of each weight as its position
+    cumw_mid = (cumw - sorted_wts / 2.0) / cumw[-1]
+    return float(np.interp(q, cumw_mid, sorted_vals))
+
+
 def _build_outputs(df: pd.DataFrame, out_dir: Path) -> None:
     df = df[df["has_answer"] == 1].copy()
+
+    # ── Weighted p90 quantile per group ────────────────────────────────
+    def _group_weighted_p90(g: pd.DataFrame) -> float:
+        return _weighted_quantile(
+            g["revenue"].values, g["context_length"].values.astype(float), 0.9
+        )
 
     summary = (
         df.groupby(["country", "tier", "event_month", "context_bucket"], as_index=False)
@@ -88,8 +107,18 @@ def _build_outputs(df: pd.DataFrame, out_dir: Path) -> None:
         .reset_index(drop=True)
     )
 
-    summary[["avg_revenue", "avg_margin_pct", "p90_qa_score", "profit_rate"]] = summary[
-        ["avg_revenue", "avg_margin_pct", "p90_qa_score", "profit_rate"]
+    # Add weighted p90 revenue via a separate groupby (needs raw data)
+    wp90 = (
+        df.groupby(["country", "tier", "event_month", "context_bucket"])
+        .apply(_group_weighted_p90)
+        .reset_index(name="weighted_p90_revenue")
+    )
+    summary = summary.merge(
+        wp90, on=["country", "tier", "event_month", "context_bucket"], how="left"
+    )
+
+    summary[["avg_revenue", "avg_margin_pct", "p90_qa_score", "profit_rate", "weighted_p90_revenue"]] = summary[
+        ["avg_revenue", "avg_margin_pct", "p90_qa_score", "profit_rate", "weighted_p90_revenue"]
     ].round(6)
 
     summary.to_parquet(out_dir / "summary.parquet", index=False)

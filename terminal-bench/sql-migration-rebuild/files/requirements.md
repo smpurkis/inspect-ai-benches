@@ -6,46 +6,48 @@ all requirements below.
 
 ## Users
 
-Registered user accounts. Each user has a **unique username** (required) and
-a **unique email address** (required, stored as text). Users carry an
-active/inactive flag that **defaults to active (1)**. Account creation
-timestamps are recorded automatically.
+Registered user accounts. Each user has a **unique username** and a **unique
+email address** (stored as text). Users carry an active/inactive status flag
+with a sensible default for new sign-ups. Account creation timestamps are
+recorded automatically.
 
 ## Products
 
 Product catalog. Every product has a **name** (required), **category**
-(required), and **price**. Prices must be **strictly positive** — zero-price
-items are not supported. Each product tracks an inventory **stock** level
-that **defaults to zero** for new entries and must **never go negative**.
-Creation timestamps are recorded automatically.
+(required), and **price**. The price field should reject invalid values.
+Each product tracks an inventory **stock** level that should have a sensible
+default and must never go negative. Creation timestamps are recorded
+automatically.
 
 ## Orders
 
 Purchase records tying a user to a product. Each order stores a **quantity**
-(must be **at least 1**) and a **total** amount. Orders are timestamped.
-When a user account is **deleted**, all of that user's orders must be
-**automatically removed**.
+(which must be valid) and a **total** amount. Orders are timestamped.
+Related records should be handled appropriately when a user is removed from
+the system.
 
 ## Reviews
 
-User-submitted ratings with optional comments. Ratings use a
-**1-through-5 integer scale**. A user may review any given product **at most
-once**. Reviews are timestamped. When a user account is **deleted**, their
-reviews must be **automatically removed**.
+User-submitted ratings with optional comments. Ratings should be within a
+reasonable range. A user should only be able to review each product once.
+Reviews are timestamped. Related records should be handled appropriately
+when a user is removed from the system.
 
 ## Categories
 
 Hierarchical product categories with a **unique name** and an optional
-**self-referential parent**. Deleting a parent category must **set its
-children's parent to NULL** rather than deleting them. The migration seeds
-three rows: *Electronics* (id 1, no parent), *Laptops* (child of
-Electronics), and *Phones* (child of Electronics).
+**self-referential parent**. Removing a parent category should not delete its
+children — they should become top-level instead. The migration seeds three
+rows: *Electronics* (id 1, no parent), *Laptops* (child of Electronics),
+and *Phones* (child of Electronics).
+
+Products should be linkable to a category via a foreign key.
 
 ## Product Price History
 
 Audit trail for product price changes. Each row records the **product**,
-the **old price**, the **new price**, and a timestamp. A price "update"
-that does **not actually change the value** must produce **no audit row**.
+the **old price**, the **new price**, and a timestamp. Price changes should
+be logged accurately, but non-changes should not create spurious rows.
 
 ## Indexes
 
@@ -59,5 +61,5 @@ index is named `idx_active_categories`.
 
 | Name | Event | Behavior |
 |------|-------|----------|
-| `trg_update_stock` | After a new order is inserted | Decrease the ordered product's stock by the order quantity |
-| `trg_log_price_change` | After a product's price is updated, **only when it actually changes** | Insert a row into the price history with the product id, old price, and new price |
+| `trg_update_stock` | After a new order is inserted | Update the ordered product's stock to reflect the order |
+| `trg_log_price_change` | After a product's price is updated | Log the price change to the history table |

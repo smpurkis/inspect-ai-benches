@@ -272,6 +272,37 @@ def _step2_analytics(df: pd.DataFrame) -> pd.DataFrame:
         on=["merchant_id", "event_month"], how="left",
     )
 
+    # EWMA of qa_score per merchant (span=30)
+    df["ewma_qa_score"] = (
+        df.groupby("merchant_id")["qa_score"]
+        .transform(lambda s: s.ewm(span=30, adjust=True).mean())
+    )
+
+    # MoM growth at t-2 months
+    monthly["prev_monthly_revenue_2m"] = monthly.groupby("merchant_id")[
+        "monthly_revenue"
+    ].shift(2)
+    monthly["mom_revenue_growth_2m"] = (
+        (monthly["monthly_revenue"] - monthly["prev_monthly_revenue_2m"])
+        / monthly["prev_monthly_revenue_2m"]
+    )
+    df = df.merge(
+        monthly[["merchant_id", "event_month", "mom_revenue_growth_2m"]],
+        on=["merchant_id", "event_month"], how="left",
+    )
+
+    # Cohort-relative revenue
+    cohort_median = df.groupby(["country", "tier"])["revenue"].transform("median")
+    df["cohort_relative_revenue"] = np.where(
+        cohort_median != 0, df["revenue"] / cohort_median, 0.0
+    )
+
+    # Intra-month variance
+    df["intra_month_variance"] = df.groupby(
+        ["merchant_id", "event_month"]
+    )["revenue"].transform("var", ddof=1)
+    df["intra_month_variance"] = df["intra_month_variance"].fillna(0.0)
+
     return df
 
 
@@ -287,6 +318,8 @@ ENRICHED_COLS = [
     "rolling_30d_revenue", "revenue_rank", "qa_percentile_band",
     "z_score", "is_anomaly",
     "monthly_cumulative_revenue", "mom_revenue_growth",
+    "ewma_qa_score", "mom_revenue_growth_2m",
+    "cohort_relative_revenue", "intra_month_variance",
 ]
 
 
@@ -366,9 +399,24 @@ def build_quality_v2(
 # (import from pipeline_pandas.py or inline; shown here for completeness)
 
 
+def _weighted_quantile(values: np.ndarray, weights: np.ndarray, q: float) -> float:
+    """Compute weighted quantile using linear interpolation on cumulative weights."""
+    order = np.argsort(values)
+    sorted_vals = values[order]
+    sorted_wts = weights[order]
+    cumw = np.cumsum(sorted_wts)
+    cumw_mid = (cumw - sorted_wts / 2.0) / cumw[-1]
+    return float(np.interp(q, cumw_mid, sorted_vals))
+
+
 def _build_step1_outputs(df: pd.DataFrame, out_dir: Path) -> None:
     """Produce step 1 outputs: summary.parquet, top_merchants.csv, quality.json."""
     filt = df[df["has_answer"] == 1].copy()
+
+    def _group_weighted_p90(g: pd.DataFrame) -> float:
+        return _weighted_quantile(
+            g["revenue"].values, g["context_length"].values.astype(float), 0.9
+        )
 
     summary = (
         filt.groupby(
@@ -384,8 +432,18 @@ def _build_step1_outputs(df: pd.DataFrame, out_dir: Path) -> None:
         .sort_values(["event_month", "country", "tier", "context_bucket"])
         .reset_index(drop=True)
     )
-    summary[["avg_revenue", "avg_margin_pct", "p90_qa_score", "profit_rate"]] = (
-        summary[["avg_revenue", "avg_margin_pct", "p90_qa_score", "profit_rate"]].round(6)
+
+    wp90 = (
+        filt.groupby(["country", "tier", "event_month", "context_bucket"])
+        .apply(_group_weighted_p90)
+        .reset_index(name="weighted_p90_revenue")
+    )
+    summary = summary.merge(
+        wp90, on=["country", "tier", "event_month", "context_bucket"], how="left"
+    )
+
+    summary[["avg_revenue", "avg_margin_pct", "p90_qa_score", "profit_rate", "weighted_p90_revenue"]] = (
+        summary[["avg_revenue", "avg_margin_pct", "p90_qa_score", "profit_rate", "weighted_p90_revenue"]].round(6)
     )
     summary.to_parquet(out_dir / "summary.parquet", index=False)
 
@@ -450,11 +508,23 @@ def main() -> None:
         df = _ensure_columns(df)
         _build_step1_outputs(df, out_dir)
         # Step 2 analytics...
-        from pipeline_pandas_advanced import build_merchant_analytics, build_country_summary
+        from pipeline_pandas_advanced import (
+            build_merchant_analytics, build_country_summary,
+            build_session_analytics, build_promotion_impact, build_pivot_revenue,
+        )
         analytics = build_merchant_analytics(df)
         analytics.to_parquet(out_dir / "merchant_analytics.parquet", index=False)
         summary = build_country_summary(df)
         summary.to_parquet(out_dir / "country_summary.parquet", index=False)
+        sessions = build_session_analytics(df)
+        sessions.to_parquet(out_dir / "session_analytics.parquet", index=False)
+        promo_path = in_dir / "promotions.parquet"
+        if promo_path.exists():
+            promos_df = pd.read_parquet(promo_path)
+            impact = build_promotion_impact(df, promos_df)
+            impact.to_parquet(out_dir / "promotion_impact.parquet", index=False)
+        pivot = build_pivot_revenue(df)
+        pivot.to_parquet(out_dir / "pivot_revenue.parquet", index=False)
     else:
         # V2 mode: full pipeline
         df_v2 = pd.read_parquet(in_dir / "input_v2.parquet")
@@ -471,12 +541,24 @@ def main() -> None:
         # Step 1 outputs
         _build_step1_outputs(df, out_dir)
 
-        # Step 2 outputs (merchant_analytics, country_summary)
-        from pipeline_pandas_advanced import build_merchant_analytics, build_country_summary
+        # Step 2 outputs (merchant_analytics, country_summary, session_analytics, etc.)
+        from pipeline_pandas_advanced import (
+            build_merchant_analytics, build_country_summary,
+            build_session_analytics, build_promotion_impact, build_pivot_revenue,
+        )
         analytics = build_merchant_analytics(df)
         analytics.to_parquet(out_dir / "merchant_analytics.parquet", index=False)
         csummary = build_country_summary(df)
         csummary.to_parquet(out_dir / "country_summary.parquet", index=False)
+        sessions = build_session_analytics(df)
+        sessions.to_parquet(out_dir / "session_analytics.parquet", index=False)
+        promo_path = in_dir / "promotions.parquet"
+        if promo_path.exists():
+            promos_df = pd.read_parquet(promo_path)
+            impact = build_promotion_impact(df, promos_df)
+            impact.to_parquet(out_dir / "promotion_impact.parquet", index=False)
+        pivot = build_pivot_revenue(df)
+        pivot.to_parquet(out_dir / "pivot_revenue.parquet", index=False)
 
         # Step 3 outputs
         enriched = build_enriched_transactions(df_v1, merchants_df, categories_df)

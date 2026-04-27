@@ -168,6 +168,44 @@ def build_merchant_analytics(df: pd.DataFrame) -> pd.DataFrame:
         how="left",
     )
 
+    # ── 7. EWMA of qa_score per merchant (span=30) ─────────────────────
+    #   Pandas: groupby → ewm(span=30).mean()
+    #   Must be ordered by event_date within merchant.
+    df["ewma_qa_score"] = (
+        df.groupby("merchant_id")["qa_score"]
+        .transform(lambda s: s.ewm(span=30, adjust=True).mean())
+    )
+
+    # ── 8. Month-over-month revenue growth at t-2 months ─────────────
+    #   Compare to 2 months ago instead of just 1.
+    monthly["prev_monthly_revenue_2m"] = monthly.groupby("merchant_id")[
+        "monthly_revenue"
+    ].shift(2)
+    monthly["mom_revenue_growth_2m"] = (
+        (monthly["monthly_revenue"] - monthly["prev_monthly_revenue_2m"])
+        / monthly["prev_monthly_revenue_2m"]
+    )
+    df = df.merge(
+        monthly[["merchant_id", "event_month", "mom_revenue_growth_2m"]],
+        on=["merchant_id", "event_month"],
+        how="left",
+    )
+
+    # ── 9. Cohort-relative revenue ────────────────────────────────────
+    #   revenue / median(revenue) within (country, tier) group.
+    cohort_median = df.groupby(["country", "tier"])["revenue"].transform("median")
+    df["cohort_relative_revenue"] = np.where(
+        cohort_median != 0, df["revenue"] / cohort_median, 0.0
+    )
+
+    # ── 10. Intra-month variance ─────────────────────────────────────
+    #   Variance (ddof=1) of revenue among all transactions for the same
+    #   merchant in the same event_month.
+    df["intra_month_variance"] = df.groupby(
+        ["merchant_id", "event_month"]
+    )["revenue"].transform("var", ddof=1)
+    df["intra_month_variance"] = df["intra_month_variance"].fillna(0.0)
+
     # ── Select & round ─────────────────────────────────────────────────
     output_cols = [
         "row_id", "merchant_id", "country", "tier",
@@ -175,11 +213,66 @@ def build_merchant_analytics(df: pd.DataFrame) -> pd.DataFrame:
         "rolling_30d_revenue", "revenue_rank", "qa_percentile_band",
         "z_score", "is_anomaly",
         "monthly_cumulative_revenue", "mom_revenue_growth",
+        "ewma_qa_score", "mom_revenue_growth_2m",
+        "cohort_relative_revenue", "intra_month_variance",
     ]
     result = df[output_cols].copy()
     for col in result.select_dtypes(include=["float64"]).columns:
         result[col] = result[col].round(6)
     result = result.sort_values(["merchant_id", "event_date", "row_id"]).reset_index(drop=True)
+    return result
+
+
+# ── Step 2: Session Analytics ────────────────────────────────────────────
+
+
+def build_session_analytics(df: pd.DataFrame) -> pd.DataFrame:
+    """Build session_analytics.parquet: group consecutive transactions per merchant
+    where the gap between event_dates is <= 7 days into sessions.
+
+    Input:  DataFrame after _ensure_columns(), filtered to has_answer == 1.
+    Output: One row per session with session metrics.
+    """
+    df = df[df["has_answer"] == 1].copy()
+    df = df.sort_values(["merchant_id", "event_date", "row_id"]).reset_index(drop=True)
+
+    # Compute gap between consecutive transactions per merchant
+    df["_prev_date"] = df.groupby("merchant_id")["event_date"].shift(1)
+    df["_gap_days"] = (df["event_date"] - df["_prev_date"]).dt.days
+
+    # Mark session boundaries: a new session starts when gap > 7 or first row per merchant
+    df["_new_session"] = (df["_gap_days"].isna() | (df["_gap_days"] > 7)).astype(int)
+
+    # Session ID per merchant = cumulative sum of session boundaries
+    df["_session_num"] = df.groupby("merchant_id")["_new_session"].cumsum()
+
+    # Aggregate sessions
+    sessions = (
+        df.groupby(["merchant_id", "_session_num"], as_index=False)
+        .agg(
+            session_start=("event_date", "min"),
+            session_end=("event_date", "max"),
+            session_revenue=("revenue", "sum"),
+            event_count=("row_id", "count"),
+        )
+    )
+
+    sessions["session_duration_days"] = (
+        (sessions["session_end"] - sessions["session_start"]).dt.days
+    ).astype("int64")
+
+    # Auto-increment session_id per merchant
+    sessions["session_id"] = sessions.groupby("merchant_id").cumcount() + 1
+
+    result = sessions[[
+        "session_id", "merchant_id", "session_start", "session_end",
+        "session_revenue", "event_count", "session_duration_days",
+    ]].copy()
+
+    for col in result.select_dtypes(include=["float64"]).columns:
+        result[col] = result[col].round(6)
+
+    result = result.sort_values(["merchant_id", "session_id"]).reset_index(drop=True)
     return result
 
 
@@ -261,15 +354,40 @@ def build_country_summary(df: pd.DataFrame) -> pd.DataFrame:
     ps["premium_revenue"] = ps["premium_revenue"].fillna(0.0)
     ps["premium_share"] = ps["premium_revenue"] / ps["total_revenue"]
 
-    # ── Combine ───────────────────────────────────────────────────────
+    # ── Bucket entropy per country ───────────────────────────────────
+    #   Shannon entropy of context_bucket distribution: -sum(p * log(p))
+    #   where p = fraction of rows in each bucket. Skip zero-frequency.
+    def _bucket_entropy(group: pd.DataFrame) -> float:
+        counts = group["context_bucket"].value_counts()
+        total = counts.sum()
+        if total == 0:
+            return 0.0
+        probs = counts / total
+        probs = probs[probs > 0]
+        return float(-np.sum(probs * np.log(probs)))
+
+    entropy = (
+        df.groupby("country")
+        .apply(_bucket_entropy)
+        .reset_index(name="bucket_entropy")
+    )
+
+    # ── Population std of revenue (ddof=0) per country ───────────────
+    pop_std = (
+        df.groupby("country")["revenue"]
+        .std(ddof=0)
+        .reset_index(name="population_std_revenue")
+    )
+
     result = hhi
-    for other in [top3, mc, gini, med]:
+    for other in [top3, mc, gini, med, entropy, pop_std]:
         result = result.merge(other, on="country")
     result = result.merge(ps[["country", "premium_share"]], on="country")
 
     result = result[[
         "country", "hhi", "top3_share", "merchant_count",
         "gini_coefficient", "median_merchant_revenue", "premium_share",
+        "bucket_entropy", "population_std_revenue",
     ]]
     for col in result.select_dtypes(include=["float64"]).columns:
         result[col] = result[col].round(6)
@@ -278,6 +396,70 @@ def build_country_summary(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # ── Main ──────────────────────────────────────────────────────────────────
+
+
+def build_promotion_impact(df: pd.DataFrame, promos_df: pd.DataFrame) -> pd.DataFrame:
+    """Build promotion_impact.parquet via range join.
+
+    For each transaction, find if there was an active promotion for that merchant
+    where event_date is between promo_start and promo_end.
+    Compute promoted_revenue = revenue * (1 - discount_pct/100) and lift.
+
+    Input:  DataFrame after _ensure_columns(), filtered to has_answer == 1.
+    Output: One row per transaction-promotion match.
+    """
+    df = df[df["has_answer"] == 1].copy()
+
+    # Cross-merge on merchant_id, then filter by date range
+    merged = df.merge(promos_df, on="merchant_id", how="inner")
+    matched = merged[
+        (merged["event_date"] >= merged["promo_start"])
+        & (merged["event_date"] <= merged["promo_end"])
+    ].copy()
+
+    matched["promoted_revenue"] = (
+        matched["revenue"] * (1.0 - matched["discount_pct"] / 100.0)
+    )
+    matched["lift"] = matched["revenue"] - matched["promoted_revenue"]
+
+    result = matched[[
+        "row_id", "merchant_id", "promo_id", "event_date",
+        "revenue", "discount_pct", "promoted_revenue", "lift",
+    ]].copy()
+
+    for col in result.select_dtypes(include=["float64"]).columns:
+        result[col] = result[col].round(6)
+
+    result = result.sort_values(["merchant_id", "event_date", "row_id", "promo_id"]).reset_index(drop=True)
+    return result
+
+
+def build_pivot_revenue(df: pd.DataFrame) -> pd.DataFrame:
+    """Build pivot_revenue.parquet: pivot table with rows=event_month, columns=country,
+    values=sum(revenue). Missing month/country combos are 0.0.
+
+    Input:  DataFrame after _ensure_columns(), filtered to has_answer == 1.
+    """
+    df = df[df["has_answer"] == 1].copy()
+
+    pivot = pd.pivot_table(
+        df,
+        values="revenue",
+        index="event_month",
+        columns="country",
+        aggfunc="sum",
+        fill_value=0.0,
+    )
+    pivot = pivot.reset_index()
+    pivot.columns.name = None
+
+    # Round float columns
+    for col in pivot.columns:
+        if col != "event_month":
+            pivot[col] = pivot[col].round(6)
+
+    pivot = pivot.sort_values("event_month").reset_index(drop=True)
+    return pivot
 
 
 def main() -> None:
@@ -294,6 +476,20 @@ def main() -> None:
 
     summary = build_country_summary(df)
     summary.to_parquet(out_dir / "country_summary.parquet", index=False)
+
+    sessions = build_session_analytics(df)
+    sessions.to_parquet(out_dir / "session_analytics.parquet", index=False)
+
+    # Promotion impact (if promotions.parquet exists)
+    promo_path = in_dir / "promotions.parquet"
+    if promo_path.exists():
+        promos_df = pd.read_parquet(promo_path)
+        impact = build_promotion_impact(df, promos_df)
+        impact.to_parquet(out_dir / "promotion_impact.parquet", index=False)
+
+    # Pivot revenue
+    pivot = build_pivot_revenue(df)
+    pivot.to_parquet(out_dir / "pivot_revenue.parquet", index=False)
 
 
 if __name__ == "__main__":

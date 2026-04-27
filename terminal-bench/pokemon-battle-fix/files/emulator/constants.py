@@ -305,15 +305,6 @@ STAT_STAGE_MULTIPLIERS = {
 }
 
 
-def get_type_effectiveness(move_type: str, defender_types: list[str]) -> float:
-    """Calculate type effectiveness multiplier for move vs defender types."""
-    multiplier = 1.0
-    for def_type in defender_types:
-        if move_type in EFFECTIVENESS and def_type in EFFECTIVENESS[move_type]:
-            multiplier *= EFFECTIVENESS[move_type][def_type]
-    return multiplier
-
-
 def get_stat_multiplier(stage: int) -> float:
     """Return the stat multiplier for a given stat stage."""
     stage = max(-6, min(6, stage))

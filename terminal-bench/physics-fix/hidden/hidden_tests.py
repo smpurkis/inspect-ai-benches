@@ -5,7 +5,7 @@ import subprocess
 
 import numpy as np
 
-BINARY = "/app/target/release/nbody_sim"
+BINARY = "/app/target/release/gr_sim"
 HIDDEN_FIXTURES = "/app/hidden/fixtures"
 
 
@@ -30,133 +30,333 @@ def _run_sim(seed_file):
     return result
 
 
-def test_hidden_seed_02_trajectory():
+# ------------------------------------------------------------------
+# 1. TOV polytrope: K=100, Gamma=2, rho_c=1.28e-3
+# ------------------------------------------------------------------
+
+def test_hidden_tov_polytrope():
+    """TOV polytrope: M and R within rtol=1e-3."""
     _build()
-    seed = os.path.join(HIDDEN_FIXTURES, "seed_02.json")
-    ref_file = os.path.join(HIDDEN_FIXTURES, "reference_02.json")
 
-    result = _run_sim(seed)
-    assert result.returncode == 0, f"Simulator failed: {result.stderr[:500]}"
+    seed = os.path.join(HIDDEN_FIXTURES, "seed_tov_polytrope.json")
+    ref_file = os.path.join(HIDDEN_FIXTURES, "reference_tov_polytrope.json")
 
-    output = json.loads(result.stdout)
-    with open(ref_file) as f:
-        reference = json.load(f)
-
-    assert len(output["steps"]) == len(reference["steps"])
-
-    for i, (out_step, ref_step) in enumerate(
-        zip(output["steps"], reference["steps"])
-    ):
-        for j, (ob, rb) in enumerate(
-            zip(out_step["bodies"], ref_step["bodies"])
-        ):
-            np.testing.assert_allclose(
-                ob["position"],
-                rb["position"],
-                atol=1e-10,
-                err_msg=f"Position mismatch at step {i}, body {j}",
-            )
-            np.testing.assert_allclose(
-                ob["velocity"],
-                rb["velocity"],
-                atol=1e-10,
-                err_msg=f"Velocity mismatch at step {i}, body {j}",
-            )
-
-
-def test_hidden_three_body_stable():
-    _build()
-    seed = os.path.join(HIDDEN_FIXTURES, "seed_three_body.json")
-    ref_file = os.path.join(HIDDEN_FIXTURES, "reference_three_body.json")
-
-    result = _run_sim(seed)
-    assert result.returncode == 0, f"Simulator failed: {result.stderr[:500]}"
-
-    output = json.loads(result.stdout)
-    with open(ref_file) as f:
-        reference = json.load(f)
-
-    # Check all steps were generated
-    with open(seed) as f:
-        seed_data = json.load(f)
-    expected_steps = seed_data["config"]["num_steps"] + 1
-    assert len(output["steps"]) == expected_steps, (
-        f"Expected {expected_steps} steps, got {len(output['steps'])}"
+    r = _run_sim(seed)
+    assert r.returncode == 0, (
+        f"Simulator crashed:\nstdout={r.stdout[:500]}\nstderr={r.stderr[:500]}"
     )
 
-    # Check energy conservation
-    initial_energy = output["steps"][0]["total_energy"]
-    final_energy = output["steps"][-1]["total_energy"]
-    drift = abs(final_energy - initial_energy)
-    assert drift < 1e-6, f"Energy drift too large for three-body: {drift:.2e}"
+    output = json.loads(r.stdout)
+    with open(ref_file) as f:
+        reference = json.load(f)
 
-    # Check checkpoint energies
-    for step_str, expected_energy in reference["checkpoint_energies"].items():
-        step_num = int(step_str)
-        actual_energy = output["steps"][step_num]["total_energy"]
-        assert abs(actual_energy - expected_energy) < 1e-10, (
-            f"Energy mismatch at step {step_num}: "
-            f"expected {expected_energy}, got {actual_energy}"
+    out_tov = output["tov"]
+    ref_tov = reference["tov"]
+
+    np.testing.assert_allclose(
+        out_tov["total_mass"], ref_tov["total_mass"],
+        rtol=1e-3,
+        err_msg="Polytrope total mass mismatch",
+    )
+    np.testing.assert_allclose(
+        out_tov["stellar_radius"], ref_tov["stellar_radius"],
+        rtol=1e-3,
+        err_msg="Polytrope stellar radius mismatch",
+    )
+
+
+# ------------------------------------------------------------------
+# 2. TOV surface pressure must be zero
+# ------------------------------------------------------------------
+
+def test_hidden_tov_surface_pressure_zero():
+    """The last profile point must have P < 1e-10."""
+    _build()
+
+    seed = os.path.join(HIDDEN_FIXTURES, "seed_tov_polytrope.json")
+    r = _run_sim(seed)
+    assert r.returncode == 0, f"Simulator crashed:\n{r.stderr[:500]}"
+
+    output = json.loads(r.stdout)
+    profile = output["tov"]["profile"]
+
+    # Last profile point (at 0.999 * R) should have very small pressure.
+    last_p = profile[-1]["pressure"]
+    assert last_p < 1e-10, (
+        f"Surface pressure too large: {last_p:.2e} (should be < 1e-10)"
+    )
+
+
+# ------------------------------------------------------------------
+# 3. TOV Buchdahl limit: high compactness, P_c finite, no NaN
+# ------------------------------------------------------------------
+
+def test_hidden_tov_buchdahl_limit():
+    """High compactness (2M/R ~ 0.7): P_c is large but finite, no NaN."""
+    _build()
+
+    seed = os.path.join(HIDDEN_FIXTURES, "seed_tov_high_compactness.json")
+    ref_file = os.path.join(HIDDEN_FIXTURES, "reference_tov_high_compactness.json")
+
+    r = _run_sim(seed)
+    assert r.returncode == 0, (
+        f"Simulator crashed:\nstdout={r.stdout[:500]}\nstderr={r.stderr[:500]}"
+    )
+
+    output = json.loads(r.stdout)
+    with open(ref_file) as f:
+        reference = json.load(f)
+
+    out_tov = output["tov"]
+    ref_tov = reference["tov"]
+
+    # Central pressure must be finite and positive
+    assert math.isfinite(out_tov["central_pressure"]), "P_c is not finite"
+    assert out_tov["central_pressure"] > 0, "P_c is not positive"
+
+    # No NaN in profile
+    for pt in out_tov["profile"]:
+        for key in ("r", "pressure", "enclosed_mass", "lapse"):
+            assert math.isfinite(pt[key]), (
+                f"NaN/Inf in profile at r={pt['r']}: {key}={pt[key]}"
+            )
+
+    # Compactness should be close to 0.7
+    np.testing.assert_allclose(
+        out_tov["compactness"], ref_tov["compactness"],
+        rtol=1e-2,
+        err_msg="High-compactness compactness mismatch",
+    )
+
+
+# ------------------------------------------------------------------
+# 4. TOV lapse at surface matches exterior Schwarzschild
+# ------------------------------------------------------------------
+
+def test_hidden_tov_lapse_at_surface():
+    """phi(R) = 0.5 * ln(1 - 2M/R) within atol=1e-5."""
+    _build()
+
+    seed = os.path.join(HIDDEN_FIXTURES, "seed_tov_uniform.json")
+    ref_file = os.path.join(HIDDEN_FIXTURES, "reference_tov_uniform.json")
+
+    r = _run_sim(seed)
+    assert r.returncode == 0, f"Simulator crashed:\n{r.stderr[:500]}"
+
+    output = json.loads(r.stdout)
+    with open(ref_file) as f:
+        reference = json.load(f)
+
+    out_tov = output["tov"]
+    ref_tov = reference["tov"]
+
+    # The lapse at the last profile point (near surface) should match reference
+    out_lapse = out_tov["profile"][-1]["lapse"]
+    ref_lapse = ref_tov["profile"][-1]["lapse"]
+
+    np.testing.assert_allclose(
+        out_lapse, ref_lapse,
+        atol=1e-5,
+        err_msg="Lapse at surface mismatch",
+    )
+
+
+# ------------------------------------------------------------------
+# 5. OS trajectory checkpoints match analytical cycloid
+# ------------------------------------------------------------------
+
+def test_hidden_os_trajectory_checkpoints():
+    """r(tau) at 20 equally-spaced tau values match analytical within atol=1e-5."""
+    _build()
+
+    seed = os.path.join(HIDDEN_FIXTURES, "seed_os_standard.json")
+    ref_file = os.path.join(HIDDEN_FIXTURES, "reference_os_standard.json")
+
+    r = _run_sim(seed)
+    assert r.returncode == 0, f"Simulator crashed:\n{r.stderr[:500]}"
+
+    output = json.loads(r.stdout)
+    with open(ref_file) as f:
+        reference = json.load(f)
+
+    out_traj = output["collapse"]["trajectory"]
+    ref_traj = reference["collapse"]["trajectory"]
+
+    # Check at 20 evenly-spaced indices
+    n = len(ref_traj)
+    assert len(out_traj) >= n, (
+        f"Trajectory too short: {len(out_traj)} < {n}"
+    )
+
+    step = max(1, n // 20)
+    for i in range(0, n, step):
+        np.testing.assert_allclose(
+            out_traj[i]["r_surface"],
+            ref_traj[i]["r_surface"],
+            atol=1e-5,
+            err_msg=f"r_surface mismatch at trajectory index {i}",
+        )
+        np.testing.assert_allclose(
+            out_traj[i]["tau"],
+            ref_traj[i]["tau"],
+            atol=1e-5,
+            err_msg=f"tau mismatch at trajectory index {i}",
         )
 
-    # Check bodies remain bounded (no escape)
-    for step in output["steps"]:
-        for body in step["bodies"]:
-            dist = math.sqrt(sum(x * x for x in body["position"]))
-            assert dist < 10.0, (
-                f"Body escaped: position {body['position']}, distance {dist}"
+
+# ------------------------------------------------------------------
+# 6. OS different config: M=0.5, R_b=5.0
+# ------------------------------------------------------------------
+
+def test_hidden_os_different_config():
+    """OS compact: M=0.5, R_b=5.0 -- tau_sing and tau_H correct."""
+    _build()
+
+    seed = os.path.join(HIDDEN_FIXTURES, "seed_os_compact.json")
+    ref_file = os.path.join(HIDDEN_FIXTURES, "reference_os_compact.json")
+
+    r = _run_sim(seed)
+    assert r.returncode == 0, (
+        f"Simulator crashed:\nstdout={r.stdout[:500]}\nstderr={r.stderr[:500]}"
+    )
+
+    output = json.loads(r.stdout)
+    with open(ref_file) as f:
+        reference = json.load(f)
+
+    out_col = output["collapse"]
+    ref_col = reference["collapse"]
+
+    np.testing.assert_allclose(
+        out_col["tau_singularity"], ref_col["tau_singularity"],
+        rtol=1e-4,
+        err_msg="Compact tau_singularity mismatch",
+    )
+    np.testing.assert_allclose(
+        out_col["tau_horizon"], ref_col["tau_horizon"],
+        rtol=1e-3,
+        err_msg="Compact tau_horizon mismatch",
+    )
+
+
+# ------------------------------------------------------------------
+# 7. OS near horizon: no NaN/Inf
+# ------------------------------------------------------------------
+
+def test_hidden_os_near_horizon_no_nan():
+    """Trajectory near r=2M must contain no NaN or Inf."""
+    _build()
+
+    seed = os.path.join(HIDDEN_FIXTURES, "seed_os_standard.json")
+    r = _run_sim(seed)
+    assert r.returncode == 0, f"Simulator crashed:\n{r.stderr[:500]}"
+
+    output = json.loads(r.stdout)
+    traj = output["collapse"]["trajectory"]
+
+    for pt in traj:
+        for key in ("tau", "r_surface", "scale_factor", "energy"):
+            val = pt[key]
+            assert math.isfinite(val), (
+                f"NaN/Inf in trajectory at tau={pt['tau']}: {key}={val}"
             )
 
 
-def test_hidden_collisions_and_tunneling():
-    """Collision detection: correct count/details on seed_02 + CCD tunneling on fast approach."""
+# ------------------------------------------------------------------
+# 8. TOV baryon mass
+# ------------------------------------------------------------------
+
+def test_hidden_tov_baryon_mass():
+    """Baryon mass matches reference within rtol=1e-3."""
     _build()
 
-    # Part 1: collision detection on seed_02
-    seed_02 = os.path.join(HIDDEN_FIXTURES, "seed_02.json")
-    ref_02 = os.path.join(HIDDEN_FIXTURES, "reference_02.json")
+    seed = os.path.join(HIDDEN_FIXTURES, "seed_tov_polytrope.json")
+    ref_file = os.path.join(HIDDEN_FIXTURES, "reference_tov_polytrope.json")
 
-    result = _run_sim(seed_02)
-    assert result.returncode == 0
+    r = _run_sim(seed)
+    assert r.returncode == 0, f"Simulator crashed:\n{r.stderr[:500]}"
 
-    output = json.loads(result.stdout)
-    with open(ref_02) as f:
+    output = json.loads(r.stdout)
+    with open(ref_file) as f:
         reference = json.load(f)
 
-    assert len(output["collisions"]) == len(reference["collisions"]), (
-        f"Collision count mismatch: {len(output['collisions'])} vs "
-        f"{len(reference['collisions'])}"
+    np.testing.assert_allclose(
+        output["tov"]["baryon_mass"],
+        reference["tov"]["baryon_mass"],
+        rtol=1e-3,
+        err_msg="Baryon mass mismatch",
     )
 
-    for out_col, ref_col in zip(output["collisions"], reference["collisions"]):
-        assert out_col["step"] == ref_col["step"]
-        assert out_col["body_a"] == ref_col["body_a"]
-        assert out_col["body_b"] == ref_col["body_b"]
-        assert abs(out_col["distance"] - ref_col["distance"]) < 1e-10
 
-    # Part 2: fast close approach (tunneling)
-    seed_tunnel = os.path.join(HIDDEN_FIXTURES, "seed_h_tunnel.json")
-    ref_tunnel = os.path.join(HIDDEN_FIXTURES, "reference_h_tunnel.json")
+# ------------------------------------------------------------------
+# 9. OS marginal: R_b = 2.5 M (near horizon start)
+# ------------------------------------------------------------------
 
-    result = _run_sim(seed_tunnel)
-    assert result.returncode == 0, f"Simulator failed: {result.stderr[:500]}"
+def test_hidden_os_marginal():
+    """Collapse starting near the horizon (R_b = 2.5 M) still completes."""
+    _build()
 
-    output = json.loads(result.stdout)
-    with open(ref_tunnel) as f:
-        ref_data = json.load(f)
+    seed = os.path.join(HIDDEN_FIXTURES, "seed_os_marginal.json")
+    ref_file = os.path.join(HIDDEN_FIXTURES, "reference_os_marginal.json")
 
-    assert len(output["collisions"]) >= ref_data["collision_count"], (
-        f"Expected at least {ref_data['collision_count']} collision(s) "
-        f"(tunneling), got {len(output['collisions'])}"
+    r = _run_sim(seed)
+    assert r.returncode == 0, (
+        f"Simulator crashed:\nstdout={r.stdout[:500]}\nstderr={r.stderr[:500]}"
     )
 
-    # End positions must be far apart — bodies tunneled through each other
-    final_step = output["steps"][-1]
-    pos_a = final_step["bodies"][0]["position"]
-    pos_b = final_step["bodies"][1]["position"]
-    dist = math.sqrt(sum((a - b) ** 2 for a, b in zip(pos_a, pos_b)))
-    assert dist > 1.0, (
-        f"Bodies should be far apart after tunneling, but distance={dist:.3f}"
+    output = json.loads(r.stdout)
+    with open(ref_file) as f:
+        reference = json.load(f)
+
+    out_col = output["collapse"]
+    ref_col = reference["collapse"]
+
+    np.testing.assert_allclose(
+        out_col["tau_singularity"], ref_col["tau_singularity"],
+        rtol=1e-3,
+        err_msg="Marginal tau_singularity mismatch",
+    )
+    np.testing.assert_allclose(
+        out_col["tau_horizon"], ref_col["tau_horizon"],
+        rtol=1e-2,
+        err_msg="Marginal tau_horizon mismatch",
+    )
+
+
+# ------------------------------------------------------------------
+# 10. Cargo deps restricted
+# ------------------------------------------------------------------
+
+def test_hidden_cargo_deps_restricted():
+    """Cargo.toml only lists serde, serde_json, and clap as dependencies."""
+    import re
+
+    with open("/app/Cargo.toml") as f:
+        content = f.read()
+
+    # Find [dependencies] section
+    dep_match = re.search(
+        r"\[dependencies\](.*?)(?:\n\[|\Z)", content, re.DOTALL
+    )
+    assert dep_match, "No [dependencies] section found in Cargo.toml"
+
+    deps_text = dep_match.group(1)
+
+    # Extract dependency names (handle both inline table and simple forms)
+    dep_names = set()
+    for line in deps_text.strip().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        name = line.split("=")[0].strip().strip('"')
+        if name:
+            dep_names.add(name)
+
+    allowed = {"serde", "serde_json", "clap"}
+    extra = dep_names - allowed
+    assert not extra, (
+        f"Disallowed dependencies found: {extra}. "
+        f"Only {allowed} are permitted."
     )
 
 

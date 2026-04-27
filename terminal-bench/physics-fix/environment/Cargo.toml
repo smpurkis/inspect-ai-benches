@@ -1,11 +1,15 @@
 [package]
-name = "nbody_sim"
+name = "gr_sim"
 version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "nbody_sim"
+name = "gr_sim"
 path = "src/main.rs"
+
+[lib]
+name = "gr_sim"
+path = "src/lib.rs"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }

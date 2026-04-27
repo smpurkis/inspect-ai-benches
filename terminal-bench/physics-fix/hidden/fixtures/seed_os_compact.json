@@ -1,0 +1,10 @@
+{
+  "mode": "collapse",
+  "collapse": {
+    "mass": 0.5,
+    "initial_radius": 5.0,
+    "num_steps": 10000,
+    "rtol": 1e-10,
+    "atol": 1e-12
+  }
+}

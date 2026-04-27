@@ -1,10 +1,10 @@
 import json
-import subprocess
 import os
+import subprocess
 
 import numpy as np
 
-BINARY = "/app/target/release/nbody_sim"
+BINARY = "/app/target/release/gr_sim"
 FIXTURES = "/app/files/fixtures"
 
 
@@ -29,90 +29,152 @@ def _run_sim(seed_file):
     return result
 
 
-def test_trajectory_matches_reference():
-    """Build, run, and verify trajectory matches reference within 1e-10."""
+# ------------------------------------------------------------------
+# 1. Build test
+# ------------------------------------------------------------------
+
+def test_builds():
+    """cargo build --release succeeds."""
     result = _build()
     assert result.returncode == 0, f"cargo build failed:\n{result.stderr[-3000:]}"
 
-    seed = os.path.join(FIXTURES, "seed_01.json")
-    ref_file = os.path.join(FIXTURES, "reference_01.json")
 
-    r1 = _run_sim(seed)
-    assert r1.returncode == 0, (
-        f"Simulator crashed:\nstdout={r1.stdout[:1000]}\nstderr={r1.stderr[:1000]}"
+# ------------------------------------------------------------------
+# 2. TOV uniform density
+# ------------------------------------------------------------------
+
+def test_tov_uniform_density():
+    """TOV with uniform density: M, R, and mid-radius pressure match reference."""
+    result = _build()
+    assert result.returncode == 0, f"Build failed:\n{result.stderr[-2000:]}"
+
+    seed = os.path.join(FIXTURES, "seed_tov_uniform.json")
+    ref_file = os.path.join(FIXTURES, "reference_tov_uniform.json")
+
+    r = _run_sim(seed)
+    assert r.returncode == 0, (
+        f"Simulator crashed:\nstdout={r.stdout[:500]}\nstderr={r.stderr[:500]}"
     )
 
-    # Determinism check
-    r2 = _run_sim(seed)
-    assert r1.stdout == r2.stdout, "Output differs between two runs on the same seed"
-
-    output = json.loads(r1.stdout)
+    output = json.loads(r.stdout)
     with open(ref_file) as f:
         reference = json.load(f)
 
-    assert len(output["steps"]) == len(reference["steps"]), (
-        f"Step count mismatch: {len(output['steps'])} vs {len(reference['steps'])}"
+    out_tov = output["tov"]
+    ref_tov = reference["tov"]
+
+    # Total mass
+    np.testing.assert_allclose(
+        out_tov["total_mass"], ref_tov["total_mass"],
+        atol=1e-5,
+        err_msg="Total mass mismatch",
     )
 
-    for i, (out_step, ref_step) in enumerate(
-        zip(output["steps"], reference["steps"])
-    ):
-        assert abs(out_step["time"] - ref_step["time"]) < 1e-12, (
-            f"Time mismatch at step {i}"
-        )
-        for j, (ob, rb) in enumerate(
-            zip(out_step["bodies"], ref_step["bodies"])
-        ):
-            np.testing.assert_allclose(
-                ob["position"],
-                rb["position"],
-                atol=1e-10,
-                err_msg=f"Position mismatch at step {i}, body {j}",
-            )
-            np.testing.assert_allclose(
-                ob["velocity"],
-                rb["velocity"],
-                atol=1e-10,
-                err_msg=f"Velocity mismatch at step {i}, body {j}",
-            )
+    # Stellar radius
+    np.testing.assert_allclose(
+        out_tov["stellar_radius"], ref_tov["stellar_radius"],
+        atol=1e-5,
+        err_msg="Stellar radius mismatch",
+    )
 
+    # Mid-radius pressure (profile point near R/2)
+    out_profile = out_tov["profile"]
+    ref_profile = ref_tov["profile"]
+    mid_idx = len(ref_profile) // 2
+    np.testing.assert_allclose(
+        out_profile[mid_idx]["pressure"],
+        ref_profile[mid_idx]["pressure"],
+        atol=1e-5,
+        err_msg=f"Pressure mismatch at profile index {mid_idx}",
+    )
+
+
+# ------------------------------------------------------------------
+# 3. OS collapse singularity time
+# ------------------------------------------------------------------
+
+def test_os_collapse_time():
+    """OS collapse: tau_singularity matches analytical value within rtol=1e-4."""
+    result = _build()
+    assert result.returncode == 0, f"Build failed:\n{result.stderr[-2000:]}"
+
+    seed = os.path.join(FIXTURES, "seed_os_standard.json")
+    ref_file = os.path.join(FIXTURES, "reference_os_standard.json")
+
+    r = _run_sim(seed)
+    assert r.returncode == 0, (
+        f"Simulator crashed:\nstdout={r.stdout[:500]}\nstderr={r.stderr[:500]}"
+    )
+
+    output = json.loads(r.stdout)
+    with open(ref_file) as f:
+        reference = json.load(f)
+
+    np.testing.assert_allclose(
+        output["collapse"]["tau_singularity"],
+        reference["collapse"]["tau_singularity"],
+        rtol=1e-4,
+        err_msg="tau_singularity mismatch",
+    )
+
+
+# ------------------------------------------------------------------
+# 4. OS horizon crossing
+# ------------------------------------------------------------------
+
+def test_os_horizon_crossing():
+    """OS collapse: tau_H within rtol=1e-3, r(tau_H)=2M within atol=1e-5."""
+    result = _build()
+    assert result.returncode == 0, f"Build failed:\n{result.stderr[-2000:]}"
+
+    seed = os.path.join(FIXTURES, "seed_os_standard.json")
+    ref_file = os.path.join(FIXTURES, "reference_os_standard.json")
+
+    r = _run_sim(seed)
+    assert r.returncode == 0, (
+        f"Simulator crashed:\nstdout={r.stdout[:500]}\nstderr={r.stderr[:500]}"
+    )
+
+    output = json.loads(r.stdout)
+    with open(ref_file) as f:
+        reference = json.load(f)
+
+    out_col = output["collapse"]
+    ref_col = reference["collapse"]
+
+    np.testing.assert_allclose(
+        out_col["tau_horizon"],
+        ref_col["tau_horizon"],
+        rtol=1e-3,
+        err_msg="tau_horizon mismatch",
+    )
+
+    np.testing.assert_allclose(
+        out_col["horizon_radius"],
+        ref_col["horizon_radius"],
+        atol=1e-5,
+        err_msg="horizon_radius mismatch",
+    )
+
+
+# ------------------------------------------------------------------
+# 5. Energy conservation
+# ------------------------------------------------------------------
 
 def test_energy_conservation():
-    """Total energy must be conserved (drift < 1e-8) on the reference seed."""
-    _build()
-    seed = os.path.join(FIXTURES, "seed_01.json")
-    result = _run_sim(seed)
-    assert result.returncode == 0, f"Simulator failed: {result.stderr[:500]}"
+    """Friedmann energy drift must be < 1e-8 over the collapse trajectory."""
+    result = _build()
+    assert result.returncode == 0, f"Build failed:\n{result.stderr[-2000:]}"
 
-    output = json.loads(result.stdout)
-    initial_energy = output["steps"][0]["total_energy"]
-    final_energy = output["steps"][-1]["total_energy"]
-    drift = abs(final_energy - initial_energy)
+    seed = os.path.join(FIXTURES, "seed_os_standard.json")
+
+    r = _run_sim(seed)
+    assert r.returncode == 0, f"Simulator failed:\n{r.stderr[:500]}"
+
+    output = json.loads(r.stdout)
+    drift = output["collapse"]["energy_drift_max"]
     assert drift < 1e-8, (
-        f"Energy drift {drift:.2e} exceeds tolerance 1e-8 "
-        f"(initial={initial_energy}, final={final_energy})"
-    )
-
-
-def test_tunneling_collision_detected():
-    _build()
-    seed = os.path.join(FIXTURES, "seed_tunneling.json")
-    ref_file = os.path.join(FIXTURES, "reference_tunneling.json")
-
-    result = _run_sim(seed)
-    assert result.returncode == 0, (
-        f"Simulator crashed:\nstdout={result.stdout[:1000]}\nstderr={result.stderr[:1000]}"
-    )
-    output = json.loads(result.stdout)
-
-    with open(ref_file) as f:
-        reference = json.load(f)
-
-    assert output["collisions"], "tunneling collision not detected"
-    assert output["collisions"][0]["step"] == reference["collisions"][0]["step"]
-    assert abs(output["collisions"][0]["distance"] - reference["collisions"][0]["distance"]) < 1e-10, (
-        f"Collision distance mismatch: got {output['collisions'][0]['distance']}, "
-        f"expected {reference['collisions'][0]['distance']}"
+        f"Energy drift {drift:.2e} exceeds tolerance 1e-8"
     )
 
 

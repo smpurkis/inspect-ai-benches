@@ -27,30 +27,21 @@ The file `/app/files/battle_engine.py` contains a deterministic Pokemon-style te
 - `/app/files/data/scenario_public_01.json` — Test scenario: Pikachu vs Squirtle
 - `/app/files/data/expected_output_01.json` — Expected properties of the output
 
-## Damage Formula Reference
+## Damage Calculation
 
-The engine uses the standard Pokemon damage formula:
+Damage follows the standard Pokemon Gen III formula. The calculation involves the attacker's level, move power, attack/defense stats, and various multipliers. Consult the code structure for specifics.
 
-```
-base = ((2 * level / 5 + 2) * power * attack_stat / defense_stat) / 50 + 2
-damage = floor(base * STAB * type_effectiveness * random_factor)
-```
-
-- **STAB** (Same-Type Attack Bonus): 1.5x if the move's type matches one of the attacker's types, otherwise 1.0x
-- **Type effectiveness**: Looked up from `type_chart.json` as `chart[move_type][defender_type]`; multiply together for dual-typed defenders; missing entries default to 1.0x
-- **Random factor**: `randint(85, 100) / 100` from the battle's seeded RNG
-- **Modifier combination**: `STAB * type_effectiveness` (multiplied, not added)
+- **STAB** (Same-Type Attack Bonus): Applied when the move's type matches the attacker's type
+- **Type effectiveness**: Looked up from `type_chart.json` using the move type and defender type(s); multiply together for dual-typed defenders; missing entries default to neutral
+- **Random factor**: A random factor between 0.8 and 1.0 is applied to each damage roll
 - Immune matchups (0x effectiveness) always deal 0 damage
 - Otherwise minimum 1 damage
 
-## HP Formula Reference
+## Stat Calculation
 
-```
-HP  = floor((2 * base + IV + EV/4) * level / 100) + level + 10
-Other = floor((2 * base + IV + EV/4) * level / 100) + 5
-```
+HP calculation follows the standard formula incorporating base stats, IVs, and EVs. Other stats use a similar but slightly different formula. IVs and EVs are 0 in this engine (simplified).
 
-IVs and EVs are 0 in this engine (simplified).
+Stat stage modifiers (from moves like Swords Dance) should affect the relevant stat during damage calculation using the standard Gen III stage multiplier table.
 
 ## Turn Order
 

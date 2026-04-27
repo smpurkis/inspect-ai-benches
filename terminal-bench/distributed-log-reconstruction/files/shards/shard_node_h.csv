@@ -1,0 +1,62 @@
+sequence|timestamp|session_id|event_type|latency_ms|region|status_code
+12|1705312941.984|session_008|heartbeat|3123|ap-south-1|200
+17|1705312965.181|session_002|error%5F500|3296|ap-south-1|500
+22|1705312977.250|session_008|heartbeat|1143|ap-south-1|404
+508|1705313054.791|session_014|error%5F500|2326|eu-west-1|201
+509|1705313077.785|  session_007  |error%5F500|887|ap-south-1|400
+510|1705313099.820|session_013|request%5Fstart|2990|ap-south-1|503
+511|170531312
+512|1705313151.953|session_018|request%5Fstart|3150|us-east-1|400
+513|1705313168.780|session_018|error%5F500|3012|ap-south-1|200
+514|1705313200.0
+515|1705313217.347|session_010|request%5Fstart|1957|us-east-1|503
+551|1705314044.973|session_002|error%5F500|630|eu-west-1|200
+552|1705314075.354|session_008|error%5F500|4026|eu-west-1|200
+553|1705314093.504|  session_018  |request%5Fend|4727|us-east-1|503
+554|1705314122.496|session_016|request%5Fend|3924|ap-south-1|201
+555|1705314142.788|session_007|request%5Fstart|844|us-east-1|503
+556|1705314166.244|session_012|error%5Ftimeout|3417|eu-west-1|201
+557|1705314189.895|session_002|request%5Fstart|546|us-east-1|500
+558|1705314211.903|session_011|request%5Fstart|2086|ap-south-1|404
+559|1705314231.508|session_007|heartbeat|3725|ap-south-1|503
+560|1705314253.728|session_014|request%5Fend|2331|eu-west-1|201
+561|1705314282.074|session_008|request%5Fstart|3680|ap-south-1|503
+562|1705314306.573|  session_004  |request%5Fstart|4478|eu-west-1|404
+563|1705314320.861|session_003|request%5Fend|1412|us-east-1|503
+564|1705314350.341|session_016|error%5Ftimeout|1801|us-east-1|201
+565|1705314373.315|session_002|request%5Fend|3154|us-east-1|503
+566|1705314389.843|session_013|error%5F500|3777|ap-south-1|201
+567|1705314417.543|session_014|heartbeat|4036|eu-west-1|400
+568|1705314438.469|session_007|error%5F500|1833|ap-south-1|400
+569|1705314459.954|session_019|heartbeat|549|us-east-1|201
+570|1705314487.196|session_002|request%5Fstart|4835|eu-west-1|200
+571|1705314512.932|  session_017  |heartbeat|1339|eu-west-1|500
+572|1705314529.115|session_017|request%5Fstart|1572|ap-south-1|201
+573|1705314552.368|session_020|request%5Fstart|1976|us-east-1|201
+574|1705314580.924|session_004|heartbeat|2066|us-east-1|200
+575|1705314606.856|session_020|request%5Fstart|721|us-east-1|200
+576|1705314627.302|session_019|heartbeat|4332|ap-south-1|503
+577|1705314648.680|session_009|request%5Fend|2623|eu-west-1|201
+578|1705314670.469|session_009|error%5Ftimeout|1122|us-east-1|404
+579|1705314694.537|session_015|error%5F500|644|ap-south-1|400
+580|1705314712.836|  session_015  |heartbeat|4662|eu-west-1|200
+581|1705314737.385|session_003|heartbeat|1796|us-east-1|404
+582|1705314767.098|session_009|request%5Fend|2909|ap-south-1|200
+583|1705314782.999|session_008|error%5F500|2384|eu-west-1|500
+584|1705314807.519|session_015|heartbeat|2528|us-east-1|503
+585|1705314836.664|session_001|heartbeat|2502|us-east-1|400
+586|1705314852.757|session_005|error%5F500|995|eu-west-1|500
+587|1705314875.876|session_018|request%5Fend|2281|eu-west-1|404
+588|1705314901.801|session_020|request%5Fend|2858|us-east-1|500
+589|1705314923.583|  session_009  |heartbeat|4052|eu-west-1|200
+590|1705314947.425|session_002|request%5Fstart|3519|us-east-1|404
+591|1705314970.906|session_002|request%5Fstart|2782|us-east-1|503
+592|1705314991.579|session_009|request%5Fend|3669|us-east-1|400
+593|1705315021.537|session_014|heartbeat|129|us-east-1|200
+594|1705315037.393|session_003|request%5Fend|4519|ap-south-1|404
+595|1705315059.214|session_012|heartbeat|4576|eu-west-1|201
+596|1705315084.112|session_014|request%5Fend|392|eu-west-1|404
+597|1705315109.799|session_012|request%5Fstart|2981|us-east-1|404
+598|1705315131.253|  session_008  |request%5Fstart|2947|ap-south-1|200
+599|1705315160.047|session_014|heartbeat|1316|ap-south-1|400
+600|1705315177.815|session_006|request%5Fend|3427|ap-south-1|500

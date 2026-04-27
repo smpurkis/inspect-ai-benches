@@ -76,14 +76,8 @@ module recovery/extractor
 go 1.21
 """
 
-# Five bugs in the extractor:
-#   BUG 1 (syntax):  missing closing } for the for-loop  (line ~70)
-#   BUG 2 (logic):   cleanName = cleanName[1:]  strips the first character
-#   BUG 3 (logic):   os.O_APPEND instead of os.O_TRUNC in extractFile
-#   BUG 4 (logic):   io.LimitReader(r, 4*1024*1024-1) truncates files
-#                    exactly 4 MB by 1 byte (off-by-one)
-#   BUG 5 (non-determinism): accumulate files in map[string][]byte before
-#                    writing — map iteration order is non-deterministic
+# The extractor source contains several bugs across syntax, logic, and
+# determinism that the agent must find and fix.
 EXTRACTOR_GO = (
     "package main\n"
     "\n"
@@ -128,8 +122,7 @@ EXTRACTOR_GO = (
     "\n"
     "\ttarReader := tar.NewReader(gzReader)\n"
     "\n"
-    "\t// BUG 5: accumulate all file contents in a map before writing;\n"
-    "\t// map iteration order is non-deterministic in Go.\n"
+    "\t// Collect files before writing\n"
     "\tfileContents := make(map[string][]byte)\n"
     "\tfileModes := make(map[string]os.FileMode)\n"
     "\tdirPaths := []string{}\n"
@@ -143,6 +136,7 @@ EXTRACTOR_GO = (
     "\t\t\treturn fmt.Errorf(\"reading tar entry: %w\", err)\n"
     "\t\t}\n"
     "\n"
+    "\t\t// Remove path prefix\n"
     "\t\tcleanName := header.Name\n"
     "\t\tif len(cleanName) > 0 {\n"
     "\t\t\tcleanName = cleanName[1:]\n"
@@ -154,15 +148,18 @@ EXTRACTOR_GO = (
     "\t\tcase tar.TypeDir:\n"
     "\t\t\tdirPaths = append(dirPaths, targetPath)\n"
     "\t\tcase tar.TypeReg:\n"
-    "\t\t\t// BUG 4: LimitReader with 4MB-1 truncates files exactly 4 MB\n"
-    "\t\t\t// by one byte (off-by-one error).\n"
-    "\t\t\tlimited := io.LimitReader(tarReader, 4*1024*1024-1)\n"
+    "\t\t\t// Limit file size to 4MB\n"
+    "\t\t\tlimited := io.LimitReader(tarReader, 4*1000*1000)\n"
     "\t\t\tdata, err := io.ReadAll(limited)\n"
     "\t\t\tif err != nil {\n"
     "\t\t\t\treturn fmt.Errorf(\"reading entry %s: %w\", header.Name, err)\n"
     "\t\t\t}\n"
     "\t\t\tfileContents[targetPath] = data\n"
     "\t\t\tfileModes[targetPath] = header.FileInfo().Mode()\n"
+    "\t\tcase tar.TypeSymlink:\n"
+    "\t\t\t// Record symlink target as file content\n"
+    "\t\t\tfileContents[targetPath] = []byte(header.Linkname)\n"
+    "\t\t\tfileModes[targetPath] = 0644\n"
     "\t\tdefault:\n"
     "\t\t\tfmt.Fprintf(os.Stderr, \"skipping unsupported type %d for %s\\n\",\n"
     "\t\t\t\theader.Typeflag, header.Name)\n"
@@ -178,7 +175,7 @@ EXTRACTOR_GO = (
     "\t\t}\n"
     "\t}\n"
     "\n"
-    "\t// BUG 5 continued: iterate over map (non-deterministic order)\n"
+    "\t// Write collected files to disk\n"
     "\tfor targetPath, data := range fileContents {\n"
     "\t\tif err := os.MkdirAll(filepath.Dir(targetPath), 0755); err != nil {\n"
     "\t\t\treturn err\n"
@@ -191,6 +188,7 @@ EXTRACTOR_GO = (
     "}\n"
     "\n"
     "func extractFile(destPath string, data []byte, mode os.FileMode) error {\n"
+    "\t// Open file for writing\n"
     "\toutFile, err := os.OpenFile(destPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, mode)\n"
     "\tif err != nil {\n"
     "\t\treturn fmt.Errorf(\"creating file %s: %w\", destPath, err)\n"
@@ -353,11 +351,7 @@ def generate_large_corpus() -> bytes:
 
 # ── Workspace files (contents of payload.tar.gz) ────────────────────────
 
-# New manifest_tool.go with two deliberate bugs for the Merkle tree task:
-#   BUG A: sorts children by hash instead of by name before hashing a
-#          directory node (produces wrong Merkle root)
-#   BUG B: doesn't include directory entries in the output (only files)
-# The agent must fix both bugs.
+# Manifest tool source for the Merkle tree task (Phase 3).
 WS_MANIFEST_TOOL_GO = (
     "package main\n"
     "\n"
@@ -407,10 +401,10 @@ WS_MANIFEST_TOOL_GO = (
     "\t// First line: root hash\n"
     "\tfmt.Fprintln(out, rootHash)\n"
     "\n"
-    "\t// BUG B: only emit file entries, skip directories\n"
+    "\t// Process directory entries\n"
     "\tfor _, e := range entries {\n"
     "\t\tif e.isDir {\n"
-    "\t\t\tcontinue // BUG B: should output dir entries too\n"
+    "\t\t\tcontinue\n"
     "\t\t}\n"
     "\t\tfmt.Fprintf(out, \"%s  %s\\n\", e.hash, e.relPath)\n"
     "\t}\n"
@@ -432,9 +426,8 @@ WS_MANIFEST_TOOL_GO = (
     "\n"
     "// hashDir computes the Merkle hash of a directory node.\n"
     "// It concatenates `name\\0hash\\n` for each child and hashes the result.\n"
-    "// BUG A: children are sorted by hash instead of by name.\n"
     "func hashDir(children []struct{ name, hash string }) string {\n"
-    "\t// BUG A: sort by hash value rather than by child name\n"
+    "\t// Sort children for deterministic ordering\n"
     "\tsort.Slice(children, func(i, j int) bool {\n"
     "\t\treturn children[i].hash < children[j].hash\n"
     "\t})\n"
@@ -588,10 +581,15 @@ def generate_large_corpus_ws() -> bytes:
 
 
 # Maps tar-internal relative paths to content bytes.
-# NOTE: large_corpus.dat is added for step 2 bug 4 (4MB truncation) testing.
 def build_workspace_files() -> dict:
+    """Build the workspace file map.
+
+    Symlink entries are included with the resolved target content so that
+    reference hashes and manifest computation work correctly.  The actual
+    tar payload contains a proper symlink entry (see create_payload_tar_gz).
+    """
     large_corpus = generate_large_corpus_ws()
-    return {
+    files = {
         "README.md": WS_README.encode(),
         "config/build.json": WS_BUILD_JSON.encode(),
         "data/large_corpus.dat": large_corpus,
@@ -599,9 +597,24 @@ def build_workspace_files() -> dict:
         "data/sentinel_beta.txt": WS_SENTINEL_BETA.encode(),
         "data/sentinel_gamma.bin": WS_SENTINEL_GAMMA,
     }
+    # Add symlink entries with resolved content for reference computation.
+    # data/latest_sentinel.txt -> sentinel_alpha.txt  (relative within data/)
+    for link_path, target in WORKSPACE_SYMLINKS.items():
+        # Resolve relative target within the same directory
+        import posixpath
+        link_dir = posixpath.dirname(link_path)
+        resolved = posixpath.normpath(posixpath.join(link_dir, target))
+        files[link_path] = files[resolved]
+    return files
 
 
 WORKSPACE_DIRS = ["config", "data"]
+
+# Symlinks in the workspace payload: {link_path: target}
+# The extractor must create actual symlinks (not regular files containing the target string).
+WORKSPACE_SYMLINKS = {
+    "data/latest_sentinel.txt": "sentinel_alpha.txt",
+}
 
 # Directories to create in the ext4 image (order matters — parents first).
 DISK_DIRS = [
@@ -659,6 +672,19 @@ def create_payload_tar_gz(workspace_files: dict) -> bytes:
             info.uname = "root"
             info.gname = "root"
             tar.addfile(info, io.BytesIO(content))
+
+        for link_path in sorted(WORKSPACE_SYMLINKS):
+            target = WORKSPACE_SYMLINKS[link_path]
+            info = tarfile.TarInfo(name=link_path)
+            info.type = tarfile.SYMTYPE
+            info.linkname = target
+            info.mode = 0o777
+            info.mtime = 0
+            info.uid = 0
+            info.gid = 0
+            info.uname = "root"
+            info.gname = "root"
+            tar.addfile(info)
 
     gz_buf = io.BytesIO()
     with gzip.GzipFile(fileobj=gz_buf, mode="wb", mtime=0) as gz:
@@ -823,6 +849,7 @@ def compute_merkle_manifest(workspace_files: dict) -> tuple[str, list[str]]:
         build.json
       data/
         large_corpus.dat
+        latest_sentinel.txt  (symlink -> sentinel_alpha.txt)
         sentinel_alpha.txt
         sentinel_beta.txt
         sentinel_gamma.bin
@@ -849,7 +876,8 @@ def compute_merkle_manifest(workspace_files: dict) -> tuple[str, list[str]]:
     # Compute directory hashes bottom-up
     # Known directory structure:
     # config: {build.json}
-    # data: {large_corpus.dat, sentinel_alpha.txt, sentinel_beta.txt, sentinel_gamma.bin}
+    # data: {large_corpus.dat, latest_sentinel.txt, sentinel_alpha.txt,
+    #         sentinel_beta.txt, sentinel_gamma.bin}
     # root: {README.md, config/, data/}
 
     config_children = [("build.json", file_hashes["config/build.json"])]
@@ -857,6 +885,7 @@ def compute_merkle_manifest(workspace_files: dict) -> tuple[str, list[str]]:
 
     data_children = [
         ("large_corpus.dat", file_hashes["data/large_corpus.dat"]),
+        ("latest_sentinel.txt", file_hashes["data/latest_sentinel.txt"]),
         ("sentinel_alpha.txt", file_hashes["data/sentinel_alpha.txt"]),
         ("sentinel_beta.txt", file_hashes["data/sentinel_beta.txt"]),
         ("sentinel_gamma.bin", file_hashes["data/sentinel_gamma.bin"]),
@@ -925,11 +954,6 @@ def generate_references(all_files: dict, workspace_files: dict) -> None:
         "dirs": sorted(DISK_DIRS),
     })
 
-    # Step 1 new references for backup superblock and inode repair
-    # The valid backup superblock block number (block group 4 for 1K-block fs)
-    with open(f"{REFERENCES_DIR}/step1/backup_superblock_group.txt", "w") as fh:
-        fh.write("32768\n")
-
     # ── Step 2 ──
 
     ws_tree = sorted(workspace_files.keys())
@@ -987,6 +1011,7 @@ def generate_references(all_files: dict, workspace_files: dict) -> None:
     config_h = dir_hash_ref([("build.json", file_hashes["config/build.json"])])
     data_h = dir_hash_ref([
         ("large_corpus.dat", file_hashes["data/large_corpus.dat"]),
+        ("latest_sentinel.txt", file_hashes["data/latest_sentinel.txt"]),
         ("sentinel_alpha.txt", file_hashes["data/sentinel_alpha.txt"]),
         ("sentinel_beta.txt", file_hashes["data/sentinel_beta.txt"]),
         ("sentinel_gamma.bin", file_hashes["data/sentinel_gamma.bin"]),

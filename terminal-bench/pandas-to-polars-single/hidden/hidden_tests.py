@@ -32,10 +32,10 @@ OUT_DIR_V2 = Path("/tmp/pandas_to_polars_step3_v2_hidden")
 
 # SHA256 of expected v2 outputs
 HIDDEN_EXPECTED_ENRICHED_SHA256 = (
-    "8b2b412b80a0e8ec4e052526a3179677a47bd1f402d99edbca0940f96772afa7"
+    "a209010bae18609c94d358ffd1624482c5515ace0c77d527f21734fae4fa26f6"
 )
 HIDDEN_EXPECTED_QUARANTINE_SHA256 = (
-    "1fc3202e53e21df440af962b432d537bc59a2f4db6413df29e6e3a73d8840c8d"
+    "bc8b38c881c8d416703cda672e055821faa53d445013ca10e08808955c4ad273"
 )
 HIDDEN_EXPECTED_QUALITY_V2_SHA256 = (
     "b4a935af199286efeaee4b943609f8c250d30a6e1f9bde45371752b7260dc0b3"
@@ -207,6 +207,127 @@ def test_step3_hidden_v1_step2_regression(v1_pipeline_output) -> None:
     _assert_parquet_equal(
         v1_pipeline_output / "country_summary.parquet",
         STEP2_EXPECTED / "country_summary.parquet",
+    )
+
+
+# ── New complexity hidden tests ──────────────────────────────────────────
+
+
+def test_hidden_ewma_precision(v2_pipeline_output) -> None:
+    """EWMA values in merchant_analytics must match pandas ewm(span=30) within rtol=1e-5."""
+    actual = pl.read_parquet(v2_pipeline_output / "merchant_analytics.parquet")
+    expected = pl.read_parquet(STEP2_EXPECTED / "merchant_analytics.parquet")
+    assert "ewma_qa_score" in actual.columns, (
+        "merchant_analytics.parquet missing ewma_qa_score column"
+    )
+    a_vals = actual["ewma_qa_score"].drop_nulls().to_list()
+    e_vals = expected["ewma_qa_score"].drop_nulls().to_list()
+    assert len(a_vals) == len(e_vals), (
+        f"ewma_qa_score row count mismatch: {len(a_vals)} vs {len(e_vals)}"
+    )
+    for i, (a, e) in enumerate(zip(a_vals, e_vals)):
+        assert math.isclose(a, e, rel_tol=1e-5), (
+            f"ewma_qa_score mismatch at row {i}: {a} vs {e}"
+        )
+
+
+def test_hidden_weighted_quantile(v2_pipeline_output) -> None:
+    """Weighted p90 revenue values must match pandas reference within rtol=1e-4."""
+    actual = pl.read_parquet(v2_pipeline_output / "summary.parquet")
+    expected = pl.read_parquet(STEP2_EXPECTED / "summary.parquet")
+    assert "weighted_p90_revenue" in actual.columns, (
+        "summary.parquet missing weighted_p90_revenue column"
+    )
+    a_vals = actual["weighted_p90_revenue"].drop_nulls().to_list()
+    e_vals = expected["weighted_p90_revenue"].drop_nulls().to_list()
+    assert len(a_vals) == len(e_vals), (
+        f"weighted_p90_revenue row count mismatch: {len(a_vals)} vs {len(e_vals)}"
+    )
+    for i, (a, e) in enumerate(zip(a_vals, e_vals)):
+        assert math.isclose(a, e, rel_tol=1e-4), (
+            f"weighted_p90_revenue mismatch at row {i}: {a} vs {e}"
+        )
+
+
+def test_hidden_session_windows_correct(v2_pipeline_output) -> None:
+    """Session windows must match expected boundaries exactly."""
+    actual = pl.read_parquet(v2_pipeline_output / "session_analytics.parquet")
+    expected = pl.read_parquet(STEP2_EXPECTED / "session_analytics.parquet")
+    assert_frame_equal(
+        actual, expected, check_exact=False, check_dtype=False, rtol=1e-5,
+    )
+
+
+def test_hidden_ddof_0_vs_1(v2_pipeline_output) -> None:
+    """Population std (ddof=0) must differ from sample std (ddof=1) and both must be correct."""
+    cs = pl.read_parquet(v2_pipeline_output / "country_summary.parquet")
+    expected_cs = pl.read_parquet(STEP2_EXPECTED / "country_summary.parquet")
+    assert "population_std_revenue" in cs.columns, (
+        "country_summary.parquet missing population_std_revenue"
+    )
+    # population_std_revenue must match expected
+    for row_a, row_e in zip(
+        cs.select("country", "population_std_revenue").iter_rows(),
+        expected_cs.select("country", "population_std_revenue").iter_rows(),
+    ):
+        assert math.isclose(row_a[1], row_e[1], rel_tol=1e-5), (
+            f"population_std_revenue mismatch for {row_a[0]}: {row_a[1]} vs {row_e[1]}"
+        )
+
+
+def test_hidden_promotion_range_join(v2_pipeline_output) -> None:
+    """Promotion impact range join must correctly match promotions to transactions by date range."""
+    path = v2_pipeline_output / "promotion_impact.parquet"
+    assert path.exists(), "Missing promotion_impact.parquet"
+    actual = pl.read_parquet(path)
+    expected = pl.read_parquet(STEP2_EXPECTED / "promotion_impact.parquet")
+    assert_frame_equal(
+        actual, expected, check_exact=False, check_dtype=False, rtol=1e-5,
+    )
+
+
+def test_hidden_pivot_fill_zeros(v2_pipeline_output) -> None:
+    """Pivot revenue missing cells must be 0.0 not NaN."""
+    path = v2_pipeline_output / "pivot_revenue.parquet"
+    assert path.exists(), "Missing pivot_revenue.parquet"
+    actual = pl.read_parquet(path)
+    expected = pl.read_parquet(STEP2_EXPECTED / "pivot_revenue.parquet")
+    # Check no nulls (must be 0.0)
+    for col in actual.columns:
+        if col != "event_month":
+            assert actual[col].null_count() == 0, (
+                f"pivot_revenue {col} has NaN values - should be 0.0"
+            )
+    assert_frame_equal(
+        actual, expected, check_exact=False, check_dtype=False, rtol=1e-5,
+    )
+
+
+def test_hidden_intra_month_variance(v2_pipeline_output) -> None:
+    """Intra-month variance values must match pandas reference."""
+    actual = pl.read_parquet(v2_pipeline_output / "merchant_analytics.parquet")
+    expected = pl.read_parquet(STEP2_EXPECTED / "merchant_analytics.parquet")
+    assert "intra_month_variance" in actual.columns, (
+        "merchant_analytics.parquet missing intra_month_variance"
+    )
+    assert_frame_equal(
+        actual.select("row_id", "intra_month_variance"),
+        expected.select("row_id", "intra_month_variance"),
+        check_exact=False, check_dtype=False, rtol=1e-5,
+    )
+
+
+def test_hidden_cohort_relative_revenue(v2_pipeline_output) -> None:
+    """Cohort-relative revenue values must match pandas reference."""
+    actual = pl.read_parquet(v2_pipeline_output / "merchant_analytics.parquet")
+    expected = pl.read_parquet(STEP2_EXPECTED / "merchant_analytics.parquet")
+    assert "cohort_relative_revenue" in actual.columns, (
+        "merchant_analytics.parquet missing cohort_relative_revenue"
+    )
+    assert_frame_equal(
+        actual.select("row_id", "cohort_relative_revenue"),
+        expected.select("row_id", "cohort_relative_revenue"),
+        check_exact=False, check_dtype=False, rtol=1e-5,
     )
 
 

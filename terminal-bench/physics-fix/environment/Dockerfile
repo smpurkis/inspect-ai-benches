@@ -34,7 +34,10 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
 
 # Pre-compile Rust dependencies with a stub for offline builds
 COPY Cargo.toml .
-RUN mkdir -p src && echo 'fn main() {}' > src/main.rs && \
+RUN mkdir -p src && \
+    echo 'pub mod types;' > src/lib.rs && \
+    echo 'fn main() {}' > src/main.rs && \
+    echo '' > src/types.rs && \
     cargo vendor && \
     mkdir -p .cargo && \
     printf '[source.crates-io]\nreplace-with = "vendored"\n\n[source.vendored]\ndirectory = "vendor"\n' > .cargo/config.toml && \

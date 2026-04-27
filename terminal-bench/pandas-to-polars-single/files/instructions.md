@@ -7,13 +7,14 @@ and data quarantine in one pipeline.
 ## Resources
 
 - Pandas reference implementations (read-only):
-  - `/app/files/pipeline_pandas.py` (core aggregation logic)
-  - `/app/files/pipeline_pandas_advanced.py` (window function logic)
+  - `/app/files/pipeline_pandas.py` (core aggregation logic + weighted quantile)
+  - `/app/files/pipeline_pandas_advanced.py` (window functions, sessions, promotions, pivot)
   - `/app/files/pipeline_pandas_v2.py` (schema evolution + quarantine logic)
 - V1 public input: `/app/files/public_data/input.parquet`
 - V2 public input: `/app/files/public_data/input_v2.parquet`
 - Reference tables: `/app/files/public_data/merchants.parquet`,
-  `/app/files/public_data/categories.parquet`
+  `/app/files/public_data/categories.parquet`,
+  `/app/files/public_data/promotions.parquet`
 - Schema mapping: `/app/files/public_data/schema_mapping.json`
 - Expected outputs: `/app/files/public_data/expected/`
 
@@ -68,6 +69,10 @@ All window columns are computed on rows where `has_answer == 1`, sorted by
 | `is_anomaly` | 1 if `abs(z_score) > 2`, else 0 |
 | `monthly_cumulative_revenue` | Cumulative sum of `revenue` within `(merchant_id, event_month)`, in sort order. |
 | `mom_revenue_growth` | Month-over-month revenue growth per merchant. Aggregate total monthly revenue per `(merchant_id, event_month)`, shift by 1 month, then compute `(current_month - prev_month) / prev_month`. First month per merchant is null (no previous month). Join back to each row by `(merchant_id, event_month)`. |
+| `ewma_qa_score` | Exponentially-weighted moving average of `qa_score` per merchant, ordered by event_date, span=30, adjust=True. Pandas: `ewm(span=30, adjust=True).mean()`. |
+| `mom_revenue_growth_2m` | Month-over-month revenue growth comparing to 2 months ago (shift=2). First 2 months per merchant are null. |
+| `cohort_relative_revenue` | `revenue / median(revenue)` within `(country, tier)` group. 0.0 if median is 0. |
+| `intra_month_variance` | Variance (ddof=1) of revenue among all transactions for same `(merchant_id, event_month)`. Fill NaN with 0.0. |
 
 ---
 
@@ -84,6 +89,7 @@ Filter to `has_answer == 1`. Group by `[country, tier, event_month, context_buck
 | `avg_margin_pct` | mean of `margin_pct` |
 | `p90_qa_score` | 90th percentile of `qa_score` (linear interpolation) |
 | `profit_rate` | mean of `profit_flag` |
+| `weighted_p90_revenue` | 90th percentile of `revenue` weighted by `context_length`. Uses midpoint-weighted cumulative distribution with `np.interp`. |
 
 Sort: `[event_month, country, tier, context_bucket]`. Round all floats to 6 decimal places.
 
@@ -126,7 +132,9 @@ Per-transaction enrichment with window columns, on `has_answer == 1` rows.
 Output columns (in order): `row_id`, `merchant_id`, `country`, `tier`,
 `event_date`, `event_month`, `revenue`, `cost`, `qa_score`,
 `rolling_30d_revenue`, `revenue_rank`, `qa_percentile_band`,
-`z_score`, `is_anomaly`, `monthly_cumulative_revenue`, `mom_revenue_growth`.
+`z_score`, `is_anomaly`, `monthly_cumulative_revenue`, `mom_revenue_growth`,
+`ewma_qa_score`, `mom_revenue_growth_2m`, `cohort_relative_revenue`,
+`intra_month_variance`.
 
 Sort: `[merchant_id, event_date, row_id]`. Round all floats to 6 decimal places.
 
@@ -143,8 +151,54 @@ One row per country. Concentration and distribution metrics computed on
 | `gini_coefficient` | Gini coefficient of merchant revenue distribution. For sorted revenues: `(2 * sum(i * rev_i)) / (n * total) - (n + 1) / n`. Single-merchant or zero-total countries return 0.0. |
 | `median_merchant_revenue` | Median of per-merchant total revenue within country. |
 | `premium_share` | Sum of revenue from `tier == "premium"` merchants / total country revenue. |
+| `bucket_entropy` | Shannon entropy of `context_bucket` distribution per country: `-sum(p * log(p))`. Skip zero-frequency buckets. |
+| `population_std_revenue` | Standard deviation of `revenue` per country using `ddof=0` (population std). Note: this is different from the sample std (ddof=1) used in z_score. |
 
 Sort: `[country]`. Round all floats to 6 decimal places.
+
+### 6. `session_analytics.parquet`
+
+Group consecutive transactions per merchant where gap between event_dates <= 7 days.
+
+| Column | Type/Formula |
+|--------|-------------|
+| `session_id` | int64, auto-increment per merchant (1-based) |
+| `merchant_id` | int64 |
+| `session_start` | datetime (UTC), min event_date in session |
+| `session_end` | datetime (UTC), max event_date in session |
+| `session_revenue` | float64, sum of revenue |
+| `event_count` | int64, number of transactions |
+| `session_duration_days` | int64, (session_end - session_start) in days |
+
+Session boundary: a new session starts when the gap from the previous transaction
+(same merchant) exceeds 7 days or it is the first transaction for that merchant.
+Sort: `[merchant_id, session_id]`. Round floats to 6dp.
+
+### 7. `promotion_impact.parquet`
+
+Range join: for each transaction with `has_answer == 1`, match against
+`promotions.parquet` where `merchant_id` matches and
+`event_date BETWEEN promo_start AND promo_end`.
+
+| Column | Formula |
+|--------|---------|
+| `row_id` | Original transaction row_id |
+| `merchant_id` | int64 |
+| `promo_id` | int64, from promotions table |
+| `event_date` | datetime (UTC) |
+| `revenue` | float64 |
+| `discount_pct` | float64, from promotions table |
+| `promoted_revenue` | `revenue * (1 - discount_pct / 100)` |
+| `lift` | `revenue - promoted_revenue` |
+
+Sort: `[merchant_id, event_date, row_id, promo_id]`. Round floats to 6dp.
+
+### 8. `pivot_revenue.parquet`
+
+Pivot table with rows = `event_month`, columns = `country`, values = `sum(revenue)`.
+Missing month/country combinations must be `0.0` (not NaN/null).
+
+Sort: `[event_month]`. Round floats to 6dp.
 
 ---
 
@@ -166,6 +220,9 @@ Sort: `[country]`. Round all floats to 6 decimal places.
 - **`merchants.parquet`**: `merchant_code`, `merchant_id`, `tier`, `segment`,
   `onboarding_date`, `is_active` (bool, ~5% False)
 - **`categories.parquet`**: `context_bucket`, `category_label`, `priority`, `sla_hours`
+- **`promotions.parquet`**: `promo_id`, `merchant_id`, `promo_start` (datetime UTC),
+  `promo_end` (datetime UTC), `discount_pct` (float64). 25 promotions across
+  different merchants and date ranges.
 
 ## Data Quarantine
 
@@ -181,7 +238,8 @@ Error code priority (first match wins):
 ## V2 Mode Outputs
 
 V2 mode produces all v1-mode outputs (summary, top_merchants, quality,
-merchant_analytics, country_summary) **plus** the following additional outputs.
+merchant_analytics, country_summary, session_analytics, promotion_impact,
+pivot_revenue) **plus** the following additional outputs.
 
 ### 1. `enriched_transactions.parquet`
 
@@ -219,6 +277,10 @@ Columns (in this order):
 | `is_anomaly` | 1 if `abs(z_score) > 2`, else 0 |
 | `monthly_cumulative_revenue` | Cumulative sum of `revenue` within `(merchant_id, event_month)` |
 | `mom_revenue_growth` | Month-over-month revenue growth per merchant (null for first month) |
+| `ewma_qa_score` | EWMA of qa_score per merchant, span=30, adjust=True |
+| `mom_revenue_growth_2m` | MoM growth comparing to 2 months ago (null for first 2 months) |
+| `cohort_relative_revenue` | revenue / median(revenue) within (country, tier) |
+| `intra_month_variance` | Variance (ddof=1) of revenue within (merchant_id, event_month), NaN filled to 0.0 |
 
 Sort: `[merchant_id, event_date, row_id]`. All floats rounded to 6 decimal places.
 

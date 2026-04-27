@@ -14,15 +14,12 @@ RUN apt-get update && \
       && rm -rf /var/lib/apt/lists/*
 
 RUN git config --system user.name "Agent" && git config --system user.email "agent@example.com" && \
-    python3 -m pip install --no-cache-dir --break-system-packages pytest pytest-json-ctrf pytest-timeout git-filter-repo
+    python3 -m pip install --no-cache-dir --break-system-packages pytest pytest-json-ctrf pytest-timeout
 
-COPY repo_small.tgz /tmp/repo_small.tgz
-COPY repo_large.tgz /tmp/repo_large.tgz
-RUN mkdir -p /app/repo /app/repo_large && \
-    tar xzf /tmp/repo_small.tgz -C /app/repo && \
-    tar xzf /tmp/repo_large.tgz -C /app/repo_large && \
-    rm /tmp/repo_small.tgz /tmp/repo_large.tgz && \
-    git config --system --add safe.directory /app/repo && \
-    git config --system --add safe.directory /app/repo_large
+COPY repo.tgz /tmp/repo.tgz
+RUN mkdir -p /app/repo && \
+    tar xzf /tmp/repo.tgz -C /app/repo && \
+    rm /tmp/repo.tgz && \
+    git config --system --add safe.directory /app/repo
 
 CMD ["bash"]

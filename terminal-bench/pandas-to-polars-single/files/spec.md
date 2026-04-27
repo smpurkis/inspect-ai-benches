@@ -115,6 +115,103 @@ Outputs:
    - `top_country`: country with highest row count (break ties alphabetically).
    - `run_id`: formatted as `YYYYMMDD-000000` using the max `event_date`.
 
+## Additional output: summary.parquet weighted_p90_revenue
+
+In `summary.parquet`, add a `weighted_p90_revenue` column: the 90th percentile of
+`revenue` weighted by `context_length` (not uniform weight). Use `np.interp` on
+sorted cumulative midpoint-weighted positions.
+
+The pandas reference uses this formula:
+```python
+def _weighted_quantile(values, weights, q):
+    order = np.argsort(values)
+    sorted_vals = values[order]
+    sorted_wts = weights[order]
+    cumw = np.cumsum(sorted_wts)
+    cumw_mid = (cumw - sorted_wts / 2.0) / cumw[-1]
+    return float(np.interp(q, cumw_mid, sorted_vals))
+```
+
+## Additional output: merchant_analytics.parquet new columns
+
+The following additional columns are included in `merchant_analytics.parquet`:
+
+| Column | Formula |
+|--------|---------|
+| `ewma_qa_score` | Exponentially-weighted moving average of `qa_score` per merchant, ordered by event_date, with `span=30`, `adjust=True`. In pandas: `groupby("merchant_id")["qa_score"].transform(lambda s: s.ewm(span=30, adjust=True).mean())`. |
+| `mom_revenue_growth_2m` | Month-over-month revenue growth comparing to 2 months ago (shift=2 instead of shift=1). First 2 months per merchant are NaN. |
+| `cohort_relative_revenue` | `revenue / median(revenue)` within `(country, tier)` group. 0.0 if median is 0. |
+| `intra_month_variance` | Variance (ddof=1) of revenue among all transactions for the same `(merchant_id, event_month)`. Single-transaction months have variance 0.0 (fill NaN). |
+
+## Additional output: country_summary.parquet new columns
+
+| Column | Formula |
+|--------|---------|
+| `bucket_entropy` | Shannon entropy of `context_bucket` distribution per country: `-sum(p * log(p))` where p = fraction of rows in each bucket. Zero-frequency buckets are skipped. |
+| `population_std_revenue` | Standard deviation of `revenue` per country using `ddof=0` (population std, not sample std). |
+
+## Additional output: session_analytics.parquet
+
+Group consecutive transactions per merchant where the gap between `event_date` values
+is <= 7 days. Each group is one "session".
+
+| Column | Type |
+|--------|------|
+| `session_id` | int64, auto-increment per merchant starting at 1 |
+| `merchant_id` | int64 |
+| `session_start` | datetime (UTC), earliest event_date in session |
+| `session_end` | datetime (UTC), latest event_date in session |
+| `session_revenue` | float64, sum of revenue in session |
+| `event_count` | int64, count of transactions in session |
+| `session_duration_days` | int64, (session_end - session_start) in days |
+
+Sort: `[merchant_id, session_id]`. Round floats to 6dp.
+
+Session boundary logic (pandas reference):
+```python
+df["_gap_days"] = df.groupby("merchant_id")["event_date"].shift(1)
+df["_new_session"] = (gap.isna() | (gap > 7)).astype(int)
+df["_session_num"] = df.groupby("merchant_id")["_new_session"].cumsum()
+```
+
+## Additional output: promotion_impact.parquet
+
+Range join of transactions with `promotions.parquet`. For each transaction, find
+active promotions where `event_date BETWEEN promo_start AND promo_end` for the same
+merchant_id.
+
+### promotions.parquet (reference table)
+
+| Column | Type |
+|--------|------|
+| `promo_id` | int64 |
+| `merchant_id` | int64 |
+| `promo_start` | datetime (UTC) |
+| `promo_end` | datetime (UTC) |
+| `discount_pct` | float64 |
+
+### promotion_impact.parquet columns
+
+| Column | Formula |
+|--------|---------|
+| `row_id` | Original transaction row_id |
+| `merchant_id` | int64 |
+| `promo_id` | int64 |
+| `event_date` | datetime (UTC) |
+| `revenue` | float64, original transaction revenue |
+| `discount_pct` | float64, from promotions table |
+| `promoted_revenue` | `revenue * (1.0 - discount_pct / 100.0)` |
+| `lift` | `revenue - promoted_revenue` |
+
+Sort: `[merchant_id, event_date, row_id, promo_id]`. Round floats to 6dp.
+
+## Additional output: pivot_revenue.parquet
+
+Pivot table: rows = `event_month`, columns = `country`, values = `sum(revenue)`.
+Missing month/country combinations must be `0.0` (not NaN/null).
+
+Sort: `[event_month]`. Round floats to 6dp.
+
 ## Notes
 
 - For `/app/out/summary.parquet` and `/app/out/top_merchants.csv`, round all float outputs to 6 decimal places.

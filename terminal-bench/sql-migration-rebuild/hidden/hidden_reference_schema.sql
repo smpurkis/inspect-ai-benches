@@ -12,7 +12,8 @@ CREATE TABLE products (
     category TEXT NOT NULL,
     price REAL NOT NULL CHECK(price > 0),
     stock INTEGER NOT NULL DEFAULT 0 CHECK(stock >= 0),
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    category_id INTEGER REFERENCES categories(id)
 );
 
 CREATE TABLE orders (

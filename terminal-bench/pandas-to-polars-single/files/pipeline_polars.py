@@ -32,6 +32,9 @@ class PipelineResult:
     quality: dict[str, Any] | None = None
     merchant_analytics: Any = None
     country_summary: Any = None
+    session_analytics: Any = None
+    promotion_impact: Any = None
+    pivot_revenue: Any = None
     enriched_transactions: Any = None
     quarantine: Any = None
     quality_v2: dict[str, Any] | None = None
@@ -82,7 +85,7 @@ def scan_reference_tables(in_dir: Path) -> dict[str, pl.LazyFrame]:
     """Open any available reference tables for the v2 path."""
 
     reference_tables: dict[str, pl.LazyFrame] = {}
-    for name in ("merchants", "categories"):
+    for name in ("merchants", "categories", "promotions"):
         path = in_dir / f"{name}.parquet"
         if path.exists():
             reference_tables[name] = pl.scan_parquet(str(path))
@@ -136,6 +139,18 @@ def write_pipeline_outputs(result: PipelineResult, out_dir: Path) -> None:
         write_parquet_output(
             result.country_summary, out_dir / "country_summary.parquet"
         )
+    if result.session_analytics is not None:
+        write_parquet_output(
+            result.session_analytics, out_dir / "session_analytics.parquet"
+        )
+    if result.promotion_impact is not None:
+        write_parquet_output(
+            result.promotion_impact, out_dir / "promotion_impact.parquet"
+        )
+    if result.pivot_revenue is not None:
+        write_parquet_output(
+            result.pivot_revenue, out_dir / "pivot_revenue.parquet"
+        )
     if result.enriched_transactions is not None:
         write_parquet_output(
             result.enriched_transactions,
@@ -147,15 +162,83 @@ def write_pipeline_outputs(result: PipelineResult, out_dir: Path) -> None:
         write_json_output(result.quality_v2, out_dir / "quality_v2.json")
 
 
-def build_v1_outputs(input_lf: pl.LazyFrame) -> PipelineResult:
+def build_session_analytics(lf: pl.LazyFrame) -> pl.LazyFrame:
+    """Build session_analytics.parquet.
+
+    Group consecutive transactions per merchant where gap between event_dates
+    is <= 7 days into sessions.
+
+    TODO:
+    - Filter to has_answer == 1, sort by [merchant_id, event_date, row_id].
+    - Compute gap between consecutive event_dates per merchant.
+    - A new session starts when gap > 7 days (or first row per merchant).
+    - Session ID per merchant = cumsum of session boundaries.
+    - Aggregate: session_start, session_end, session_revenue, event_count,
+      session_duration_days.
+    - Auto-increment session_id per merchant.
+    - Output columns: session_id, merchant_id, session_start, session_end,
+      session_revenue, event_count, session_duration_days.
+    - Sort: [merchant_id, session_id]. Round floats to 6dp.
+    """
+    _ = lf
+    raise NotImplementedError("Implement build_session_analytics")
+
+
+def build_promotion_impact(
+    lf: pl.LazyFrame, promos_lf: pl.LazyFrame
+) -> pl.LazyFrame:
+    """Build promotion_impact.parquet via range join.
+
+    For each transaction, find active promotions where event_date is between
+    promo_start and promo_end for the same merchant_id.
+
+    TODO:
+    - Filter to has_answer == 1.
+    - Join transactions with promotions on merchant_id.
+    - Filter to rows where event_date >= promo_start AND event_date <= promo_end.
+    - Compute: promoted_revenue = revenue * (1 - discount_pct / 100),
+               lift = revenue - promoted_revenue.
+    - Output columns: row_id, merchant_id, promo_id, event_date, revenue,
+      discount_pct, promoted_revenue, lift.
+    - Sort: [merchant_id, event_date, row_id, promo_id]. Round floats to 6dp.
+    """
+    _ = lf, promos_lf
+    raise NotImplementedError("Implement build_promotion_impact")
+
+
+def build_pivot_revenue(lf: pl.LazyFrame) -> pl.LazyFrame:
+    """Build pivot_revenue.parquet.
+
+    Pivot table: rows = event_month, columns = country, values = sum(revenue).
+    Missing month/country combinations must be 0.0 (not null/NaN).
+
+    TODO:
+    - Filter to has_answer == 1.
+    - Pivot revenue by event_month (index) and country (columns).
+    - Fill nulls with 0.0.
+    - Sort by event_month. Round floats to 6dp.
+    """
+    _ = lf
+    raise NotImplementedError("Implement build_pivot_revenue")
+
+
+def build_v1_outputs(
+    input_lf: pl.LazyFrame,
+    reference_tables: dict[str, pl.LazyFrame] | None = None,
+) -> PipelineResult:
     """Build the v1 outputs.
 
     TODO:
     - Filter to rows where has_answer == 1.
     - Derive the Step 1 fields such as net_revenue, profit_flag, and qa_score.
-    - Produce summary.parquet, top_merchants.csv, and quality.json.
-    - Extend this same function in Step 2 to also populate merchant_analytics and
-      country_summary without breaking the original outputs.
+    - Produce summary.parquet (including weighted_p90_revenue), top_merchants.csv,
+      and quality.json.
+    - Produce merchant_analytics.parquet with all window columns including
+      ewma_qa_score, mom_revenue_growth_2m, cohort_relative_revenue,
+      intra_month_variance.
+    - Produce country_summary.parquet with bucket_entropy and population_std_revenue.
+    - Produce session_analytics.parquet, promotion_impact.parquet (if promotions
+      reference table is available), and pivot_revenue.parquet.
     """
 
     _ = input_lf
@@ -172,7 +255,10 @@ def build_v2_outputs(
     - Preserve lazy execution and start from scan_v2_input/scan_reference_tables.
     - Validate and quarantine bad rows before emitting enriched outputs.
     - Continue producing the step 1 and step 2 outputs where required.
-    - Add enriched_transactions.parquet, quarantine.parquet, and quality_v2.json.
+    - Add enriched_transactions.parquet (with new window columns), quarantine.parquet,
+      and quality_v2.json.
+    - Also produce session_analytics.parquet, promotion_impact.parquet, and
+      pivot_revenue.parquet.
     """
 
     _ = input_lf, reference_tables
@@ -182,7 +268,7 @@ def build_v2_outputs(
 def run_v1_pipeline(in_dir: Path, out_dir: Path) -> None:
     """Orchestrate the v1 path and write its outputs."""
 
-    result = build_v1_outputs(scan_v1_input(in_dir))
+    result = build_v1_outputs(scan_v1_input(in_dir), scan_reference_tables(in_dir))
     write_pipeline_outputs(result, out_dir)
 
 

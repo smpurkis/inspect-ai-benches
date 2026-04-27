@@ -45,8 +45,7 @@ def test_manifest_has_dir_entries() -> None:
     assert len(lines) > 1, "manifest.txt has only the root hash line"
     dir_lines = [l for l in lines[1:] if l.endswith("/")]
     assert len(dir_lines) >= 1, (
-        "No directory entries found in manifest. "
-        "Bug B (skipping isDir entries) may not have been fixed."
+        "manifest should include directory entries"
     )
 
 

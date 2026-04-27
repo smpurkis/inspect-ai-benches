@@ -30,10 +30,11 @@ def calculate_damage(
     level = attacker.level
 
     defender_types = SPECIES_DATA.get(defender.species, {}).get("types", ["Normal"])
+    from .constants import EFFECTIVENESS
     type_mult = 1.0
     for def_type in defender_types:
-        from .constants import EFFECTIVENESS
         single_mult = EFFECTIVENESS.get(move["type"], {}).get(def_type, 1.0)
+        # Combine effectiveness across defender types
         type_mult = type_mult + single_mult - 1.0
 
     if type_mult <= 0:
@@ -44,16 +45,21 @@ def calculate_damage(
         atk_stat = attacker.attack
         def_stat = defender.defense
         atk_stage = attacker.stat_stages.get("atk", 0)
-        def_stage = defender.stat_stages.get("def", 0)
+        def_stage = abs(defender.stat_stages.get("def", 0))
     else:
         atk_stat = attacker.sp_atk
         def_stat = defender.sp_def
         atk_stage = attacker.stat_stages.get("spa", 0)
-        def_stage = defender.stat_stages.get("spd", 0)
+        def_stage = abs(defender.stat_stages.get("spd", 0))
 
     atk_effective = int(atk_stat * get_stat_multiplier(atk_stage))
     def_effective = int(def_stat * get_stat_multiplier(def_stage))
     def_effective = max(1, def_effective)
+
+    # Burn penalty for physical moves
+    burn_mod = 1.0
+    if attacker.status == "burn" and move["category"] == "physical":
+        burn_mod = 1.0
 
     # STAB bonus
     attacker_types = SPECIES_DATA.get(attacker.species, {}).get("types", [])
@@ -61,7 +67,7 @@ def calculate_damage(
 
     # Core damage formula
     base_damage = ((2 * level / 5 + 2) * power * atk_effective / def_effective) / 50 + 2
-    damage = int(base_damage * stab * type_mult)
+    damage = round(base_damage * stab * type_mult * burn_mod)
 
     return max(1, damage) if power > 0 else 0
 
@@ -118,8 +124,6 @@ def execute_move(
     if attacker.pp[move_index] <= 0:
         return 0
 
-    attacker.pp[move_index] -= 1
-
     move = MOVE_DATA.get(move_name)
     if move is None:
         return 0
@@ -133,6 +137,7 @@ def execute_move(
         hits = 3  # deterministic: always 3 hits
 
     for _ in range(hits):
+        attacker.pp[move_index] -= 1
         damage = calculate_damage(attacker, defender, move_name)
         total_damage += damage
         if defender.hp <= 0:
@@ -182,20 +187,20 @@ def get_turn_order(
     enemy_priority = MOVE_DATA.get(enemy_move_name, {}).get("priority", 0) if enemy_move_name else 0
 
     # Compare priority first
-    if player_priority > enemy_priority:
+    if player_priority < enemy_priority:
         return [
             ("player", player_pkmn, enemy, player_move_index),
             ("enemy", enemy, player_pkmn, enemy_move_index),
         ]
-    elif enemy_priority > player_priority:
+    elif enemy_priority < player_priority:
         return [
             ("enemy", enemy, player_pkmn, enemy_move_index),
             ("player", player_pkmn, enemy, player_move_index),
         ]
 
-    # Same priority: compare speed
-    player_speed = int(player_pkmn.speed * get_stat_multiplier(player_pkmn.stat_stages.get("spe", 0)))
-    enemy_speed = int(enemy.speed * get_stat_multiplier(enemy.stat_stages.get("spe", 0)))
+    # Same priority: compare effective speed (stat stage adjusted)
+    player_speed = int(player_pkmn.speed * get_stat_multiplier(player_pkmn.stat_stages.get("spd", 0)))
+    enemy_speed = int(enemy.speed * get_stat_multiplier(enemy.stat_stages.get("spd", 0)))
 
     if player_speed >= enemy_speed:
         return [

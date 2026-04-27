@@ -242,6 +242,181 @@ def test_hidden_same_speed_tiebreak():
     )
 
 
+def test_hidden_asymmetric_type_effectiveness():
+    """Asymmetric type matchups must be looked up correctly.
+
+    Electric vs Water = 2.0x (super effective)
+    Water vs Electric = 1.0x (neutral — no entry in the chart)
+
+    A backwards lookup (chart[defender][move]) would get these wrong.
+    """
+    type_chart = load_type_chart(str(VISIBLE_DATA))
+
+    eff_elec_water = get_type_effectiveness("Electric", ["Water"], type_chart)
+    assert eff_elec_water == 2.0, (
+        f"Electric attacking Water should be 2.0x, got {eff_elec_water}"
+    )
+
+    eff_water_elec = get_type_effectiveness("Water", ["Electric"], type_chart)
+    assert eff_water_elec == 1.0, (
+        f"Water attacking Electric should be 1.0x (neutral), got {eff_water_elec}"
+    )
+
+    # Fire vs Grass = 2.0x, Grass vs Fire = 0.5x
+    eff_fire_grass = get_type_effectiveness("Fire", ["Grass"], type_chart)
+    assert eff_fire_grass == 2.0, (
+        f"Fire attacking Grass should be 2.0x, got {eff_fire_grass}"
+    )
+
+    eff_grass_fire = get_type_effectiveness("Grass", ["Fire"], type_chart)
+    assert eff_grass_fire == 0.5, (
+        f"Grass attacking Fire should be 0.5x, got {eff_grass_fire}"
+    )
+
+
+def test_hidden_ground_immunity():
+    """Ground-type moves should deal 0 damage to Flying-type Pokemon.
+
+    Ground vs Flying = 0.0x (immune) in the type chart.
+    """
+    type_chart = load_type_chart(str(VISIBLE_DATA))
+    species_db = load_species_db(str(VISIBLE_DATA))
+    moves_db = load_moves_db(str(VISIBLE_DATA))
+
+    eff = get_type_effectiveness("Ground", ["Normal", "Flying"], type_chart)
+    assert eff == 0.0, (
+        f"Ground vs Flying should be 0.0x (immune), got {eff}"
+    )
+
+    # Geodude using Rock Throw (Rock) vs Pidgey is not the right test.
+    # We need a Ground-type move. But we don't have one in moves.json.
+    # Instead, verify via direct damage calculation with a synthetic setup.
+    geodude = create_pokemon("Geodude", 50, ["Rock Throw"], species_db, moves_db)
+    pidgey = create_pokemon("Pidgey", 50, ["Gust"], species_db, moves_db)
+
+    # Manually create a Ground-type move for the test
+    ground_move = Move(
+        name="Earthquake",
+        type="Ground",
+        category="physical",
+        power=100,
+        accuracy=100,
+        pp=10,
+        current_pp=10,
+        priority=0,
+        effect=None,
+    )
+
+    rng = random.Random(42)
+    dmg = calculate_damage(geodude, pidgey, ground_move, type_chart, rng)
+    assert dmg == 0, (
+        f"Ground move vs Flying-type should deal 0 damage, got {dmg}"
+    )
+
+
+def test_hidden_stat_stage_attack_boost():
+    """Stat stage modifiers should use the Gen III multiplier table.
+
+    At +2 stages, the multiplier should be (2+2)/(2-0) = 4/2 = 2.0x.
+    A common bug is to use 1.0 + stage * 0.25, which gives 1.5x at +2.
+    """
+    species_db = load_species_db(str(VISIBLE_DATA))
+    moves_db = load_moves_db(str(VISIBLE_DATA))
+    type_chart = load_type_chart(str(VISIBLE_DATA))
+
+    # Use Machop (physical attacker) with Karate Chop
+    machop_base = create_pokemon("Machop", 50, ["Karate Chop"], species_db, moves_db)
+    eevee = create_pokemon("Eevee", 50, ["Tackle"], species_db, moves_db)
+
+    # Calculate damage with no stat stages
+    rng1 = random.Random(999)
+    eevee.current_hp = eevee.stats["hp"]
+    dmg_normal = calculate_damage(machop_base, eevee, machop_base.moves[0], type_chart, rng1)
+
+    # Now boost attack by +2 stages (like Swords Dance)
+    machop_boosted = create_pokemon("Machop", 50, ["Karate Chop"], species_db, moves_db)
+    machop_boosted.stat_stages["attack"] = 2
+
+    rng2 = random.Random(999)  # Same seed for same random factor
+    eevee.current_hp = eevee.stats["hp"]
+    dmg_boosted = calculate_damage(machop_boosted, eevee, machop_boosted.moves[0], type_chart, rng2)
+
+    # At +2 attack stages, the correct Gen III multiplier is 2.0x
+    # So boosted damage should be approximately 2.0x normal damage
+    # (not exactly due to integer truncation, but close)
+    ratio = dmg_boosted / dmg_normal if dmg_normal > 0 else 0
+    assert 1.9 <= ratio <= 2.1, (
+        f"At +2 attack stages, damage ratio should be ~2.0x, got {ratio:.2f} "
+        f"(normal={dmg_normal}, boosted={dmg_boosted}). "
+        f"The stat stage multiplier formula may be wrong."
+    )
+
+
+def test_hidden_multi_hit_total_damage():
+    """Multi-hit moves (like Fury Attack) should hit 2-5 times.
+
+    Compare Fury Attack (multi_hit, power 15) against a same-power
+    reference move that hits once. The multi-hit move should deal
+    significantly more total damage on average.
+    """
+    from battle_engine import execute_attack
+
+    species_db = load_species_db(str(VISIBLE_DATA))
+    moves_db = load_moves_db(str(VISIBLE_DATA))
+    type_chart = load_type_chart(str(VISIBLE_DATA))
+
+    # Create a single-hit reference move with same power/type as Fury Attack
+    ref_move = Move(
+        name="Scratch",
+        type="Normal",
+        category="physical",
+        power=15,
+        accuracy=100,  # 100% so it never misses
+        pp=35,
+        current_pp=35,
+        priority=0,
+        effect=None,
+    )
+
+    fury_damages = []
+    ref_damages = []
+
+    for seed in range(100):
+        # Fury Attack run
+        eevee_atk = create_pokemon("Eevee", 50, ["Fury Attack"], species_db, moves_db)
+        eevee_def = create_pokemon("Eevee", 50, ["Tackle"], species_db, moves_db)
+        # Give Fury Attack 100% accuracy so we only test multi-hit, not accuracy
+        eevee_atk.moves[0].accuracy = 100
+        rng = random.Random(seed)
+        initial_hp = eevee_def.current_hp
+        result = execute_attack(eevee_atk, eevee_def, eevee_atk.moves[0], type_chart, rng)
+        if result.damage > 0:
+            fury_damages.append(result.damage)
+
+        # Reference (single-hit) run with same seed
+        eevee_atk2 = create_pokemon("Eevee", 50, ["Tackle"], species_db, moves_db)
+        eevee_def2 = create_pokemon("Eevee", 50, ["Tackle"], species_db, moves_db)
+        rng2 = random.Random(seed)
+        result2 = execute_attack(eevee_atk2, eevee_def2, ref_move, type_chart, rng2)
+        if result2.damage > 0:
+            ref_damages.append(result2.damage)
+
+    assert len(fury_damages) > 0, "Should have successful Fury Attack hits"
+    assert len(ref_damages) > 0, "Should have successful reference hits"
+
+    avg_fury = sum(fury_damages) / len(fury_damages)
+    avg_ref = sum(ref_damages) / len(ref_damages)
+
+    # Multi-hit moves should average 2-5 hits, so average fury damage
+    # should be at least 1.8x the reference single-hit damage
+    ratio = avg_fury / avg_ref if avg_ref > 0 else 0
+    assert ratio >= 1.8, (
+        f"Fury Attack (multi_hit) avg damage ({avg_fury:.1f}) should be much "
+        f"higher than single-hit reference ({avg_ref:.1f}). Ratio: {ratio:.2f}. "
+        f"Multi-hit effect may not be implemented."
+    )
+
+
 if __name__ == "__main__":
     import subprocess
     raise SystemExit(subprocess.call(["python3", "-m", "pytest", __file__, "-v"]))

@@ -1,122 +1,88 @@
+"""Visible tests for git secret forensics benchmark (4 tests)."""
+
 from __future__ import annotations
 
-import pathlib
-from collections.abc import Iterator
+import subprocess
+from pathlib import Path
 
-import hook_test_utils
-import pytest
-
-
-SECRET_FILE = pathlib.Path("/app/hidden/secret.txt")
+import forensics_utils as utils
 
 
-@pytest.fixture(autouse=True)
-def isolate_repo_state() -> Iterator[None]:
-    start_head = hook_test_utils.run_git("rev-parse", "HEAD").stdout.strip()
-    hook_test_utils.reset_repo(start_head)
-    yield
-    hook_test_utils.reset_repo(start_head)
+REPO = utils.REPO
+
+# Expected repo structure (from create_repo.py)
+EXPECTED_BRANCHES = {"main"}
+EXPECTED_TAGS = {"v1.0"}
+EXPECTED_COMMIT_COUNT = 62  # 60 linear + 1 merge + 1 feature branch commit
 
 
-def test_precommit_rejects_original_secret_and_preserves_index() -> None:
-    secret = SECRET_FILE.read_text(encoding="utf-8").strip()
-    hook_test_utils.write_patterns([secret])
-    hook_test_utils.stage_file(
-        "src/hook_visible_block.txt", f"prefix {secret} suffix\n"
+def test_secret_not_in_current_files() -> None:
+    """No secret pattern appears anywhere in the current working tree."""
+    patterns = utils.read_patterns()
+    for pattern in patterns:
+        result = subprocess.run(
+            ["grep", "-rF", "--exclude-dir=.git", pattern, str(REPO)],
+            capture_output=True, text=True,
+        )
+        # Exclude secret-patterns.txt itself (that's the manifest)
+        matching_lines = [
+            line for line in result.stdout.strip().splitlines()
+            if "secret-patterns.txt" not in line
+        ]
+        assert not matching_lines, (
+            f"Secret pattern {pattern!r} found in working tree:\n"
+            + "\n".join(matching_lines[:5])
+        )
+
+
+def test_secret_not_in_commit_history() -> None:
+    """No secret pattern appears in any reachable commit diff."""
+    patterns = utils.read_patterns()
+    for pattern in patterns:
+        result = utils.run_git(
+            "log", "-p", "--all", "--notes", "-S", pattern,
+            check=False,
+        )
+        assert pattern not in result.stdout, (
+            f"Secret pattern {pattern!r} still found in commit history "
+            f"(git log -p --all -S)"
+        )
+
+
+def test_secret_not_in_tag_messages() -> None:
+    """No secret pattern appears in any annotated tag message."""
+    patterns = utils.read_patterns()
+    tags = utils.run_git("tag", "-l").stdout.strip().splitlines()
+    for tag in tags:
+        tag = tag.strip()
+        if not tag:
+            continue
+        content = utils.run_git("cat-file", "-p", tag, check=False).stdout
+        for pattern in patterns:
+            assert pattern not in content, (
+                f"Secret pattern {pattern!r} found in tag {tag!r} message"
+            )
+
+
+def test_repo_structure_preserved() -> None:
+    """Branch names, tag names, and commit count must be preserved."""
+    # Branches
+    result = utils.run_git("branch", "--format=%(refname:short)")
+    branches = {b.strip() for b in result.stdout.strip().splitlines() if b.strip()}
+    assert branches == EXPECTED_BRANCHES, (
+        f"Expected branches {EXPECTED_BRANCHES}, got {branches}"
     )
 
-    head_before = hook_test_utils.run_git("rev-parse", "HEAD").stdout.strip()
-    before = hook_test_utils.capture_index_and_status()
-
-    result = hook_test_utils.commit("visible: should be rejected")
-    assert result.returncode != 0, (
-        "commit should be rejected when staged diff has secret"
-    )
-    output = f"{result.stdout}\n{result.stderr}".lower()
-    assert "secret" in output or "pattern" in output, (
-        "rejection should describe why commit was blocked"
+    # Tags
+    result = utils.run_git("tag", "-l")
+    tags = {t.strip() for t in result.stdout.strip().splitlines() if t.strip()}
+    assert tags == EXPECTED_TAGS, (
+        f"Expected tags {EXPECTED_TAGS}, got {tags}"
     )
 
-    head_after = hook_test_utils.run_git("rev-parse", "HEAD").stdout.strip()
-    after = hook_test_utils.capture_index_and_status()
-    assert head_after == head_before, "HEAD must not move on hook rejection"
-    assert after == before, "index and status changed after rejection"
-
-
-def test_precommit_allows_clean_commit() -> None:
-    secret = SECRET_FILE.read_text(encoding="utf-8").strip()
-    hook_test_utils.write_patterns([secret])
-    hook_test_utils.stage_file(
-        "src/hook_visible_allow.txt", "no forbidden tokens here\n"
+    # Commit count on main
+    result = utils.run_git("rev-list", "--count", "main")
+    count = int(result.stdout.strip())
+    assert count == EXPECTED_COMMIT_COUNT, (
+        f"Expected {EXPECTED_COMMIT_COUNT} commits on main, got {count}"
     )
-
-    head_before = hook_test_utils.run_git("rev-parse", "HEAD").stdout.strip()
-    result = hook_test_utils.commit("visible: clean commit")
-    assert result.returncode == 0, (
-        f"clean commit should succeed:\nstdout={result.stdout}\nstderr={result.stderr}"
-    )
-
-    head_after = hook_test_utils.run_git("rev-parse", "HEAD").stdout.strip()
-    assert head_after != head_before, (
-        "HEAD should advance after successful clean commit"
-    )
-
-
-def test_precommit_rejects_patterns_in_commit_message() -> None:
-    patterns = ["danger-message-token"]
-    hook_test_utils.write_patterns(patterns)
-    hook_test_utils.stage_file(
-        "src/hook_visible_message_ok.txt", "safe staged payload\n"
-    )
-
-    before = hook_test_utils.capture_index_and_status()
-    head_before = hook_test_utils.run_git("rev-parse", "HEAD").stdout.strip()
-    result = hook_test_utils.commit("visible message includes danger-message-token")
-    assert result.returncode != 0, "message pattern should be blocked"
-
-    output = f"{result.stdout}\n{result.stderr}".lower()
-    assert "secret" in output or "pattern" in output, (
-        "message rejection should explain blocked pattern"
-    )
-
-    after = hook_test_utils.capture_index_and_status()
-    head_after = hook_test_utils.run_git("rev-parse", "HEAD").stdout.strip()
-    assert head_after == head_before, "HEAD moved after rejected message"
-    assert after == before, "index or worktree changed after message rejection"
-
-
-def test_precommit_scans_staged_index_not_working_tree() -> None:
-    """The hook must scan the staged (index) version of the file, not the
-    working-tree copy.  Stage a file with a secret, then overwrite the
-    working-tree copy with clean content.  The commit must still be blocked."""
-    pattern = "staged-only-secret-token"
-    hook_test_utils.write_patterns([pattern])
-
-    # Stage a file that contains the secret
-    hook_test_utils.stage_file(
-        "src/hook_visible_staged.txt", f"leaked: {pattern}\n"
-    )
-
-    # Overwrite the working-tree copy with clean content (index still dirty)
-    (hook_test_utils.REPO / "src" / "hook_visible_staged.txt").write_text(
-        "clean working tree, no secret here\n", encoding="utf-8"
-    )
-
-    head_before = hook_test_utils.run_git("rev-parse", "HEAD").stdout.strip()
-    before = hook_test_utils.capture_index_and_status()
-
-    result = hook_test_utils.commit("visible: staged-only test")
-    assert result.returncode != 0, (
-        "commit must be rejected — the staged index still contains the secret "
-        "even though the working tree copy is clean"
-    )
-
-    head_after = hook_test_utils.run_git("rev-parse", "HEAD").stdout.strip()
-    after = hook_test_utils.capture_index_and_status()
-    assert head_after == head_before, "HEAD must not move on hook rejection"
-    assert after == before, "index and status changed after rejection"
-
-
-if __name__ == "__main__":
-    import subprocess
-    raise SystemExit(subprocess.call(["python3", "-m", "pytest", __file__, "-v"]))

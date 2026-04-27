@@ -520,6 +520,48 @@ def test_hidden_product_name_required() -> None:
     conn.close()
 
 
+def test_hidden_category_fk_on_products() -> None:
+    """Products table must have a category_id column (not cat_id) referencing categories(id)."""
+    _, conn = _fresh_db()
+    # Check column exists
+    columns = {
+        row[1]: row[2]
+        for row in conn.execute("PRAGMA table_info(products)").fetchall()
+    }
+    assert "category_id" in columns, (
+        f"products table should have a 'category_id' column, "
+        f"found columns: {list(columns.keys())}. "
+        "Check migration 006 — the column may have been added with the wrong name."
+    )
+    assert "cat_id" not in columns, (
+        "products table has 'cat_id' instead of 'category_id'. "
+        "The column name should be 'category_id'."
+    )
+
+    # Verify it's a working FK to categories
+    conn.execute(
+        "INSERT INTO products (id, name, category, price, stock, category_id) "
+        "VALUES (1, 'Widget', 'Test', 10.0, 50, 1)"
+    )
+    conn.commit()
+    cat_id = conn.execute(
+        "SELECT category_id FROM products WHERE id = 1"
+    ).fetchone()[0]
+    assert cat_id == 1, f"category_id should be 1, got {cat_id}"
+
+    # FK should reject invalid category
+    try:
+        conn.execute(
+            "INSERT INTO products (id, name, category, price, stock, category_id) "
+            "VALUES (2, 'Bad', 'Test', 10.0, 50, 999)"
+        )
+        conn.commit()
+        assert False, "FK should reject category_id=999 (non-existent category)"
+    except sqlite3.IntegrityError:
+        conn.rollback()
+    conn.close()
+
+
 def test_hidden_price_no_log_when_unchanged() -> None:
     """Updating a product to the SAME price must NOT create a history row."""
     _, conn = _fresh_db()

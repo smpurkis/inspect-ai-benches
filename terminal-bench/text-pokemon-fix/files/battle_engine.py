@@ -118,7 +118,7 @@ def get_type_effectiveness(move_type, defender_types, type_chart):
 # Damage calculation
 # ---------------------------------------------------------------------------
 
-def calculate_damage(attacker, defender, move, type_chart, rng):
+def calculate_damage(attacker, defender, move, type_chart, rng, rand_factor=None):
     """Calculate damage for a single attack.
 
     Uses the standard Pokemon damage formula at a fixed level of 50:
@@ -135,9 +135,19 @@ def calculate_damage(attacker, defender, move, type_chart, rng):
     if move.category == "physical":
         atk_stat = attacker.stats["attack"]
         def_stat = defender.stats["defense"]
+        atk_stage = attacker.stat_stages.get("attack", 0)
+        def_stage = defender.stat_stages.get("defense", 0)
     else:  # special
         atk_stat = attacker.stats["sp_atk"]
         def_stat = defender.stats["sp_def"]
+        atk_stage = attacker.stat_stages.get("sp_atk", 0)
+        def_stage = defender.stat_stages.get("sp_def", 0)
+
+    # Apply stat stage modifiers
+    if atk_stage != 0:
+        atk_stat = int(atk_stat * (1.0 + atk_stage * 0.25))
+    if def_stage != 0:
+        def_stat = int(def_stat * (1.0 + def_stage * 0.25))
 
     # Base damage formula
     base = ((2 * level / 5 + 2) * move.power * atk_stat / def_stat) / 50 + 2
@@ -151,7 +161,8 @@ def calculate_damage(attacker, defender, move, type_chart, rng):
     modifier = stab + effectiveness
 
     # Random factor 85-100%
-    rand_factor = rng.randint(85, 100) / 100.0
+    if rand_factor is None:
+        rand_factor = rng.randint(85, 100) / 100.0
 
     damage = int(base * modifier * rand_factor)
 
@@ -213,6 +224,9 @@ def execute_attack(attacker, defender, move, type_chart, rng):
 
     move.current_pp -= 1
 
+    # Pre-compute random damage factor before accuracy check
+    damage_rand = rng.randint(85, 100) / 100.0
+
     # Accuracy check
     if rng.randint(1, 100) > move.accuracy:
         return TurnResult(
@@ -237,8 +251,8 @@ def execute_attack(attacker, defender, move, type_chart, rng):
             message=f"{attacker.name} used {move.name}!",
         )
 
-    # Damage calculation
-    damage = calculate_damage(attacker, defender, move, type_chart, rng)
+    # Damage calculation (pass pre-computed random factor)
+    damage = calculate_damage(attacker, defender, move, type_chart, rng, damage_rand)
     effectiveness = get_type_effectiveness(move.type, defender.types, type_chart)
 
     # Apply damage to defender

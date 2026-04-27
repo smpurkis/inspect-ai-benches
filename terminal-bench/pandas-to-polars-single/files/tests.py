@@ -32,10 +32,10 @@ OUT_DIR_V2 = Path("/tmp/pandas_to_polars_step3_v2_visible")
 
 # SHA256 of expected v2 outputs
 PUBLIC_EXPECTED_ENRICHED_SHA256 = (
-    "be0015b32b1daf1f10012c22de229370e9195c52bdae76bf973eaaf2ae0bec7c"
+    "450d71eecc5c5b43bbeb9ffdde1b3adfe91ba2948c708f47d3b9db3ad0d9c8f3"
 )
 PUBLIC_EXPECTED_QUARANTINE_SHA256 = (
-    "8a4c46e5515697c13a4403aab2ccdc87a49252c77f8dc608da178ea95b66eea5"
+    "2b34815e1bf11fe42f49c4586ece8d50dcf93924343b1168ca320b24681b8862"
 )
 PUBLIC_EXPECTED_QUALITY_V2_SHA256 = (
     "c3c57fa9634fc3a62a021cbb5038778b60a4b09a2be604bbbedf93f7ffc008d6"
@@ -225,6 +225,95 @@ def test_step3_v1_step2_outputs_regression(v1_pipeline_output) -> None:
         v1_pipeline_output / "country_summary.parquet",
         STEP2_EXPECTED / "country_summary.parquet",
     )
+
+
+# ── New complexity tests ─────────────────────────────────────────────────
+
+
+def test_session_analytics_exists(v1_pipeline_output) -> None:
+    """session_analytics.parquet must exist and have expected columns."""
+    path = v1_pipeline_output / "session_analytics.parquet"
+    assert path.exists(), "Missing session_analytics.parquet"
+    df = pl.read_parquet(path)
+    expected_cols = {
+        "session_id", "merchant_id", "session_start", "session_end",
+        "session_revenue", "event_count", "session_duration_days",
+    }
+    actual_cols = set(df.columns)
+    missing = expected_cols - actual_cols
+    assert not missing, f"session_analytics.parquet is missing columns: {sorted(missing)}"
+    assert len(df) > 0, "session_analytics.parquet is empty"
+
+
+def test_session_analytics_matches(v1_pipeline_output) -> None:
+    """session_analytics.parquet values must match expected output."""
+    _assert_parquet_equal(
+        v1_pipeline_output / "session_analytics.parquet",
+        STEP2_EXPECTED / "session_analytics.parquet",
+    )
+
+
+def test_promotion_impact_matches(v1_pipeline_output) -> None:
+    """promotion_impact.parquet values must match expected output."""
+    _assert_parquet_equal(
+        v1_pipeline_output / "promotion_impact.parquet",
+        STEP2_EXPECTED / "promotion_impact.parquet",
+    )
+
+
+def test_pivot_revenue_structure(v1_pipeline_output) -> None:
+    """pivot_revenue.parquet must have correct shape (months x countries)."""
+    path = v1_pipeline_output / "pivot_revenue.parquet"
+    assert path.exists(), "Missing pivot_revenue.parquet"
+    df = pl.read_parquet(path)
+    assert "event_month" in df.columns, "Missing event_month column"
+    # Should have 8 country columns + event_month = 9 total
+    expected_countries = {"AU", "CA", "DE", "FR", "GB", "IN", "JP", "US"}
+    actual_countries = set(df.columns) - {"event_month"}
+    missing = expected_countries - actual_countries
+    assert not missing, f"pivot_revenue.parquet missing country columns: {sorted(missing)}"
+    # No NaN values - should all be 0.0 for missing combos
+    for col in expected_countries:
+        null_count = df[col].null_count()
+        assert null_count == 0, f"pivot_revenue.parquet has {null_count} NaN values in {col}"
+
+
+def test_pivot_revenue_matches(v1_pipeline_output) -> None:
+    """pivot_revenue.parquet values must match expected output."""
+    _assert_parquet_equal(
+        v1_pipeline_output / "pivot_revenue.parquet",
+        STEP2_EXPECTED / "pivot_revenue.parquet",
+    )
+
+
+def test_weighted_p90_exists_in_summary(v1_pipeline_output) -> None:
+    """summary.parquet must contain the weighted_p90_revenue column."""
+    df = pl.read_parquet(v1_pipeline_output / "summary.parquet")
+    assert "weighted_p90_revenue" in df.columns, (
+        "summary.parquet is missing weighted_p90_revenue column"
+    )
+    assert df["weighted_p90_revenue"].null_count() == 0, (
+        "weighted_p90_revenue has null values"
+    )
+
+
+def test_new_analytics_columns_in_merchant_analytics(v1_pipeline_output) -> None:
+    """merchant_analytics.parquet must have the new window function columns."""
+    df = pl.read_parquet(v1_pipeline_output / "merchant_analytics.parquet")
+    new_cols = [
+        "ewma_qa_score", "mom_revenue_growth_2m",
+        "cohort_relative_revenue", "intra_month_variance",
+    ]
+    missing = [c for c in new_cols if c not in df.columns]
+    assert not missing, f"merchant_analytics.parquet missing columns: {missing}"
+
+
+def test_country_summary_new_columns(v1_pipeline_output) -> None:
+    """country_summary.parquet must have bucket_entropy and population_std_revenue."""
+    df = pl.read_parquet(v1_pipeline_output / "country_summary.parquet")
+    new_cols = ["bucket_entropy", "population_std_revenue"]
+    missing = [c for c in new_cols if c not in df.columns]
+    assert not missing, f"country_summary.parquet missing columns: {missing}"
 
 
 if __name__ == "__main__":

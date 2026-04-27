@@ -11,3 +11,6 @@ CREATE INDEX idx_active_categories ON categories(name) WHERE active = 1;
 INSERT INTO categories (id, name, parent_id) VALUES (1, 'Electronics', NULL);
 INSERT INTO categories (id, name, parent_id) VALUES (2, 'Laptops', 1);
 INSERT INTO categories (id, name, parent_id) VALUES (3, 'Phones', 1);
+
+-- link products to a category
+ALTER TABLE products ADD COLUMN cat_id INTEGER REFERENCES categories(id);

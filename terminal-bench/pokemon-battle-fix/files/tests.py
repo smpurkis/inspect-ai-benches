@@ -94,12 +94,7 @@ def test_deterministic_replay():
 
 
 def test_dual_type_effectiveness():
-    """Type effectiveness must be multiplicative for dual-type defenders.
-
-    Grass vs Aron (Steel/Rock): Grass->Steel = 0.5x, Grass->Rock = 2.0x
-    Correct (multiplicative): 0.5 * 2.0 = 1.0x
-    Buggy (additive):  1.0 + (0.5-1) + (2.0-1) = 1.5x
-    """
+    """Type effectiveness against dual-type defenders must be correct."""
     from emulator.battle_system import calculate_damage
     from emulator.types import PokemonInstance
 
@@ -114,25 +109,16 @@ def test_dual_type_effectiveness():
         moves=["Rock Tomb"], pp=[10],
     )
 
-    # Grass vs Aron (Steel/Rock): multiplicative = 0.5 * 2.0 = 1.0x (neutral)
     damage = calculate_damage(shroomish, aron, "Razor Leaf")
 
-    # Create a Normal-type defender with same stats to get baseline neutral damage
     normal_defender = PokemonInstance(
         species="Poochyena", level=20, hp=50, max_hp=50,
         attack=50, defense=70, sp_atk=40, sp_def=40, speed=30,
         moves=["Tackle"], pp=[35],
     )
-    # Grass vs Dark = 1.0x (neutral)
     neutral_damage = calculate_damage(shroomish, normal_defender, "Razor Leaf")
 
-    # With correct multiplicative effectiveness (1.0x), damage against Aron
-    # should equal neutral damage (both are 1.0x effective with same def stat)
-    assert damage == neutral_damage, (
-        f"Dual-type effectiveness should be multiplicative: Grass vs Steel/Rock "
-        f"= 0.5*2.0 = 1.0x (neutral). Got damage={damage} vs neutral={neutral_damage}. "
-        f"If damage > neutral, the bug is additive combination."
-    )
+    assert damage == neutral_damage
 
 
 if __name__ == "__main__":

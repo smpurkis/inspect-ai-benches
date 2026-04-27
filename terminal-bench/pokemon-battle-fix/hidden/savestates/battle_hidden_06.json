@@ -1,0 +1,89 @@
+{
+  "screen": "battle_main",
+  "player_party": [
+    {
+      "species": "Blaziken",
+      "level": 36,
+      "hp": 108,
+      "max_hp": 108,
+      "attack": 95,
+      "defense": 65,
+      "sp_atk": 85,
+      "sp_def": 65,
+      "speed": 80,
+      "moves": [
+        "Blaze Kick",
+        "Double Kick",
+        "Peck",
+        "Bulk Up"
+      ],
+      "pp": [
+        10,
+        30,
+        35,
+        20
+      ],
+      "status": "burn",
+      "stat_stages": {
+        "atk": 0,
+        "def": 0,
+        "spa": 0,
+        "spd": 0,
+        "spe": 0
+      }
+    }
+  ],
+  "enemy_trainer": {
+    "name": "Black Belt",
+    "active_index": 0,
+    "defeated": false,
+    "party": [
+      {
+        "species": "Hariyama",
+        "level": 20,
+        "hp": 100,
+        "max_hp": 100,
+        "attack": 35,
+        "defense": 40,
+        "sp_atk": 20,
+        "sp_def": 30,
+        "speed": 15,
+        "moves": [
+          "Vital Throw",
+          "Arm Thrust",
+          "Sand Attack",
+          "Bulk Up"
+        ],
+        "pp": [
+          10,
+          20,
+          15,
+          20
+        ],
+        "status": null,
+        "stat_stages": {
+          "atk": 0,
+          "def": 0,
+          "spa": 0,
+          "spd": 0,
+          "spe": 0
+        }
+      }
+    ]
+  },
+  "wild_pokemon": null,
+  "player_position": [
+    4,
+    2
+  ],
+  "player_facing": "RIGHT",
+  "map_grid": [],
+  "map_name": "Dewford Gym",
+  "battle_active": true,
+  "battle_won": null,
+  "cursor_position": 0,
+  "flags": {},
+  "inventory": {},
+  "badges": 0,
+  "dialogue_text": "Black Belt wants to battle!"
+}
