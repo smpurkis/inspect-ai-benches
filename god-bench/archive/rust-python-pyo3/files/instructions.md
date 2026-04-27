@@ -1,46 +1,57 @@
-# Rust/Python Linear Algebra Extension (PyO3)
+# Rust/PyO3 Linear Algebra Extension
 
-Build a PyO3 extension module (`rustlinalg`) that implements linear algebra operations and passes the provided numpy-driven pipeline tests.
+Build a PyO3 extension module (`rustlinalg`) that implements ten linear algebra operations and passes the provided numpy-driven pipeline tests.
 
 ## Resources
 
-- Build command: `maturin develop --release` from `/app`
+- Stub file: `/app/src/lib.rs` (implement all ten functions)
+- Cargo manifest: `/app/Cargo.toml`
+- pyproject: `/app/pyproject.toml`
+- Build command: `cd /app && maturin develop --release`
 - Pipeline script: `/app/files/numpy_pipeline.py`
-- Primary implementation target: `/app/src/lib.rs` (PyO3 extension module `rustlinalg`)
+- Fixtures: `/app/fixtures/` -- `.npy` data files loaded by the tests
 
 ## Dependency policy
 
-- The Rust crate may depend only on `pyo3` and `ndarray`.
-- Do not add the Rust `numpy` crate or any other Cargo dependency.
-- Do not import Python `numpy` from Rust via PyO3.
-- Python-facing return values may be plain nested Python lists / floats as long as they convert cleanly to `float64` NumPy arrays with the required shapes in the tests.
+- All numerical computation must happen in Rust code in this crate.
+- Allowed crate dependencies: `pyo3` and `ndarray` (basic features only — no linalg feature flags).
+- Do **not** add `ndarray-linalg`, `nalgebra`, `nalgebra-lapack`, `lapack`, `lapack-sys`, `lapacke`, `lapacke-sys`, `blas`, `blas-src`, `cblas`, `cblas-sys`, `openblas-src`, `openblas-sys`, `intel-mkl-src`, `intel-mkl-sys`, `linfa-linalg`, `peroxide`, `argmin`, `russell`, `faer`, or any other linear algebra crate.
+- Do **not** call back into Python `numpy.linalg` or `scipy.linalg` from Rust via PyO3.
+- Do **not** use Cython, ctypes, or cffi in any part of the solution.
+- numpy is permitted only on the Python boundary for accepting input arrays and returning output arrays. The actual computation must be in Rust.
 
 ## Required API
 
-The `rustlinalg` module must expose these functions:
+The compiled `rustlinalg` module must expose these functions:
 
-```python
-import rustlinalg
+| Function | Signature | Returns |
+|---|---|---|
+| `svd` | `svd(a)` | `(U, sigma, Vt)` -- full SVD |
+| `schur` | `schur(a)` | `(T, Q)` -- real Schur decomposition |
+| `matrix_log` | `matrix_log(a)` | matrix logarithm |
+| `sqrtm` | `sqrtm(a)` | principal matrix square root |
+| `qz` | `qz(a, b)` | `(S, T, Q, Z)` -- generalized Schur decomposition |
+| `signm` | `signm(a)` | matrix sign function |
+| `solve_sylvester` | `solve_sylvester(a, b, c)` | solution X of AX + XB = C |
+| `eig` | `eig(a)` | `(real_parts, imag_parts, vectors)` -- nonsymmetric eigenvalues and eigenvectors |
+| `ordschur` | `ordschur(t, q, select)` | `(T_new, Q_new)` -- reordered Schur decomposition |
+| `matrix_power` | `matrix_power(a, p)` | A^p for real exponent p (fractional, negative allowed) |
 
-rustlinalg.matmul(a, b)           # matrix multiply → 2D array
-rustlinalg.cholesky(a)            # Cholesky decomposition (lower triangular L where A = L·Lᵀ)
-rustlinalg.solve_spd(a, b)       # solve Ax = b for symmetric positive-definite A
-rustlinalg.norm2(v)               # L2 norm of a vector → float
-rustlinalg.qr(a)                  # QR decomposition → (Q, R) tuple
-rustlinalg.eig_symmetric(a)      # eigendecomposition of symmetric matrix → (vals, vecs)
-rustlinalg.svd(a)                 # singular value decomposition → (U, S, Vt)
-rustlinalg.matrix_exp(a)         # matrix exponential
-rustlinalg.solve_lstsq(a, b)    # least-squares solution to Ax ≈ b
-```
+Read the test file and pipeline script for exact expected arguments, return types, shapes, and edge-case behaviour. The tests compare your outputs against NumPy/SciPy reference results.
 
-## Verification
+Functions should raise errors on invalid inputs (wrong shapes, non-square matrices where square is required, matrices with negative real eigenvalues where that is forbidden, etc.).
 
-    python3 -m pytest /app/files/tests.py -v
-
-Do NOT use `python3 tests.py` — test files require pytest. Running them directly with python silently does nothing.
+Inputs may arrive as numpy arrays. Returned values may be plain nested Python lists / floats / tuples as long as they convert cleanly to `float64` NumPy arrays with the required shapes in the tests.
 
 ## Constraints
 
-- Work fully offline inside the container.
+- Only `pyo3` and `ndarray` (no extra features) are allowed as Cargo dependencies.
+- Work fully offline inside the container (Cargo registry is mirrored into `/app/vendor/`).
 - Keep results deterministic.
 - Do not modify test or verifier files.
+
+## Visible Tests
+
+```
+python3 -m pytest /app/files/tests.py -v
+```

@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 
 import numpy as np
+from scipy.linalg import expm
 
 
 FIXTURES = Path("/app/fixtures")
@@ -25,147 +26,190 @@ def _load(name: str) -> np.ndarray:
 
 
 def _pipeline_cases() -> list[dict[str, np.ndarray]]:
-    a_small = _load("A_matmul.npy")
-    b_small = _load("B_matmul.npy")
-    a_spd = _load("A_spd.npy")
-    b_vec = _load("b_vec.npy")
-    a_qr = _load("A_qr.npy")
     a_svd = _load("A_svd_tall.npy")
-    a_exp = _load("A_exp_small.npy")
-    a_lstsq = _load("A_lstsq.npy")
-    b_lstsq = _load("b_lstsq.npy")
+    a_schur = _load("A_schur_general.npy")
+    a_matlog = _load("A_matlog_spd.npy")
+    a_sqrtm = _load("A_sqrtm_spd.npy")
+    a_qz = _load("A_qz1.npy")
+    b_qz = _load("B_qz1.npy")
+    a_signm = _load("A_signm1.npy")
+    a_syl = _load("A_syl1.npy")
+    b_syl = _load("B_syl1.npy")
+    c_syl = _load("C_syl1.npy")
+    a_eig = _load("A_eig1.npy")
 
     return [
         {
-            "mat_a": a_small,
-            "mat_b": b_small,
-            "spd": a_spd,
-            "vec": b_vec,
-            "qr": a_qr,
             "svd": a_svd,
-            "exp": a_exp,
-            "lstsq_a": a_lstsq,
-            "lstsq_b": b_lstsq,
+            "schur": a_schur,
+            "matlog": a_matlog,
+            "sqrtm": a_sqrtm,
+            "qz_a": a_qz, "qz_b": b_qz,
+            "signm": a_signm,
+            "syl_a": a_syl, "syl_b": b_syl, "syl_c": c_syl,
+            "eig": a_eig,
         },
         {
-            "mat_a": a_small * 0.75,
-            "mat_b": b_small * 1.2,
-            "spd": a_spd + 0.35 * np.eye(a_spd.shape[0]),
-            "vec": b_vec * 1.5,
-            "qr": a_qr * 0.3,
             "svd": _load("A_svd_wide.npy"),
-            "exp": a_exp * 0.2,
-            "lstsq_a": a_lstsq + 0.1,
-            "lstsq_b": b_lstsq - 0.05,
+            "schur": a_schur * 0.7 + 0.3 * np.eye(a_schur.shape[0]),
+            "matlog": a_matlog + 0.5 * np.eye(a_matlog.shape[0]),
+            "sqrtm": a_sqrtm + 0.5 * np.eye(a_sqrtm.shape[0]),
+            "qz_a": a_qz * 1.2, "qz_b": b_qz + 0.1 * np.eye(b_qz.shape[0]),
+            "signm": a_signm * 1.5,
+            "syl_a": a_syl * 0.8, "syl_b": b_syl + np.eye(b_syl.shape[0]),
+            "syl_c": c_syl * 0.7,
+            "eig": a_eig * 0.5 + 0.5 * np.eye(a_eig.shape[0]),
         },
         {
-            "mat_a": _load("A_large.npy")[:20, :15],
-            "mat_b": _load("B_large.npy")[:15, :18],
-            "spd": _load("A_spd_large.npy")[:12, :12] + 0.2 * np.eye(12),
-            "vec": _load("b_large.npy")[:12],
-            "qr": _load("A_qr_large.npy")[:18, :10],
             "svd": _load("A_svd_large.npy")[:18, :9],
-            "exp": _load("A_exp_small.npy") * 0.05,
-            "lstsq_a": _load("A_lstsq_large.npy")[:24, :7],
-            "lstsq_b": _load("b_lstsq_large.npy")[:24],
+            "schur": a_schur + 0.1 * np.eye(a_schur.shape[0]),
+            "matlog": a_matlog * 1.2 + 0.3 * np.eye(a_matlog.shape[0]),
+            "sqrtm": a_sqrtm * 0.8 + 0.2 * np.eye(a_sqrtm.shape[0]),
+            "qz_a": _load("A_qz3.npy"), "qz_b": _load("B_qz3.npy"),
+            "signm": _load("A_signm1.npy") + 0.1 * np.eye(6),
+            "syl_a": _load("A_syl2.npy"), "syl_b": _load("B_syl2.npy"),
+            "syl_c": _load("C_syl2.npy"),
+            "eig": _load("A_eig_real.npy"),
         },
     ]
 
 
 def run_pipeline(module_name: str = "rustlinalg") -> list[dict[str, float]]:
-    rust = importlib.import_module(module_name)
+    mod = importlib.import_module(module_name)
     results: list[dict[str, float]] = []
 
     for idx, case in enumerate(_pipeline_cases(), start=1):
-        mm = _array64(rust.matmul(case["mat_a"], case["mat_b"]), 2)
-        mm_ref = case["mat_a"] @ case["mat_b"]
-
-        chol = _array64(rust.cholesky(case["spd"]), 2)
-        chol_ref = np.linalg.cholesky(case["spd"])
-
-        x = _array64(rust.solve_spd(case["spd"], case["vec"]), 1)
-        x_ref = np.linalg.solve(case["spd"], case["vec"])
-
-        n2 = float(rust.norm2(x))
-        n2_ref = float(np.linalg.norm(x_ref))
-
-        q, r = rust.qr(case["qr"])
-        q = _array64(q, 2)
-        r = _array64(r, 2)
-        q_ref, r_ref = np.linalg.qr(case["qr"], mode="complete")
-
-        evals, evecs = rust.eig_symmetric(case["spd"])
-        evals = _array64(evals, 1)
-        evecs = _array64(evecs, 2)
-        evals_ref, evecs_ref = np.linalg.eigh(case["spd"])
-
-        u, s, vt = rust.svd(case["svd"])
+        # --- SVD ---
+        u, s, vt = mod.svd(case["svd"])
         u = _array64(u, 2)
         s = _array64(s, 1)
         vt = _array64(vt, 2)
-        u_ref, s_ref, vt_ref = np.linalg.svd(case["svd"], full_matrices=True)
+        k = min(case["svd"].shape)
+        svd_recon = float(np.max(np.abs(
+            u[:, :k] @ np.diag(s) @ vt[:k, :] - case["svd"]
+        )))
 
-        exp_out = _array64(rust.matrix_exp(case["exp"]), 2)
-        exp_ref = _load("A_exp_small_ref.npy") if idx == 1 else None
-        if exp_ref is None:
-            vals, vecs = np.linalg.eig(case["exp"])
-            exp_ref = np.real_if_close(
-                vecs @ np.diag(np.exp(vals)) @ np.linalg.inv(vecs)
-            )
+        # --- Schur ---
+        T_schur, Q_schur = mod.schur(case["schur"])
+        T_schur = _array64(T_schur, 2)
+        Q_schur = _array64(Q_schur, 2)
+        n_sch = case["schur"].shape[0]
+        schur_recon = float(np.max(np.abs(
+            Q_schur @ T_schur @ Q_schur.T - case["schur"]
+        )))
+        schur_Q_orth = float(np.max(np.abs(
+            Q_schur.T @ Q_schur - np.eye(n_sch)
+        )))
 
-        x_lstsq = _array64(rust.solve_lstsq(case["lstsq_a"], case["lstsq_b"]), 1)
-        x_lstsq_ref, _, _, _ = np.linalg.lstsq(
-            case["lstsq_a"], case["lstsq_b"], rcond=None
-        )
+        # --- Matrix log ---
+        log_out = _array64(mod.matrix_log(case["matlog"]), 2)
+        log_roundtrip = expm(np.asarray(log_out, dtype=np.float64))
+        matlog_roundtrip = float(np.max(np.abs(
+            log_roundtrip - case["matlog"]
+        )))
 
-        results.append(
-            {
-                "case": float(idx),
-                "matmul_max_abs": float(np.max(np.abs(mm - mm_ref))),
-                "cholesky_recon_max_abs": float(
-                    np.max(np.abs(chol @ chol.T - case["spd"]))
-                ),
-                "cholesky_ref_max_abs": float(np.max(np.abs(chol - chol_ref))),
-                "solve_spd_max_abs": float(np.max(np.abs(x - x_ref))),
-                "norm2_abs": float(abs(n2 - n2_ref)),
-                "qr_recon_max_abs": float(np.max(np.abs(q @ r - case["qr"]))),
-                "qr_ref_recon_max_abs": float(
-                    np.max(np.abs(q_ref @ r_ref - case["qr"]))
-                ),
-                "eig_vals_max_abs": float(np.max(np.abs(evals - evals_ref))),
-                "eig_recon_max_abs": float(
-                    np.max(np.abs(evecs @ np.diag(evals) @ evecs.T - case["spd"]))
-                ),
-                "eig_ref_recon_max_abs": float(
-                    np.max(
-                        np.abs(
-                            evecs_ref @ np.diag(evals_ref) @ evecs_ref.T - case["spd"]
-                        )
-                    )
-                ),
-                "svd_vals_max_abs": float(np.max(np.abs(s - s_ref))),
-                "svd_recon_max_abs": float(
-                    np.max(
-                        np.abs(
-                            u[:, : s.shape[0]] @ np.diag(s) @ vt[: s.shape[0], :]
-                            - case["svd"]
-                        )
-                    )
-                ),
-                "svd_ref_recon_max_abs": float(
-                    np.max(
-                        np.abs(
-                            u_ref[:, : s_ref.shape[0]]
-                            @ np.diag(s_ref)
-                            @ vt_ref[: s_ref.shape[0], :]
-                            - case["svd"]
-                        )
-                    )
-                ),
-                "matrix_exp_max_abs": float(np.max(np.abs(exp_out - exp_ref))),
-                "lstsq_max_abs": float(np.max(np.abs(x_lstsq - x_lstsq_ref))),
-            }
-        )
+        # --- Matrix square root ---
+        sqrt_out = _array64(mod.sqrtm(case["sqrtm"]), 2)
+        sqrtm_squared = float(np.max(np.abs(
+            sqrt_out @ sqrt_out - case["sqrtm"]
+        )))
+
+        # --- QZ ---
+        S_qz, T_qz, Q_qz, Z_qz = mod.qz(case["qz_a"], case["qz_b"])
+        S_qz = _array64(S_qz, 2)
+        T_qz = _array64(T_qz, 2)
+        Q_qz = _array64(Q_qz, 2)
+        Z_qz = _array64(Z_qz, 2)
+        n_qz = case["qz_a"].shape[0]
+        qz_recon_a = float(np.max(np.abs(
+            Q_qz.T @ case["qz_a"] @ Z_qz - S_qz
+        )))
+        qz_recon_b = float(np.max(np.abs(
+            Q_qz.T @ case["qz_b"] @ Z_qz - T_qz
+        )))
+        qz_Q_orth = float(np.max(np.abs(
+            Q_qz.T @ Q_qz - np.eye(n_qz)
+        )))
+        qz_Z_orth = float(np.max(np.abs(
+            Z_qz.T @ Z_qz - np.eye(n_qz)
+        )))
+
+        # --- Sign ---
+        sign_out = _array64(mod.signm(case["signm"]), 2)
+        signm_sq = float(np.max(np.abs(
+            sign_out @ sign_out - np.eye(case["signm"].shape[0])
+        )))
+
+        # --- Sylvester ---
+        X_syl = _array64(mod.solve_sylvester(
+            case["syl_a"], case["syl_b"], case["syl_c"]
+        ), 2)
+        syl_resid = float(np.max(np.abs(
+            case["syl_a"] @ X_syl + X_syl @ case["syl_b"] - case["syl_c"]
+        )))
+
+        # --- Eig ---
+        wr, wi, vecs = mod.eig(case["eig"])
+        wr = _array64(wr, 1)
+        wi = _array64(wi, 1)
+        vecs = _array64(vecs, 2)
+        A_eig = case["eig"]
+        n_eig = A_eig.shape[0]
+
+        # Reconstruct A @ v = lambda * v for each eigenvalue
+        eig_max_resid = 0.0
+        j = 0
+        while j < n_eig:
+            if abs(wi[j]) < 1e-14:
+                # Real eigenvalue
+                v = vecs[:, j]
+                resid = np.abs(A_eig @ v - wr[j] * v).max()
+                eig_max_resid = max(eig_max_resid, resid)
+                j += 1
+            else:
+                # Complex conjugate pair
+                vr = vecs[:, j]
+                vi = vecs[:, j + 1]
+                lam_r, lam_i = wr[j], wi[j]
+                # A @ (vr + i*vi) = (lam_r + i*lam_i) * (vr + i*vi)
+                # Real part: A@vr = lam_r*vr - lam_i*vi
+                # Imag part: A@vi = lam_r*vi + lam_i*vr
+                resid_r = np.abs(A_eig @ vr - (lam_r * vr - lam_i * vi)).max()
+                resid_i = np.abs(A_eig @ vi - (lam_r * vi + lam_i * vr)).max()
+                eig_max_resid = max(eig_max_resid, resid_r, resid_i)
+                j += 2
+
+        # --- Ordschur ---
+        A_sch = case["schur"]
+        n_sch2 = A_sch.shape[0]
+        select_ord = [bool(i % 2 == 0) for i in range(n_sch2)]
+        T_new, Q_new = mod.ordschur(T_schur, Q_schur, select_ord)
+        T_new = _array64(T_new, 2)
+        Q_new = _array64(Q_new, 2)
+        ordschur_recon = float(np.max(np.abs(
+            Q_new @ T_new @ Q_new.T - A_sch
+        )))
+        ordschur_Q_orth = float(np.max(np.abs(
+            Q_new.T @ Q_new - np.eye(n_sch2)
+        )))
+
+        results.append({
+            "case": float(idx),
+            "svd_recon_max_abs": svd_recon,
+            "schur_recon_max_abs": schur_recon,
+            "schur_Q_orthogonality": schur_Q_orth,
+            "matlog_roundtrip_max_abs": matlog_roundtrip,
+            "sqrtm_squared_max_abs": sqrtm_squared,
+            "qz_recon_A_max_abs": qz_recon_a,
+            "qz_recon_B_max_abs": qz_recon_b,
+            "qz_Q_orthogonality": qz_Q_orth,
+            "qz_Z_orthogonality": qz_Z_orth,
+            "signm_squared_max_abs": signm_sq,
+            "sylvester_residual_max_abs": syl_resid,
+            "eig_recon_max_abs": float(eig_max_resid),
+            "ordschur_recon_max_abs": ordschur_recon,
+            "ordschur_Q_orthogonality": ordschur_Q_orth,
+        })
 
     return results
 
