@@ -24,6 +24,7 @@ show_cifar_detail.py
 .python-version
 claude.json
 .claude/
+.opencode/
 workspace/
 
 # Benchmark logs (local runs)
