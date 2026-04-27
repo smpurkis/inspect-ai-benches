@@ -123,7 +123,7 @@ def run_eval(
     log_dir.mkdir(parents=True, exist_ok=True)
 
     timeout = read_task_timeout(task)
-    task_spec = f"terminal-bench/{task}/run.py@run"
+    task_spec = f"terminal-bench/{task}/run.py"
 
     cmd = [
         "uv", "run", "inspect", "eval",
