@@ -1,272 +1,353 @@
 #!/usr/bin/env python3
-"""Run all 5 closed-terminal-bench tasks and report results with statistics.
+"""Unified benchmark runner for terminal-bench tasks.
+
+Runs each task as a separate inspect eval (isolated token tracking per task).
+Auto-discovers tasks from terminal-bench/*/run.py.
 
 Usage:
-    uv run python run_bench.py                          # 5 runs, 3 parallel
-    uv run python run_bench.py --runs 3 --parallel 2
-    uv run python run_bench.py --report-only             # parse existing logs
-    uv run python run_bench.py --report-only --log-dir logs/v2_5x
+    uv run python run_bench.py                                    # all tasks, gpt-5, 1 round
+    uv run python run_bench.py --tasks pokemon-battle-fix,ext4-recovery
+    uv run python run_bench.py --models gpt-5,gpt-5.4 --rounds 3
+    uv run python run_bench.py --parallel 10
+    uv run python run_bench.py --report-only
+    uv run python run_bench.py --report-only --log-dir logs/bench
 """
+
+from __future__ import annotations
 
 import argparse
 import json
 import os
-import statistics
 import subprocess
-import sys
+import time
 import zipfile
-from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-BENCH_DIR = ROOT / "closed-terminal-bench"
-
-TASKS = [
-    "cifar10-burn-optimise",
-    "pandas-to-polars",
-    "git-leak-recovery-and-sanitize",
-    "rust-python-linear-algebra-extension",
-    "wasm-compression-stepwise",
-]
-
-MODEL = os.environ.get("MODEL", "openai-api/local/gpt-5")
-LOCAL_BASE_URL = os.environ.get(
-    "LOCAL_BASE_URL",
-    "https://micha-m6kmcqwd-eastus2.cognitiveservices.azure.com/openai/v1/",
-)
-LOCAL_API_KEY = os.environ.get(
-    "LOCAL_API_KEY",
-    "4stjFlPbWUZYZvIP0EZ77O4AR6j42ab5Pko6isbMv2pISlgUkt6bJQQJ99BAACHYHv6XJ3w3AAAAACOGwozk",
-)
+BENCH_DIR = ROOT / "terminal-bench"
+DEFAULT_LOG_DIR = ROOT / "logs" / "bench"
 
 
-def run_single_task(task: str, run_num: int, log_base: Path) -> tuple[str, int, float | None]:
-    """Run a single task once. Returns (task, run_num, score)."""
-    log_dir = log_base / f"{task}_run{run_num}"
+def discover_tasks() -> list[str]:
+    """Find all terminal-bench tasks that have a run.py."""
+    tasks = []
+    for run_py in sorted(BENCH_DIR.glob("*/run.py")):
+        name = run_py.parent.name
+        if name == "common":
+            continue
+        tasks.append(name)
+    return tasks
+
+
+def read_task_timeout(task: str) -> int:
+    """Read agent_timeout_sec from eval.yaml, default 3600."""
+    eval_yaml = BENCH_DIR / task / "eval.yaml"
+    if eval_yaml.exists():
+        import re
+        text = eval_yaml.read_text()
+        m = re.search(r"agent_timeout_sec:\s*(\d+)", text)
+        if m:
+            return int(m.group(1))
+    return 3600
+
+
+def parse_eval_file(eval_path: Path) -> dict:
+    """Extract score and token usage from an .eval zip file."""
+    result: dict = {"score": None, "input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+    try:
+        with zipfile.ZipFile(eval_path, "r") as zf:
+            for name in zf.namelist():
+                if not name.endswith(".json"):
+                    continue
+                try:
+                    data = json.loads(zf.read(name))
+                except Exception:
+                    continue
+                if not isinstance(data, dict):
+                    continue
+
+                # Score from results.scores
+                if result["score"] is None:
+                    for entry in data.get("results", {}).get("scores", []):
+                        for mname, mdata in entry.get("metrics", {}).items():
+                            if mname in ("accuracy", "mean"):
+                                val = mdata.get("value")
+                                if val is not None:
+                                    try:
+                                        result["score"] = float(val)
+                                    except (ValueError, TypeError):
+                                        pass
+
+                # Token usage from stats.model_usage (header.json)
+                model_usage = data.get("stats", {}).get("model_usage", {})
+                for _model_id, usage in model_usage.items():
+                    result["input_tokens"] += usage.get("input_tokens", 0)
+                    result["output_tokens"] += usage.get("output_tokens", 0)
+                    result["total_tokens"] += usage.get("total_tokens", 0)
+    except Exception:
+        pass
+    return result
+
+
+def get_env_credentials() -> tuple[str, str]:
+    """Read API credentials from environment (.env loaded by caller or shell)."""
+    base_url = os.environ.get("LOCAL_BASE_URL", "")
+    api_key = os.environ.get("LOCAL_API_KEY", "")
+    if not base_url or not api_key:
+        env_file = ROOT / ".env"
+        if env_file.exists():
+            for line in env_file.read_text().splitlines():
+                line = line.strip()
+                if line.startswith("#") or "=" not in line:
+                    continue
+                key, _, val = line.partition("=")
+                key, val = key.strip(), val.strip()
+                if key == "LOCAL_BASE_URL" and not base_url:
+                    base_url = val
+                elif key == "LOCAL_API_KEY" and not api_key:
+                    api_key = val
+    return base_url, api_key
+
+
+def run_eval(
+    model: str,
+    task: str,
+    round_num: int,
+    log_base: Path,
+    base_url: str,
+    api_key: str,
+) -> dict:
+    """Run a single task eval. Returns result dict."""
+    log_dir = log_base / model / task / f"round_{round_num:02d}"
     log_dir.mkdir(parents=True, exist_ok=True)
 
-    task_spec = f"closed-terminal-bench/{task}/run.py@run"
+    timeout = read_task_timeout(task)
+    task_spec = f"terminal-bench/{task}/run.py@run"
+
     cmd = [
         "uv", "run", "inspect", "eval",
         task_spec,
-        "--model", MODEL,
-        "--env", f"LOCAL_BASE_URL={LOCAL_BASE_URL}",
-        "--env", f"LOCAL_API_KEY={LOCAL_API_KEY}",
+        "--model", f"openai-api/local/{model}",
+        "--env", f"LOCAL_BASE_URL={base_url}",
+        "--env", f"LOCAL_API_KEY={api_key}",
         "--log-dir", str(log_dir),
+        "--max-tasks", "1",
         "--display", "none",
     ]
 
-    print(f"[{task} #{run_num}] Starting...", flush=True)
+    t0 = time.time()
     try:
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, cwd=str(ROOT), timeout=3600,
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True,
+            cwd=str(ROOT), timeout=timeout + 300,
         )
+        elapsed = time.time() - t0
+        rc = proc.returncode
+        stderr_tail = proc.stderr[-300:] if proc.stderr and rc != 0 else ""
     except subprocess.TimeoutExpired:
-        print(f"[{task} #{run_num}] TIMEOUT (60min)", flush=True)
-        return task, run_num, None
+        elapsed = time.time() - t0
+        rc = -1
+        stderr_tail = f"TIMEOUT after {elapsed:.0f}s"
 
-    if result.returncode != 0:
-        stderr_tail = (result.stderr or "")[-500:]
-        print(f"[{task} #{run_num}] FAILED (rc={result.returncode}): {stderr_tail}", flush=True)
-    else:
-        print(f"[{task} #{run_num}] Complete", flush=True)
+    eval_files = sorted(log_dir.glob("*.eval"))
+    parsed = parse_eval_file(eval_files[0]) if eval_files else {"score": None, "input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
 
-    # Parse the result immediately
-    score = None
-    for eval_file in sorted(log_dir.glob("*.eval")):
-        score = extract_score(eval_file)
-        if score is not None:
-            break
+    score = parsed["score"]
+    status = "ok" if rc == 0 else f"FAIL(rc={rc})"
+    score_s = f"{score:.3f}" if score is not None else " n/a"
+    tokens_s = f"{parsed['total_tokens']:,}" if parsed["total_tokens"] else "n/a"
 
-    if score is not None:
-        print(f"[{task} #{run_num}] Score: {score:.3f}", flush=True)
-    else:
-        print(f"[{task} #{run_num}] No score extracted", flush=True)
+    print(
+        f"  r{round_num:02d}  {model:<16} {task:<32} score={score_s}  tokens={tokens_s}  {elapsed/60:.1f}m  [{status}]",
+        flush=True,
+    )
+    if stderr_tail and rc != 0:
+        print(f"       stderr: {stderr_tail[:200]}", flush=True)
 
-    return task, run_num, score
+    sidecar = {
+        "model": model,
+        "task": task,
+        "round": round_num,
+        "elapsed": round(elapsed, 1),
+        "rc": rc,
+        "score": score,
+        "input_tokens": parsed["input_tokens"],
+        "output_tokens": parsed["output_tokens"],
+        "total_tokens": parsed["total_tokens"],
+    }
+    (log_dir / "_timing.json").write_text(json.dumps(sidecar, indent=2))
 
-
-def extract_score(eval_path: Path) -> float | None:
-    """Extract staged_scorer value from an Inspect v2 .eval ZIP."""
-    try:
-        with zipfile.ZipFile(eval_path, "r") as zf:
-            # Primary: summaries.json has task name + score
-            if "summaries.json" in zf.namelist():
-                with zf.open("summaries.json") as f:
-                    summaries = json.load(f)
-                for entry in summaries:
-                    val = entry.get("scores", {}).get("staged_scorer", {}).get("value")
-                    if val is not None:
-                        return float(val)
-
-            # Fallback: reductions.json
-            if "reductions.json" in zf.namelist():
-                with zf.open("reductions.json") as f:
-                    reductions = json.load(f)
-                for r in reductions:
-                    if r.get("scorer") == "staged_scorer":
-                        for sample in r.get("samples", []):
-                            val = sample.get("value")
-                            if val is not None:
-                                return float(val)
-    except Exception as e:
-        print(f"  Warning: parse error for {eval_path.name}: {e}", flush=True)
-    return None
+    return sidecar
 
 
-def extract_task_name(eval_path: Path) -> str | None:
-    """Get the eval_name from an .eval ZIP."""
-    try:
-        with zipfile.ZipFile(eval_path, "r") as zf:
-            if "summaries.json" in zf.namelist():
-                with zf.open("summaries.json") as f:
-                    summaries = json.load(f)
-                for entry in summaries:
-                    name = entry.get("metadata", {}).get("eval_name")
-                    if name:
-                        return name
-    except Exception:
-        pass
-    return None
+def load_results(log_base: Path) -> list[dict]:
+    """Load all _timing.json sidecars from a log directory."""
+    results = []
+    for sidecar in sorted(log_base.rglob("_timing.json")):
+        try:
+            d = json.loads(sidecar.read_text())
+            results.append(d)
+        except Exception:
+            pass
+    return results
 
 
-def collect_results(log_dir: Path) -> dict[str, list[float]]:
-    """Collect results from log directories."""
-    results = defaultdict(list)
-
-    # Per-task run directories (new format)
-    for task in TASKS:
-        for run_dir in sorted(log_dir.glob(f"{task}_run*")):
-            for eval_file in sorted(run_dir.glob("*.eval")):
-                score = extract_score(eval_file)
-                if score is not None:
-                    results[task].append(score)
-
-    # Round directories (legacy format)
-    if not results:
-        for round_dir in sorted(log_dir.glob("round_*")):
-            for eval_file in sorted(round_dir.glob("*.eval")):
-                task_name = extract_task_name(eval_file)
-                score = extract_score(eval_file)
-                if task_name and score is not None:
-                    results[task_name].append(score)
-
-    return dict(results)
+def fmt_tokens(n: int) -> str:
+    if n >= 1_000_000:
+        return f"{n / 1_000_000:.1f}M"
+    if n >= 1_000:
+        return f"{n / 1_000:.0f}k"
+    return str(n)
 
 
-def report(results: dict[str, list[float]]) -> str:
-    """Print and return results table with min, max, avg, std per task."""
-    lines = []
+def build_report(results: list[dict], tasks: list[str], models: list[str]) -> str:
+    """Build a results report table."""
+    scores: dict[tuple[str, str], list[dict]] = {}
+    for r in results:
+        k = (r["model"], r["task"])
+        scores.setdefault(k, []).append(r)
 
-    def p(s=""):
-        print(s, flush=True)
-        lines.append(s)
+    lines: list[str] = []
 
-    p()
-    p("=" * 95)
-    p("BENCHMARK RESULTS")
-    p("=" * 95)
-    p(f"{'Task':<42} {'Runs':>4}  {'Avg':>6}  {'Std':>6}  {'Min':>6}  {'Max':>6}  Scores")
-    p("-" * 95)
+    for model in models:
+        model_tasks = [t for t in tasks if scores.get((model, t))]
+        if not model_tasks:
+            continue
 
-    all_means = []
-    for task in TASKS:
-        scores = results.get(task, [])
-        if scores:
-            avg = statistics.mean(scores)
-            std = statistics.stdev(scores) if len(scores) >= 2 else 0.0
-            mn = min(scores)
-            mx = max(scores)
-            all_means.append(avg)
-            scores_str = " ".join(f"{s:.3f}" for s in scores)
-            flag = " !!" if std >= 0.1 else ""
-            p(f"{task:<42} {len(scores):>4}  {avg:>6.3f}  {std:>6.3f}  {mn:>6.3f}  {mx:>6.3f}  {scores_str}{flag}")
-        else:
-            p(f"{task:<42}    -       -       -       -       -  (no results)")
+        lines.append("")
+        lines.append(f"  terminal-bench results — {model}")
+        lines.append(f"  {'─' * 76}")
+        lines.append(f"  {'Task':<34} {'Avg':>6} {'Max':>6} {'Rounds':>8} {'Tokens':>10}")
+        lines.append(f"  {'─' * 76}")
 
-    p("-" * 95)
-    if all_means:
-        overall = statistics.mean(all_means)
-        p(f"{'Overall mean':<42}        {overall:>6.3f}")
-    p("=" * 95)
+        all_avgs = []
+        all_maxs = []
+        total_tokens = 0
+        total_rounds = 0
 
-    p()
-    any_high = False
-    for task in TASKS:
-        scores = results.get(task, [])
-        if len(scores) >= 2:
-            std = statistics.stdev(scores)
-            if std >= 0.1:
-                if not any_high:
-                    p("!! HIGH VARIANCE (std >= 0.1):")
-                    any_high = True
-                p(f"  {task}: std={std:.3f} scores={scores}")
-    if not any_high:
-        p("All tasks have std < 0.1")
-    p()
+        for task in tasks:
+            runs = scores.get((model, task), [])
+            valid = [r for r in runs if r.get("score") is not None]
+            if not valid:
+                lines.append(f"  {task:<34} {'—':>6} {'—':>6} {'0':>8} {'—':>10}")
+                continue
+
+            avg_score = sum(r["score"] for r in valid) / len(valid)
+            max_score = max(r["score"] for r in valid)
+            n = len(valid)
+            tok = sum(r.get("total_tokens", 0) for r in valid)
+
+            all_avgs.append(avg_score)
+            all_maxs.append(max_score)
+            total_tokens += tok
+            total_rounds += n
+
+            lines.append(
+                f"  {task:<34} {avg_score:>6.3f} {max_score:>6.3f} {n:>8} {fmt_tokens(tok):>10}"
+            )
+
+        lines.append(f"  {'─' * 76}")
+
+        if all_avgs:
+            avg_of_avgs = sum(all_avgs) / len(all_avgs)
+            avg_of_maxs = sum(all_maxs) / len(all_maxs)
+            lines.append(
+                f"  {'AVERAGE':<34} {avg_of_avgs:>6.3f} {avg_of_maxs:>6.3f} {total_rounds:>8} {fmt_tokens(total_tokens):>10}"
+            )
+        lines.append("")
 
     return "\n".join(lines)
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Run closed-terminal-bench")
-    parser.add_argument("--runs", type=int, default=5, help="Runs per task (default: 5)")
-    parser.add_argument("--parallel", type=int, default=3, help="Max parallel runs (default: 3)")
-    parser.add_argument("--log-dir", type=str, default=None, help="Log directory (default: logs/run_<timestamp>)")
-    parser.add_argument("--report-only", action="store_true", help="Just report existing results")
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run terminal-bench evaluations")
+    parser.add_argument("--tasks", default="", help="Comma-separated task names (default: all)")
+    parser.add_argument("--models", default="gpt-5", help="Comma-separated model names (default: gpt-5)")
+    parser.add_argument("--rounds", type=int, default=1, help="Number of rounds per task (default: 1)")
+    parser.add_argument("--parallel", type=int, default=5, help="Max parallel evals (default: 5)")
+    parser.add_argument("--log-dir", default=str(DEFAULT_LOG_DIR), help="Log directory")
+    parser.add_argument("--report-only", action="store_true", help="Just report on existing logs")
     args = parser.parse_args()
 
-    if args.report_only:
-        log_dir = Path(args.log_dir) if args.log_dir else ROOT / "logs"
-        if not log_dir.is_absolute():
-            log_dir = ROOT / log_dir
-        results = collect_results(log_dir)
-        report(results)
+    log_base = Path(args.log_dir)
+    all_tasks = discover_tasks()
+    sel_tasks = [t.strip() for t in args.tasks.split(",") if t.strip()] if args.tasks else all_tasks
+    sel_models = [m.strip() for m in args.models.split(",") if m.strip()]
+
+    bad = [t for t in sel_tasks if t not in all_tasks]
+    if bad:
+        print(f"Unknown tasks: {', '.join(bad)}")
+        print(f"Available: {', '.join(all_tasks)}")
         return
 
-    if args.log_dir:
-        log_dir = Path(args.log_dir)
-        if not log_dir.is_absolute():
-            log_dir = ROOT / log_dir
-    else:
-        from datetime import datetime
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_dir = ROOT / "logs" / f"run_{ts}"
+    if args.report_only:
+        results = load_results(log_base)
+        if not results:
+            print(f"No results found in {log_base}")
+            return
+        found_models = sorted({r["model"] for r in results})
+        found_tasks = sorted({r["task"] for r in results})
+        report = build_report(results, found_tasks, found_models)
+        print(report)
 
-    log_dir.mkdir(parents=True, exist_ok=True)
+        out = log_base / "report.txt"
+        out.write_text(report)
+        print(f"  Report saved: {out}")
+        return
 
-    # Build job queue: tasks * runs
-    jobs = [(task, run_num) for run_num in range(1, args.runs + 1) for task in TASKS]
+    base_url, api_key = get_env_credentials()
+    if not base_url or not api_key:
+        print("Missing LOCAL_BASE_URL or LOCAL_API_KEY. Set in .env or environment.")
+        return
+
+    log_base.mkdir(parents=True, exist_ok=True)
+
+    jobs = [
+        (model, task, rnd)
+        for rnd in range(1, args.rounds + 1)
+        for model in sel_models
+        for task in sel_tasks
+    ]
     total = len(jobs)
-    completed_count = 0
-    live_scores: dict[str, list[float]] = defaultdict(list)
 
-    print(f"Log dir:  {log_dir}")
-    print(f"Model:    {MODEL}")
-    print(f"Jobs:     {total} ({len(TASKS)} tasks x {args.runs} runs)")
-    print(f"Parallel: {args.parallel}")
-    print(flush=True)
+    print(f"\n  {total} evals queued ({args.parallel} max parallel)")
+    print(f"  Models: {', '.join(sel_models)}")
+    print(f"  Tasks:  {len(sel_tasks)} x {args.rounds} round(s)")
+    print(f"  Logs:   {log_base}\n")
 
-    with ThreadPoolExecutor(max_workers=args.parallel) as executor:
+    wall_start = time.time()
+    completed = 0
+
+    with ThreadPoolExecutor(max_workers=args.parallel) as pool:
         futures = {
-            executor.submit(run_single_task, task, run_num, log_dir): (task, run_num)
-            for task, run_num in jobs
+            pool.submit(run_eval, model, task, rnd, log_base, base_url, api_key): (model, task, rnd)
+            for model, task, rnd in jobs
         }
-        for future in as_completed(futures):
-            task, run_num = futures[future]
-            completed_count += 1
+        for fut in as_completed(futures):
+            model, task, rnd = futures[fut]
             try:
-                _, _, score = future.result()
-                if score is not None:
-                    live_scores[task].append(score)
+                fut.result()
             except Exception as e:
-                print(f"[{task} #{run_num}] Error: {e}", flush=True)
-            print(f"--- Progress: {completed_count}/{total} ---", flush=True)
+                print(f"  ERROR r{rnd:02d} {model} / {task}: {e}", flush=True)
+            completed += 1
+            if completed % 5 == 0 or completed == total:
+                print(f"  [{completed}/{total} done]", flush=True)
 
-    # Final report from disk (authoritative)
-    results = collect_results(log_dir)
-    report(results)
+    wall = time.time() - wall_start
+    print(f"\n  All {total} evals done in {wall / 60:.1f} min\n")
+
+    results = load_results(log_base)
+    report = build_report(results, sel_tasks, sel_models)
+    print(report)
+
+    out = log_base / "report.txt"
+    out.write_text(report)
+    print(f"  Report saved: {out}")
+
+    raw = log_base / "results.json"
+    raw.write_text(json.dumps(results, indent=2, default=str))
+    print(f"  Results JSON: {raw}")
 
 
 if __name__ == "__main__":

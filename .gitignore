@@ -15,9 +15,7 @@ wheels/
 # Secrets
 .env
 
-# Local runner scripts
-run_*.py
-run_*.sh
+# Local one-off scripts
 verify_freebies.sh
 cifar_step_detail.py
 show_cifar_detail.py
