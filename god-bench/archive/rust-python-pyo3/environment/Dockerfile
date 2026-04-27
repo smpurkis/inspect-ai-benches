@@ -29,9 +29,9 @@ WORKDIR /app
 COPY Cargo.toml /app/Cargo.toml
 COPY pyproject.toml /app/pyproject.toml
 
-# Compilable stub (imports allowed dep types so cargo caches them)
+# Compilable stub (touches pyo3 so cargo caches it)
 RUN mkdir -p /app/src && \
-    printf 'use ndarray::Array2;\nuse pyo3::prelude::*;\n\n#[pyfunction]\nfn _stub() -> PyResult<usize> {\n    let c = Array2::<f64>::zeros((1, 1));\n    Ok(c.len())\n}\n\n#[pymodule]\nfn rustlinalg(_py: Python, m: &PyModule) -> PyResult<()> {\n    m.add_function(wrap_pyfunction!(_stub, m)?)?;\n    Ok(())\n}\n' > /app/src/lib.rs
+    printf 'use pyo3::prelude::*;\n\n#[pyfunction]\nfn _stub() -> PyResult<usize> { Ok(1) }\n\n#[pymodule]\nfn rustlinalg(_py: Python, m: &PyModule) -> PyResult<()> {\n    m.add_function(wrap_pyfunction!(_stub, m)?)?;\n    Ok(())\n}\n' > /app/src/lib.rs
 
 # Vendor crate dependencies for offline builds
 RUN cargo vendor /app/vendor 2>&1 | tail -5

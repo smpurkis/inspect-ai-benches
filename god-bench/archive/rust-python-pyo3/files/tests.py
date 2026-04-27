@@ -120,6 +120,7 @@ def test_cargo_toml_does_not_use_linalg_libraries():
     code_text = "\n".join(code_lines).lower()
 
     forbidden = (
+        "ndarray",
         "ndarray-linalg",
         "nalgebra",
         "nalgebra-lapack",
@@ -140,6 +141,7 @@ def test_cargo_toml_does_not_use_linalg_libraries():
         "argmin",
         "russell",
         "faer",
+        "numpy",
     )
     for crate in forbidden:
         # Allow "blas" only if it's part of an allowed substring; check word boundary

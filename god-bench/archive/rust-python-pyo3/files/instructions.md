@@ -13,12 +13,27 @@ Build a PyO3 extension module (`rustlinalg`) that implements ten linear algebra 
 
 ## Dependency policy
 
-- All numerical computation must happen in Rust code in this crate.
-- Allowed crate dependencies: `pyo3` and `ndarray` (basic features only — no linalg feature flags).
-- Do **not** add `ndarray-linalg`, `nalgebra`, `nalgebra-lapack`, `lapack`, `lapack-sys`, `lapacke`, `lapacke-sys`, `blas`, `blas-src`, `cblas`, `cblas-sys`, `openblas-src`, `openblas-sys`, `intel-mkl-src`, `intel-mkl-sys`, `linfa-linalg`, `peroxide`, `argmin`, `russell`, `faer`, or any other linear algebra crate.
+- All numerical computation **and array storage** must happen in Rust code in this crate.
+- Only one Cargo dependency is allowed: `pyo3` (with `extension-module`).
+- Do **not** add `ndarray`, `ndarray-linalg`, `nalgebra`, `nalgebra-lapack`, `lapack`, `lapack-sys`, `lapacke`, `lapacke-sys`, `blas`, `blas-src`, `cblas`, `cblas-sys`, `openblas-src`, `openblas-sys`, `intel-mkl-src`, `intel-mkl-sys`, `linfa-linalg`, `peroxide`, `argmin`, `russell`, `faer`, the `numpy` crate, or any other crate that provides matrices, vectors, or linear algebra.
 - Do **not** call back into Python `numpy.linalg` or `scipy.linalg` from Rust via PyO3.
 - Do **not** use Cython, ctypes, or cffi in any part of the solution.
-- numpy is permitted only on the Python boundary for accepting input arrays and returning output arrays. The actual computation must be in Rust.
+- Python `numpy` is permitted only at the input/output boundary (you receive numpy arrays and may return numpy arrays). The actual computation must be in Rust using your own data structures.
+
+## Working with numpy arrays in Rust (pyo3 only)
+
+Use `pyo3::buffer::PyBuffer<f64>` to read the raw f64 contents of a numpy array — it implements the buffer protocol, no extra crate needed:
+
+```rust
+use pyo3::buffer::PyBuffer;
+let buf: PyBuffer<f64> = PyBuffer::get(a)?;
+let shape: Vec<usize> = buf.shape().to_vec();
+let data: Vec<f64> = buf.to_vec(_py)?;  // row-major copy
+```
+
+Store matrices as `Vec<f64>` with row-major indexing (`data[i * cols + j]`). Use `f64`'s standard library methods for scalar math: `sqrt`, `exp`, `ln`, `sin`, `cos`, `atan2`, `hypot`, `copysign`, etc.
+
+Return arrays by building `pyo3::types::PyList` of nested lists (the test harness converts these back to numpy float64 arrays).
 
 ## Required API
 

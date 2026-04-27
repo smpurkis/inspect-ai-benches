@@ -8,12 +8,22 @@
 //! nested lists). Returned values must convert cleanly to float64 numpy arrays
 //! with the documented shapes.
 //!
-//! Allowed Rust dependencies: pyo3 and ndarray (basic features only). You MUST
-//! NOT add ndarray-linalg, nalgebra, lapack, blas, openblas, or any other
-//! crate that performs linear algebra for you. All numerical algorithms must
-//! be implemented directly in this Rust crate.
+//! Allowed Rust dependencies: ONLY pyo3. You MUST NOT add ndarray, ndarray-linalg,
+//! nalgebra, lapack, blas, openblas, intel-mkl, linfa-linalg, peroxide, faer,
+//! the numpy crate, or any other crate that provides matrices, vectors, or
+//! linear algebra. All numerical algorithms and array storage must be
+//! implemented directly in this Rust crate.
+//!
+//! For numpy array I/O, use pyo3's built-in tools:
+//!   - `pyo3::buffer::PyBuffer<f64>` reads raw f64 data from numpy arrays via
+//!     the buffer protocol (no extra crate needed).
+//!   - Return arrays as `pyo3::types::PyList` of nested lists, or as raw
+//!     bytes that the Python caller can wrap with numpy.frombuffer.
+//!
+//! For matrix storage, use plain `Vec<f64>` with row-major indexing
+//! (`data[i * cols + j]`). For scalar math use f64's standard library
+//! (sqrt, exp, ln, sin, cos, hypot, copysign, etc.).
 
-use ndarray::{Array1, Array2};
 use pyo3::prelude::*;
 use pyo3::types::PyList;
 
@@ -171,7 +181,5 @@ fn rustlinalg(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
 // Suppress unused-import warnings for the stub builds.
 #[allow(dead_code)]
 fn _suppress_unused() {
-    let _ = Array1::<f64>::zeros(0);
-    let _ = Array2::<f64>::zeros((0, 0));
     let _: Option<&PyList> = None;
 }
