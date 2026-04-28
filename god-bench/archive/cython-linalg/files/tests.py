@@ -241,7 +241,24 @@ def test_svd_reconstruction():
     u = _array64(u, 2)
     s = _array64(s, 1)
     vt = _array64(vt, 2)
-    k = min(a.shape)
+    m, n = a.shape
+    k = min(m, n)
+
+    assert u.shape == (m, m), f"U must be {m}x{m}, got {u.shape}"
+    assert vt.shape == (n, n), f"Vt must be {n}x{n}, got {vt.shape}"
+    assert s.shape == (k,)
+
+    # Singular values must be non-negative and descending
+    assert np.all(s >= -1e-12), f"Singular values must be non-negative: {s}"
+    assert np.all(np.diff(s) <= 1e-12), f"Singular values must be descending: {s}"
+
+    # U and Vt must be orthogonal
+    np.testing.assert_allclose(u.T @ u, np.eye(m), atol=1e-10,
+                                err_msg="U must be orthogonal")
+    np.testing.assert_allclose(vt @ vt.T, np.eye(n), atol=1e-10,
+                                err_msg="Vt must be orthogonal")
+
+    # Reconstruction
     np.testing.assert_allclose(
         u[:, :k] @ np.diag(s) @ vt[:k, :], a, atol=1e-8
     )
@@ -256,8 +273,16 @@ def test_schur_reconstruction():
     Q = _array64(Q, 2)
     n = A.shape[0]
 
-    np.testing.assert_allclose(Q.T @ Q, np.eye(n), atol=1e-10)
-    np.testing.assert_allclose(Q @ T @ Q.T, A, atol=1e-8)
+    np.testing.assert_allclose(Q.T @ Q, np.eye(n), atol=1e-10,
+                                err_msg="Q must be orthogonal")
+    np.testing.assert_allclose(Q @ T @ Q.T, A, atol=1e-8,
+                                err_msg="Schur reconstruction must hold")
+
+    # T must be quasi-upper-triangular: nothing nonzero below the first subdiagonal
+    for i in range(2, n):
+        for j in range(i - 1):
+            assert abs(T[i, j]) < 1e-10, \
+                f"T[{i},{j}]={T[i,j]} -- T must be quasi-upper-triangular"
 
 
 def test_matrix_log_identity():
@@ -303,13 +328,18 @@ def test_qz_reconstruction():
 
 
 def test_signm_basic():
-    """sign(A) @ sign(A) should equal I."""
+    """sign(A) @ sign(A) should equal I, and sign eigenvalues are +/-1."""
     mod = _import_module()
 
     A = np.load("/app/fixtures/A_signm1.npy")
     S = _array64(mod.signm(A), 2)
     n = A.shape[0]
     np.testing.assert_allclose(S @ S, np.eye(n), atol=1e-8)
+
+    # Eigenvalues of sign(A) must all be +/-1 (not all 0 or all +1 etc.)
+    eigs = np.linalg.eigvals(S)
+    for e in eigs:
+        assert abs(abs(e) - 1.0) < 1e-6, f"sign(A) eigenvalue {e} is not +/- 1"
 
 
 def test_solve_sylvester_basic():
@@ -324,7 +354,7 @@ def test_solve_sylvester_basic():
 
 
 def test_eig_basic():
-    """A @ v = lambda * v for each eigenvalue."""
+    """A @ v = lambda * v, plus the eigenvalue set must match numpy."""
     mod = _import_module()
 
     A = np.load("/app/fixtures/A_eig1.npy")
@@ -338,15 +368,14 @@ def test_eig_basic():
     assert wi.shape == (n,)
     assert vecs.shape == (n, n)
 
+    # Per-eigenvector reconstruction
     j = 0
     while j < n:
         if abs(wi[j]) < 1e-14:
-            # Real eigenvalue: A @ v = wr[j] * v
             v = vecs[:, j]
             np.testing.assert_allclose(A @ v, wr[j] * v, atol=1e-8)
             j += 1
         else:
-            # Complex pair: A @ (vr + i*vi) = (wr + i*wi) * (vr + i*vi)
             vr = vecs[:, j]
             vi = vecs[:, j + 1]
             np.testing.assert_allclose(
@@ -357,9 +386,16 @@ def test_eig_basic():
             )
             j += 2
 
+    # Eigenvalue set must match numpy reference (catches "all zeros" gaming)
+    eigs_ref = np.linalg.eigvals(A)
+    eigs_ours = np.array([complex(r, i) for r, i in zip(wr, wi)])
+    eigs_ref_sorted = np.array(sorted(eigs_ref, key=lambda x: (x.real, x.imag)))
+    eigs_ours_sorted = np.array(sorted(eigs_ours, key=lambda x: (x.real, x.imag)))
+    np.testing.assert_allclose(eigs_ours_sorted, eigs_ref_sorted, atol=1e-6)
+
 
 def test_ordschur_basic():
-    """Reordered Schur form should still satisfy A = Q @ T @ Q^T."""
+    """Reordered Schur form: reconstruction holds AND selected eigenvalues moved."""
     mod = _import_module()
 
     A = np.load("/app/fixtures/A_ordschur1.npy")
@@ -374,6 +410,23 @@ def test_ordschur_basic():
 
     np.testing.assert_allclose(Q_new.T @ Q_new, np.eye(n), atol=1e-10)
     np.testing.assert_allclose(Q_new @ T_new @ Q_new.T, A, atol=1e-8)
+
+    # T_new must still be quasi-upper-triangular
+    for i in range(2, n):
+        for j in range(i - 1):
+            assert abs(T_new[i, j]) < 1e-10, \
+                f"T_new[{i},{j}]={T_new[i,j]} -- must be quasi-upper-triangular"
+
+    # Selected eigenvalues must actually appear in the top-left block
+    n_sel = int(np.sum(np.asarray(sel, dtype=bool)))
+    if n_sel > 0 and n_sel < n:
+        eigs_orig = sorted(np.linalg.eigvals(T_in), key=lambda x: (x.real, x.imag))
+        eigs_top = np.linalg.eigvals(T_new[:n_sel, :n_sel])
+        eigs_bot = np.linalg.eigvals(T_new[n_sel:, n_sel:])
+        eigs_combined = sorted(np.concatenate([eigs_top, eigs_bot]),
+                                key=lambda x: (x.real, x.imag))
+        np.testing.assert_allclose(np.array(eigs_combined),
+                                     np.array(eigs_orig), atol=1e-6)
 
 
 def test_matrix_power_basic():

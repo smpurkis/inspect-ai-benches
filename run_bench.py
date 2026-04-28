@@ -68,7 +68,15 @@ def read_task_timeout(task: str) -> int:
 
 def parse_eval_file(eval_path: Path) -> dict:
     """Extract score and token usage from an .eval zip file."""
-    result: dict = {"score": None, "input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+    result: dict = {
+        "score": None,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+        "reasoning_tokens": 0,
+    }
     try:
         with zipfile.ZipFile(eval_path, "r") as zf:
             for name in zf.namelist():
@@ -81,7 +89,6 @@ def parse_eval_file(eval_path: Path) -> dict:
                 if not isinstance(data, dict):
                     continue
 
-                # Score from results.scores
                 if result["score"] is None:
                     for entry in data.get("results", {}).get("scores", []):
                         for mname, mdata in entry.get("metrics", {}).items():
@@ -93,12 +100,14 @@ def parse_eval_file(eval_path: Path) -> dict:
                                     except (ValueError, TypeError):
                                         pass
 
-                # Token usage from stats.model_usage (header.json)
                 model_usage = data.get("stats", {}).get("model_usage", {})
                 for _model_id, usage in model_usage.items():
                     result["input_tokens"] += usage.get("input_tokens", 0)
                     result["output_tokens"] += usage.get("output_tokens", 0)
                     result["total_tokens"] += usage.get("total_tokens", 0)
+                    result["cache_read_tokens"] += usage.get("input_tokens_cache_read", 0)
+                    result["cache_write_tokens"] += usage.get("input_tokens_cache_write", 0)
+                    result["reasoning_tokens"] += usage.get("reasoning_tokens", 0)
     except Exception:
         pass
     return result
@@ -131,9 +140,11 @@ def run_eval(
     log_base: Path,
     base_url: str,
     api_key: str,
+    reasoning_effort: str | None = None,
 ) -> dict:
     """Run a single task eval. Returns result dict."""
-    log_dir = log_base / model / task / f"round_{round_num:02d}"
+    model_label = f"{model}-{reasoning_effort}" if reasoning_effort else model
+    log_dir = log_base / model_label / task / f"round_{round_num:02d}"
     log_dir.mkdir(parents=True, exist_ok=True)
 
     timeout = read_task_timeout(task)
@@ -150,6 +161,8 @@ def run_eval(
         "--max-tasks", "1",
         "--display", "none",
     ]
+    if reasoning_effort:
+        cmd.extend(["--reasoning-effort", reasoning_effort])
 
     t0 = time.time()
     try:
@@ -166,7 +179,8 @@ def run_eval(
         stderr_tail = f"TIMEOUT after {elapsed:.0f}s"
 
     eval_files = sorted(log_dir.glob("*.eval"))
-    parsed = parse_eval_file(eval_files[0]) if eval_files else {"score": None, "input_tokens": 0, "output_tokens": 0, "total_tokens": 0}
+    empty = {"score": None, "input_tokens": 0, "output_tokens": 0, "total_tokens": 0, "cache_read_tokens": 0, "cache_write_tokens": 0, "reasoning_tokens": 0}
+    parsed = parse_eval_file(eval_files[0]) if eval_files else empty
 
     score = parsed["score"]
     status = "ok" if rc == 0 else f"FAIL(rc={rc})"
@@ -174,14 +188,14 @@ def run_eval(
     tokens_s = f"{parsed['total_tokens']:,}" if parsed["total_tokens"] else "n/a"
 
     print(
-        f"  r{round_num:02d}  {model:<16} {task:<32} score={score_s}  tokens={tokens_s}  {elapsed/60:.1f}m  [{status}]",
+        f"  r{round_num:02d}  {model_label:<20} {task:<32} score={score_s}  tokens={tokens_s}  {elapsed/60:.1f}m  [{status}]",
         flush=True,
     )
     if stderr_tail and rc != 0:
         print(f"       stderr: {stderr_tail[:200]}", flush=True)
 
     sidecar = {
-        "model": model,
+        "model": model_label,
         "task": task,
         "round": round_num,
         "elapsed": round(elapsed, 1),
@@ -190,6 +204,9 @@ def run_eval(
         "input_tokens": parsed["input_tokens"],
         "output_tokens": parsed["output_tokens"],
         "total_tokens": parsed["total_tokens"],
+        "cache_read_tokens": parsed["cache_read_tokens"],
+        "cache_write_tokens": parsed["cache_write_tokens"],
+        "reasoning_tokens": parsed["reasoning_tokens"],
     }
     (log_dir / "_timing.json").write_text(json.dumps(sidecar, indent=2))
 
@@ -230,45 +247,56 @@ def build_report(results: list[dict], tasks: list[str], models: list[str]) -> st
         if not model_tasks:
             continue
 
+        w = 120
         lines.append("")
-        lines.append(f"  terminal-bench results — {model}")
-        lines.append(f"  {'─' * 76}")
-        lines.append(f"  {'Task':<34} {'Avg':>6} {'Max':>6} {'Rounds':>8} {'Tokens':>10}")
-        lines.append(f"  {'─' * 76}")
+        lines.append(f"  god-bench results — {model}")
+        lines.append(f"  {'─' * w}")
+        lines.append(f"  {'Task':<28} {'Avg':>6} {'Max':>6} {'N':>3} {'Input':>9} {'Output':>9} {'Cache R':>9} {'Cache W':>9} {'Reason':>9} {'Total':>9}")
+        lines.append(f"  {'─' * w}")
 
         all_avgs = []
         all_maxs = []
-        total_tokens = 0
+        totals = {k: 0 for k in ("input", "output", "cache_r", "cache_w", "reason", "total")}
         total_rounds = 0
 
         for task in tasks:
             runs = scores.get((model, task), [])
             valid = [r for r in runs if r.get("score") is not None]
             if not valid:
-                lines.append(f"  {task:<34} {'—':>6} {'—':>6} {'0':>8} {'—':>10}")
+                lines.append(f"  {task:<28} {'—':>6} {'—':>6} {'0':>3}")
                 continue
 
             avg_score = sum(r["score"] for r in valid) / len(valid)
             max_score = max(r["score"] for r in valid)
             n = len(valid)
-            tok = sum(r.get("total_tokens", 0) for r in valid)
+            inp = sum(r.get("input_tokens", 0) for r in valid)
+            out = sum(r.get("output_tokens", 0) for r in valid)
+            cr = sum(r.get("cache_read_tokens", 0) for r in valid)
+            cw = sum(r.get("cache_write_tokens", 0) for r in valid)
+            rea = sum(r.get("reasoning_tokens", 0) for r in valid)
+            tot = sum(r.get("total_tokens", 0) for r in valid)
 
             all_avgs.append(avg_score)
             all_maxs.append(max_score)
-            total_tokens += tok
+            totals["input"] += inp
+            totals["output"] += out
+            totals["cache_r"] += cr
+            totals["cache_w"] += cw
+            totals["reason"] += rea
+            totals["total"] += tot
             total_rounds += n
 
             lines.append(
-                f"  {task:<34} {avg_score:>6.3f} {max_score:>6.3f} {n:>8} {fmt_tokens(tok):>10}"
+                f"  {task:<28} {avg_score:>6.3f} {max_score:>6.3f} {n:>3} {fmt_tokens(inp):>9} {fmt_tokens(out):>9} {fmt_tokens(cr):>9} {fmt_tokens(cw):>9} {fmt_tokens(rea):>9} {fmt_tokens(tot):>9}"
             )
 
-        lines.append(f"  {'─' * 76}")
+        lines.append(f"  {'─' * w}")
 
         if all_avgs:
             avg_of_avgs = sum(all_avgs) / len(all_avgs)
             avg_of_maxs = sum(all_maxs) / len(all_maxs)
             lines.append(
-                f"  {'AVERAGE':<34} {avg_of_avgs:>6.3f} {avg_of_maxs:>6.3f} {total_rounds:>8} {fmt_tokens(total_tokens):>10}"
+                f"  {'TOTAL':<28} {avg_of_avgs:>6.3f} {avg_of_maxs:>6.3f} {total_rounds:>3} {fmt_tokens(totals['input']):>9} {fmt_tokens(totals['output']):>9} {fmt_tokens(totals['cache_r']):>9} {fmt_tokens(totals['cache_w']):>9} {fmt_tokens(totals['reason']):>9} {fmt_tokens(totals['total']):>9}"
             )
         lines.append("")
 
@@ -280,6 +308,7 @@ def main() -> None:
     parser.add_argument("--tasks", default="", help="Comma-separated task names (default: god-bench only)")
     parser.add_argument("--all", action="store_true", help="Include archive tasks too")
     parser.add_argument("--models", default="gpt-5", help="Comma-separated model names (default: gpt-5)")
+    parser.add_argument("--reasoning-effort", default=None, help="Reasoning effort: low, medium, high (comma-separated for multiple)")
     parser.add_argument("--rounds", type=int, default=1, help="Number of rounds per task (default: 1)")
     parser.add_argument("--parallel", type=int, default=5, help="Max parallel evals (default: 5)")
     parser.add_argument("--log-dir", default=str(DEFAULT_LOG_DIR), help="Log directory")
@@ -320,33 +349,39 @@ def main() -> None:
 
     log_base.mkdir(parents=True, exist_ok=True)
 
+    efforts = [e.strip() for e in args.reasoning_effort.split(",") if e.strip()] if args.reasoning_effort else [None]
+
     jobs = [
-        (model, task, rnd)
+        (model, task, rnd, effort)
         for rnd in range(1, args.rounds + 1)
         for model in sel_models
+        for effort in efforts
         for task in sel_tasks
     ]
     total = len(jobs)
 
+    effort_str = ", ".join(e or "default" for e in efforts)
     print(f"\n  {total} evals queued ({args.parallel} max parallel)")
-    print(f"  Models: {', '.join(sel_models)}")
-    print(f"  Tasks:  {len(sel_tasks)} x {args.rounds} round(s)")
-    print(f"  Logs:   {log_base}\n")
+    print(f"  Models:    {', '.join(sel_models)}")
+    print(f"  Reasoning: {effort_str}")
+    print(f"  Tasks:     {len(sel_tasks)} x {args.rounds} round(s)")
+    print(f"  Logs:      {log_base}\n")
 
     wall_start = time.time()
     completed = 0
 
     with ThreadPoolExecutor(max_workers=args.parallel) as pool:
         futures = {
-            pool.submit(run_eval, model, task, rnd, log_base, base_url, api_key): (model, task, rnd)
-            for model, task, rnd in jobs
+            pool.submit(run_eval, model, task, rnd, log_base, base_url, api_key, effort): (model, task, rnd, effort)
+            for model, task, rnd, effort in jobs
         }
         for fut in as_completed(futures):
-            model, task, rnd = futures[fut]
+            model, task, rnd, effort = futures[fut]
             try:
                 fut.result()
             except Exception as e:
-                print(f"  ERROR r{rnd:02d} {model} / {task}: {e}", flush=True)
+                label = f"{model}-{effort}" if effort else model
+                print(f"  ERROR r{rnd:02d} {label} / {task}: {e}", flush=True)
             completed += 1
             if completed % 5 == 0 or completed == total:
                 print(f"  [{completed}/{total} done]", flush=True)
