@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "common"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "common"))
 from inspect_ai import task
 from staged_eval import create_task
 
