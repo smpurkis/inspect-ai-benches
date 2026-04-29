@@ -28,6 +28,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
 
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
         numpy==2.2.6 \
+        scipy==1.14.1 \
         pytest==8.4.1 \
         pytest-timeout \
         pytest-json-ctrf==0.3.5

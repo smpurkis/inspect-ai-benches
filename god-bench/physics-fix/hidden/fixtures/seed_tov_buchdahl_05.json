@@ -2,12 +2,12 @@
   "mode": "tov",
   "tov": {
     "central_density": 0.0001,
-    "central_pressure": 1e-05,
+    "central_pressure": 2.6120387496374134e-05,
     "eos_k": 0.0,
     "eos_gamma": 0.0,
     "uniform_density": true,
     "r_start": 1e-06,
-    "dr_initial": 0.01,
+    "dr_initial": 0.001,
     "rtol": 1e-10,
     "atol": 1e-12
   }
