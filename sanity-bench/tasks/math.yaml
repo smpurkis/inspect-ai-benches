@@ -1,0 +1,59 @@
+category: math
+tasks:
+  - id: math-01-arith
+    prompt: |
+      What is 247 + 389? Answer with just the number.
+    scoring: {type: regex_number, expected: 636}
+    max_tokens: 768
+  - id: math-02-mult
+    prompt: |
+      What is 23 × 17? Answer with just the number.
+    scoring: {type: regex_number, expected: 391}
+    max_tokens: 768
+  - id: math-03-pct
+    prompt: |
+      A jacket costs $80 and is on sale for 35% off. What is the sale price in dollars?
+      Answer with just the number.
+    scoring: {type: regex_number, expected: 52}
+    max_tokens: 768
+  - id: math-04-fraction
+    prompt: |
+      What is 3/4 + 5/6 as a single fraction in simplest form? Reply in the format a/b.
+    scoring: {type: regex, pattern: "\\b19\\s*/\\s*12\\b"}
+    max_tokens: 768
+  - id: math-05-word
+    prompt: |
+      A train leaves Station A at 9:00 and travels at 80 km/h. Another train leaves
+      Station B (200 km away from A, on the same line, traveling toward A) at 9:30
+      at 100 km/h. At what time (HH:MM) do they meet?
+      Show your work briefly then end with "Final answer: HH:MM".
+    scoring: {type: regex, pattern: "Final answer:\\s*10:50"}
+    max_tokens: 768
+  - id: math-06-prime
+    prompt: |
+      Is 1009 a prime number? Answer just yes or no.
+    scoring: {type: regex, pattern: "^\\s*yes\\b", flags: ["I"]}
+    max_tokens: 768
+  - id: math-07-pythag
+    prompt: |
+      A right triangle has legs of length 9 and 12. What is the length of the
+      hypotenuse? Answer with just the number.
+    scoring: {type: regex_number, expected: 15}
+    max_tokens: 768
+  - id: math-08-algebra
+    prompt: |
+      Solve for x: 3x + 7 = 22. Answer with just the value of x.
+    scoring: {type: regex_number, expected: 5}
+    max_tokens: 768
+  - id: math-09-prob
+    prompt: |
+      A fair six-sided die is rolled twice. What is the probability that the sum
+      is exactly 7? Answer as a simplified fraction like a/b.
+    scoring: {type: regex, pattern: "1\\s*/\\s*6"}
+    max_tokens: 768
+  - id: math-10-geo
+    prompt: |
+      What is the area of a circle with radius 5? Answer in terms of π in the form
+      "Nπ" where N is an integer.
+    scoring: {type: regex, pattern: "\\b25\\s*[*]?\\s*(π|pi)\\b", flags: ["I"]}
+    max_tokens: 768

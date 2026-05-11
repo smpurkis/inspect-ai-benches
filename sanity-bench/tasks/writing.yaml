@@ -1,0 +1,139 @@
+category: writing
+tasks:
+  - id: wri-01-summarize
+    prompt: |
+      Summarise the following passage in exactly one sentence under 25 words.
+
+      "Photosynthesis is a process used by plants and other organisms to convert
+      light energy into chemical energy that, through cellular respiration, can
+      later be released to fuel the organisms' activities. Some of this chemical
+      energy is stored in carbohydrate molecules, such as sugars and starches,
+      which are synthesised from carbon dioxide and water."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, min: 5, max: 25, unit: words}
+        - {type: contains_any, expected: ["light", "energy", "convert", "chemical"]}
+    max_tokens: 768
+  - id: wri-02-rephrase
+    prompt: |
+      Rephrase this sentence in plain English (avoid jargon, under 20 words):
+
+      "We are operationalising a paradigm shift in stakeholder synergy to leverage
+      cross-functional touchpoints."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, max: 20, unit: words}
+        - {type: regex, pattern: "(?i)(?!.*operationali[sz]ing)(?!.*paradigm)(?!.*synerg)(?!.*touchpoint)", flags: ["S"]}
+    max_tokens: 768
+  - id: wri-03-tone
+    prompt: |
+      Rewrite the following angry message as a polite, professional one. Keep the
+      essential request. Keep it under 60 words.
+
+      "I CAN'T BELIEVE YOU MESSED UP THE INVOICE AGAIN. FIX IT TODAY OR I'M
+      TAKING MY BUSINESS ELSEWHERE."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^[^!]*$", flags: ["S"]}
+        - {type: contains_any, expected: ["invoice", "billing", "statement"]}
+        - {type: contains_any, expected: ["please", "could you", "would you", "appreciate", "kindly"]}
+        - {type: length_range, max: 60, unit: words}
+    max_tokens: 768
+  - id: wri-04-headline
+    prompt: |
+      Write a single news-style headline (≤10 words) summarising this article
+      lead: "Researchers at Cambridge announced today that they have developed a
+      cheap, biodegradable battery for medical implants that lasts ten years."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, max: 10, unit: words}
+        - {type: contains_any, expected: ["battery", "implant"]}
+    max_tokens: 768
+  - id: wri-05-bullet-summary
+    prompt: |
+      Summarise this in exactly three bullet points (use "-"), one short sentence each:
+
+      "The new tax bill increases the VAT rate from 20% to 22%, raises the
+      personal allowance to £15,000, and introduces a windfall tax on energy
+      profits over £500m. It also reduces corporation tax by 1%."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*-\\s+[^\\n]+\\n-\\s+[^\\n]+\\n-\\s+[^\\n]+\\s*$"}
+    max_tokens: 768
+  - id: wri-06-fact-correct
+    prompt: |
+      Find and correct any factual errors in the following sentence. Output only
+      the corrected sentence with no commentary.
+
+      "Mount Everest, the tallest mountain on Earth, is located in the Andes."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?i)(himalaya|nepal|tibet)"}
+        - {type: regex, pattern: "(?i)(?!.*andes)"}
+    max_tokens: 768
+  - id: wri-07-elaborate
+    prompt: |
+      Expand this single sentence into a vivid 3-sentence description, keeping the
+      same meaning:
+
+      "She walked home in the rain."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?:[^.]*\\.\\s*){3}"}
+        - {type: contains_any, expected: ["rain", "wet", "drizzl", "downpour", "shower"]}
+    max_tokens: 768
+  - id: wri-08-merge
+    prompt: |
+      Merge these two short sentences into one fluent sentence (≤30 words):
+
+      "The meeting was cancelled. The CEO had food poisoning."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, max: 30, unit: words}
+        - {type: regex, pattern: "^[^.\\n]*\\.[^.\\n]*$"}
+    max_tokens: 768
+  - id: wri-09-letter-style
+    prompt: |
+      Write a 2-3 sentence apology email to a customer whose order arrived late.
+      Be specific about acknowledging the delay and offering a 10% refund.
+      Open with "Hi" and sign off with "Best regards,".
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^Hi\\b"}
+        - {type: regex, pattern: "Best regards,"}
+        - {type: contains_any, expected: ["delay", "late", "arriv"]}
+        - {type: contains_any, expected: ["10%", "ten percent", "refund"]}
+    max_tokens: 768
+  - id: wri-10-translate-tone
+    prompt: |
+      Rewrite this casual text as a formal email body (no greeting/signature),
+      keeping all factual content. Under 60 words.
+
+      "yo, the server's down again. john rebooted it but it crashed in 5 min.
+      probs the memory leak we talked about. need to escalate to ops."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?i)(?!.*\\byo\\b)(?!.*\\bprobs\\b)", flags: ["S"]}
+        - {type: contains_any, expected: ["server", "rebooted", "memory", "operations", "ops"]}
+        - {type: length_range, max: 60, unit: words}
+    max_tokens: 768

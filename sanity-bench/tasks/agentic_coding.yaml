@@ -1,0 +1,152 @@
+category: agentic_coding
+tasks:
+  - id: agent-01-tool-choice
+    prompt: |
+      You are an agent with access to these tools: bash, read_file, write_file,
+      grep, web_search. The user asks you to "find all TODO comments in the
+      `src/` directory and list them with file:line".
+      What is the single best first tool call to make? Reply with just the tool
+      name (one of: bash, read_file, write_file, grep, web_search).
+    scoring: {type: exact_match, expected: "grep"}
+    max_tokens: 1536
+  - id: agent-02-patch
+    prompt: |
+      Given this function with two bugs (off-by-one AND missing edge case), output
+      ONLY a corrected Python code block. Function should return the median value
+      of a non-empty numeric list; for even lengths, return the average of the two
+      middle values.
+
+      ```python
+      def median(xs):
+          xs = sorted(xs)
+          return xs[len(xs) // 2]
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert median([5]) == 5"
+        - "assert median([1,2,3]) == 2"
+        - "assert median([4,1,3,2]) == 2.5"
+        - "assert median([1,2,3,4,5,6]) == 3.5"
+    max_tokens: 1536
+  - id: agent-03-cli-build
+    prompt: |
+      You're an agent. The user says "the build is failing in CI but works locally;
+      take a look". You should examine logs first. From this list, choose the file
+      most likely to contain CI build failure output:
+      A) src/main.py
+      B) .github/workflows/ci.yml
+      C) tests/test_main.py
+      D) docs/ARCHITECTURE.md
+      Reply with just the letter.
+    scoring: {type: multiple_choice, expected: B}
+    max_tokens: 1536
+  - id: agent-04-rg-cmd
+    prompt: |
+      As a coding agent, what ripgrep command (single line) would find all imports
+      of `requests` (case-sensitive) in `.py` files recursively from the current
+      directory? Output just the command on one line, no backticks.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^rg\\b"}
+        - {type: regex, pattern: "(--?type[= ]py|-g\\s*['\"]?\\*\\.py|\\*\\.py)"}
+        - {type: regex, pattern: "(import\\s+requests|from\\s+requests)"}
+    max_tokens: 1536
+  - id: agent-05-spec-impl
+    prompt: |
+      Write a `RateLimiter` class with method `allow(self) -> bool` that allows at
+      most 3 calls per 1.0-second sliding window. After 3 allowed calls, further
+      calls should return False until the oldest allowed call falls outside the
+      window. Use `time.monotonic`. Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      setup: "import time"
+      tests:
+        - |
+          rl = RateLimiter()
+          assert rl.allow() and rl.allow() and rl.allow()
+          assert not rl.allow()
+        - |
+          rl = RateLimiter()
+          for _ in range(3): assert rl.allow()
+          # cannot wait in test, so just confirm shape
+          assert rl.allow() is False
+    max_tokens: 1536
+  - id: agent-06-diff-read
+    prompt: |
+      You are reviewing this unified diff. Describe in one short sentence what
+      observable behaviour changes.
+
+      ```diff
+      --- a/api.py
+      +++ b/api.py
+      @@
+      -def divide(a, b):
+      -    return a / b
+      +def divide(a, b):
+      +    if b == 0:
+      +        return None
+      +    return a / b
+      ```
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["zero", "0"]}
+        - {type: contains_any, expected: ["None", "raise", "no longer", "instead of"]}
+    max_tokens: 1536
+  - id: agent-07-makefile
+    prompt: |
+      Write a Makefile target named `lint` that runs `ruff check .` and then
+      `mypy .`. Reply with just the make rule (target + recipe), no surrounding
+      backticks.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^lint\\s*:"}
+        - {type: regex, pattern: "ruff\\s+check\\s+\\."}
+        - {type: regex, pattern: "mypy\\s+\\."}
+    max_tokens: 1536
+  - id: agent-08-plan
+    prompt: |
+      Task: "Add a /healthz endpoint to a Flask app and a unit test for it."
+      List the minimum sequence of FILE changes you would make to accomplish this,
+      in order, one filename per line, no commentary. Assume the app lives at
+      `app.py` and tests live under `tests/`.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^\\s*app\\.py\\s*$"}
+        - {type: regex, pattern: "(?m)^\\s*tests/.*\\.py\\s*$"}
+    max_tokens: 1536
+  - id: agent-09-conflict
+    prompt: |
+      Two coworkers edited the same line of a config file. Git is now showing
+      conflict markers in `settings.yaml`. As a coding agent, what is the single
+      most important action you should take next? Reply with exactly one of:
+       A) Delete the file and re-create it
+       B) Read the file to inspect both conflict sides
+       C) Force-push your local copy
+       D) Stash and abandon the merge
+      Reply with just the letter.
+    scoring: {type: multiple_choice, expected: B}
+    max_tokens: 1536
+  - id: agent-10-sql-fix
+    prompt: |
+      The following SQL fails with "ambiguous column 'id'". Output just the
+      corrected query (single line is fine).
+
+      ```sql
+      SELECT id, name FROM users JOIN orders ON users.id = orders.user_id WHERE id = 42;
+      ```
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(users\\.id|u\\.id|orders\\.id|o\\.id)", flags: ["I"]}
+        - {type: regex, pattern: "WHERE\\s+(users\\.id|u\\.id|orders\\.user_id|o\\.user_id)", flags: ["I"]}
+    max_tokens: 1536

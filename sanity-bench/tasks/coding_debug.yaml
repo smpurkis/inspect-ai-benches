@@ -1,0 +1,197 @@
+category: coding_debug
+tasks:
+  - id: debug-01-offbyone
+    prompt: |
+      The function below should return the sum of integers from 1 to n inclusive,
+      but it has a bug. Fix it. Reply with just the corrected Python code block.
+
+      ```python
+      def sum_to_n(n: int) -> int:
+          total = 0
+          for i in range(n):
+              total += i
+          return total
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert sum_to_n(0) == 0"
+        - "assert sum_to_n(1) == 1"
+        - "assert sum_to_n(10) == 55"
+        - "assert sum_to_n(100) == 5050"
+    max_tokens: 1536
+  - id: debug-02-mutable-default
+    prompt: |
+      `append_one` should append 1 to the given list and return it, defaulting to
+      a fresh empty list when no list is given. Bug: subsequent calls share state.
+      Fix it. Reply with just the corrected Python code block.
+
+      ```python
+      def append_one(xs=[]):
+          xs.append(1)
+          return xs
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert append_one([]) == [1]"
+        - "assert append_one() == [1]"
+        - "assert append_one() == [1]"
+        - "a = []; b = append_one(a); assert b is a and a == [1]"
+    max_tokens: 1536
+  - id: debug-03-strip-bug
+    prompt: |
+      `clean_lines` should split a text into stripped, non-empty lines, but the
+      function below misses some empties. Fix it. Reply with just the corrected
+      Python code block.
+
+      ```python
+      def clean_lines(text: str) -> list[str]:
+          return [line for line in text.split("\n") if line != ""]
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert clean_lines('a\\nb\\n\\n c \\n\\t\\nd') == ['a','b','c','d']"
+        - "assert clean_lines('') == []"
+        - "assert clean_lines('   ') == []"
+    max_tokens: 1536
+  - id: debug-04-recursion
+    prompt: |
+      `factorial` should compute n! but recurses infinitely on n=0. Fix it.
+      Reply with just the corrected Python code block.
+
+      ```python
+      def factorial(n: int) -> int:
+          return n * factorial(n - 1)
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert factorial(0) == 1"
+        - "assert factorial(1) == 1"
+        - "assert factorial(5) == 120"
+        - "assert factorial(10) == 3628800"
+    max_tokens: 1536
+  - id: debug-05-string-concat
+    prompt: |
+      `join_csv` should produce a comma-separated string of stringified items but
+      ignores the first item. Fix it. Reply with just the corrected Python code block.
+
+      ```python
+      def join_csv(items: list) -> str:
+          out = ""
+          for i in items[1:]:
+              out += "," + str(i)
+          return out
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert join_csv([]) == ''"
+        - "assert join_csv([1]) == '1'"
+        - "assert join_csv([1,2,3]) == '1,2,3'"
+        - "assert join_csv(['a','b','c']) == 'a,b,c'"
+    max_tokens: 1536
+  - id: debug-06-max-empty
+    prompt: |
+      `safe_max` should return the max of a list, or `default` if the list is
+      empty. The buggy version raises ValueError on empty input. Fix it.
+      Reply with just the corrected Python code block.
+
+      ```python
+      def safe_max(xs, default=0):
+          return max(xs)
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert safe_max([]) == 0"
+        - "assert safe_max([], default=-1) == -1"
+        - "assert safe_max([1,5,3]) == 5"
+    max_tokens: 1536
+  - id: debug-07-fibonacci
+    prompt: |
+      `fib` should return the n-th Fibonacci number with `fib(0)==0, fib(1)==1`.
+      The buggy version is off by one on the base cases. Fix it.
+      Reply with just the corrected Python code block.
+
+      ```python
+      def fib(n: int) -> int:
+          if n <= 1:
+              return n + 1
+          return fib(n - 1) + fib(n - 2)
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert fib(0) == 0"
+        - "assert fib(1) == 1"
+        - "assert fib(2) == 1"
+        - "assert fib(10) == 55"
+    max_tokens: 1536
+  - id: debug-08-dict-count
+    prompt: |
+      `count_chars` should return a dict from each character to its count, but the
+      buggy version crashes on the first occurrence. Fix it.
+      Reply with just the corrected Python code block.
+
+      ```python
+      def count_chars(s: str) -> dict:
+          out = {}
+          for c in s:
+              out[c] += 1
+          return out
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert count_chars('') == {}"
+        - "assert count_chars('a') == {'a': 1}"
+        - "out = count_chars('banana'); assert out == {'b':1,'a':3,'n':2}, out"
+    max_tokens: 1536
+  - id: debug-09-binary-search
+    prompt: |
+      `binsearch` should return the index of `target` in a sorted list `xs`, or -1
+      if absent. Bug: an infinite loop when target is greater than all elements.
+      Fix it. Reply with just the corrected Python code block.
+
+      ```python
+      def binsearch(xs, target):
+          lo, hi = 0, len(xs) - 1
+          while lo <= hi:
+              mid = (lo + hi) // 2
+              if xs[mid] == target:
+                  return mid
+              elif xs[mid] < target:
+                  lo = mid
+              else:
+                  hi = mid
+          return -1
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert binsearch([], 1) == -1"
+        - "assert binsearch([1,2,3,4,5], 4) == 3"
+        - "assert binsearch([1,2,3,4,5], 6) == -1"
+        - "assert binsearch([1,2,3,4,5], 1) == 0"
+        - "assert binsearch([1,2,3,4,5], 5) == 4"
+    max_tokens: 1536
+  - id: debug-10-set-mutation
+    prompt: |
+      `unique_in_order` should return the unique elements of `xs` in their
+      first-seen order. The buggy version reorders them. Fix it.
+      Reply with just the corrected Python code block.
+
+      ```python
+      def unique_in_order(xs: list) -> list:
+          return list(set(xs))
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert unique_in_order([]) == []"
+        - "assert unique_in_order([1,1,2,3,2,1]) == [1,2,3]"
+        - "assert unique_in_order(['b','a','b','c','a']) == ['b','a','c']"
+    max_tokens: 1536

@@ -1,0 +1,127 @@
+category: deep_research
+tasks:
+  - id: dr-01-compare
+    prompt: |
+      Compare HTTP/1.1, HTTP/2 and HTTP/3 in a single bullet for each (use "-"
+      bullets). Each bullet must mention the underlying transport layer (TCP/UDP)
+      and one distinguishing feature. No preamble or conclusion.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?i)HTTP/?1\\.?1"}
+        - {type: regex, pattern: "(?i)HTTP/?2"}
+        - {type: regex, pattern: "(?i)HTTP/?3"}
+        - {type: contains_all, expected: ["TCP", "UDP"]}
+        - {type: regex, pattern: "(?m)^\\s*-\\s+"}
+    max_tokens: 1024
+  - id: dr-02-synthesise
+    prompt: |
+      Briefly explain why a Doppler shift is observed for an ambulance siren as it
+      passes you, and how the same effect is used to infer galaxy motion
+      (redshift). Two short paragraphs, ≤120 words total.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["frequency", "wavelength"]}
+        - {type: contains_any, expected: ["redshift", "red-shift", "shift towards red", "shifts to red"]}
+        - {type: length_range, max: 130, unit: words}
+    max_tokens: 1024
+  - id: dr-03-tradeoffs
+    prompt: |
+      List three concrete trade-offs of using a microservices architecture vs a
+      monolith in production. Each as a single "Pro X / Con Y" bullet line.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^.*Pro.*Con", flags: ["I"]}
+        - {type: contains_any, expected: ["latency", "deploy", "scaling", "complex", "team", "operations", "network"]}
+        - {type: regex, pattern: "(?m)(^.*\\n){3,}"}
+    max_tokens: 1024
+  - id: dr-04-explain-concept
+    prompt: |
+      Explain "eventual consistency" to a developer who knows SQL but has never
+      used a NoSQL database. Use one concrete real-world analogy. ≤80 words.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["consist", "replic", "convergence", "node", "later", "eventually"]}
+        - {type: contains_any, expected: ["like", "as if", "imagine", "similar to", "analog"]}
+        - {type: length_range, max: 90, unit: words}
+    max_tokens: 1024
+  - id: dr-05-causal-chain
+    prompt: |
+      Explain the causal chain from greenhouse gas emissions to rising sea
+      levels in 4-6 short numbered steps ("1.", "2.", ...). No preamble.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\.\\s+\\S.*\\n2\\.\\s+\\S"}
+        - {type: contains_any, expected: ["greenhouse", "CO2", "carbon"]}
+        - {type: contains_any, expected: ["ice", "glacier", "thermal", "expansion", "melt"]}
+        - {type: regex, pattern: "(?m)^[1-6]\\."}
+    max_tokens: 1024
+  - id: dr-06-pros-cons
+    prompt: |
+      Give two arguments for and two arguments against a 4-day work week, as a
+      Markdown table with columns "For" and "Against". Two rows. No commentary.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\\|\\s*For\\s*\\|\\s*Against\\s*\\|", flags: ["I"]}
+        - {type: regex, pattern: "\\|[-\\s|]+\\|"}
+        - {type: regex, pattern: "(?m)^\\|[^|]+\\|[^|]+\\|"}
+    max_tokens: 1024
+  - id: dr-07-define
+    prompt: |
+      Define "Big-O notation" precisely. Include exactly one numerical example
+      showing why O(n^2) is worse than O(n log n) for large n. ≤100 words.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["asymptot", "upper bound", "growth", "worst case", "worst-case"]}
+        - {type: contains_all, expected: ["n^2", "log"]}
+        - {type: length_range, max: 110, unit: words}
+    max_tokens: 1024
+  - id: dr-08-history
+    prompt: |
+      Summarise in one short paragraph (≤80 words) the role of the Hubble Space
+      Telescope's primary-mirror flaw in early 1990s astronomy. Mention the year
+      the first servicing mission (which fixed it) occurred.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["1993"]}
+        - {type: contains_any, expected: ["aberration", "spherical", "mirror"]}
+        - {type: length_range, max: 90, unit: words}
+    max_tokens: 1024
+  - id: dr-09-mechanism
+    prompt: |
+      Briefly explain how a vaccine trains the immune system in 3-4 sentences.
+      Mention "antibodies", "antigen" and "memory" cells exactly once each.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["antibod", "antigen", "memory"]}
+        - {type: regex, pattern: "(?:[^.]*\\.\\s*){3}"}
+    max_tokens: 1024
+  - id: dr-10-multi-step
+    prompt: |
+      Why does adding a small amount of salt to water raise its boiling point? In
+      ≤80 words, name the phenomenon and explain mechanistically.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["colligative", "boiling-point elevation", "boiling point elevation"]}
+        - {type: contains_any, expected: ["solute", "particles", "ions", "dissolved"]}
+        - {type: length_range, max: 90, unit: words}
+    max_tokens: 1024

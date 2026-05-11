@@ -1,0 +1,134 @@
+category: coding
+tasks:
+  - id: code-01-reverse
+    prompt: |
+      Write a Python function `reverse_string(s: str) -> str` that returns the
+      reverse of the input string. Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert reverse_string('hello') == 'olleh'"
+        - "assert reverse_string('') == ''"
+        - "assert reverse_string('a') == 'a'"
+        - "assert reverse_string('AB CD') == 'DC BA'"
+    max_tokens: 1536
+  - id: code-02-fizzbuzz
+    prompt: |
+      Write a Python function `fizzbuzz(n: int) -> list[str]` that returns a list
+      of strings for i in 1..=n where:
+       - "FizzBuzz" if i is divisible by 15
+       - "Fizz" if divisible by 3 (and not 15)
+       - "Buzz" if divisible by 5 (and not 15)
+       - str(i) otherwise.
+      Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "out = fizzbuzz(15); assert out[0]=='1' and out[2]=='Fizz' and out[4]=='Buzz' and out[14]=='FizzBuzz', out"
+        - "assert fizzbuzz(0) == []"
+        - "assert fizzbuzz(3) == ['1','2','Fizz']"
+    max_tokens: 1536
+  - id: code-03-anagram
+    prompt: |
+      Write a Python function `is_anagram(a: str, b: str) -> bool` that returns
+      True iff `a` and `b` are anagrams of each other (case-insensitive, ignoring
+      spaces). Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert is_anagram('listen','silent') is True"
+        - "assert is_anagram('Listen ','SILENT') is True"
+        - "assert is_anagram('hello','world') is False"
+        - "assert is_anagram('','') is True"
+    max_tokens: 1536
+  - id: code-04-prime
+    prompt: |
+      Write a Python function `nth_prime(n: int) -> int` that returns the n-th
+      prime number where `nth_prime(1) == 2`. Assume 1 <= n <= 1000.
+      Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert nth_prime(1) == 2"
+        - "assert nth_prime(5) == 11"
+        - "assert nth_prime(10) == 29"
+        - "assert nth_prime(25) == 97"
+    max_tokens: 1536
+  - id: code-05-flatten
+    prompt: |
+      Write a Python function `flatten(xs)` that takes an arbitrarily nested list
+      and returns a flat list of leaf values in order.
+      Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert flatten([]) == []"
+        - "assert flatten([1,[2,[3,[4]]]]) == [1,2,3,4]"
+        - "assert flatten([[1,2],[3,4]]) == [1,2,3,4]"
+        - "assert flatten([1,'a',[None,[True]]]) == [1,'a',None,True]"
+    max_tokens: 1536
+  - id: code-06-roman
+    prompt: |
+      Write a Python function `roman_to_int(s: str) -> int` that converts a Roman
+      numeral (1..3999) to an integer. Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert roman_to_int('III') == 3"
+        - "assert roman_to_int('IV') == 4"
+        - "assert roman_to_int('LVIII') == 58"
+        - "assert roman_to_int('MCMXCIV') == 1994"
+    max_tokens: 1536
+  - id: code-07-balanced
+    prompt: |
+      Write a Python function `is_balanced(s: str) -> bool` that returns True iff
+      brackets `()`, `[]`, `{}` in `s` are correctly matched/nested. Other characters
+      should be ignored. Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert is_balanced('()') is True"
+        - "assert is_balanced('([{}])') is True"
+        - "assert is_balanced('([)]') is False"
+        - "assert is_balanced('(a + b) * [c]') is True"
+        - "assert is_balanced(')(') is False"
+    max_tokens: 1536
+  - id: code-08-running
+    prompt: |
+      Write a Python function `running_average(nums: list[float]) -> list[float]`
+      that returns a list of the same length where element i is the average of
+      `nums[:i+1]`. Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert running_average([]) == []"
+        - "out = running_average([1.0, 2.0, 3.0, 4.0]); assert out == [1.0, 1.5, 2.0, 2.5], out"
+        - "out = running_average([10.0]); assert out == [10.0], out"
+    max_tokens: 1536
+  - id: code-09-merge
+    prompt: |
+      Write a Python function `merge_sorted(a: list[int], b: list[int]) -> list[int]`
+      that takes two sorted ascending lists and returns their merged sorted list
+      without using `sorted()`. Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert merge_sorted([], []) == []"
+        - "assert merge_sorted([1,3,5], [2,4,6]) == [1,2,3,4,5,6]"
+        - "assert merge_sorted([1,1,2], [1,3]) == [1,1,1,2,3]"
+        - "assert merge_sorted([1,2,3], []) == [1,2,3]"
+    max_tokens: 1536
+  - id: code-10-words
+    prompt: |
+      Write a Python function `top_words(text: str, k: int) -> list[str]` that
+      returns the k most frequent lowercased word tokens (split on whitespace,
+      stripped of punctuation) in `text`. Break ties by alphabetical order.
+      Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert top_words('a b a c b a', 2) == ['a','b']"
+        - "assert top_words('Hello, hello world!', 2) == ['hello','world']"
+        - "assert top_words('', 5) == []"
+        - "out = top_words('x y z', 2); assert out == ['x','y'], out"
+    max_tokens: 1536

@@ -1,0 +1,112 @@
+category: structured_output
+tasks:
+  - id: so-01-simple-json
+    prompt: |
+      Emit a single JSON object (and nothing else, no commentary, no code fences)
+      describing a person with keys: name (string), age (integer), is_member
+      (boolean). Use any sensible values.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*\\{", flags: ["S"]}
+        - {type: json_schema, schema: {name: "str", age: "int", is_member: "bool"}, required_keys: ["name","age","is_member"]}
+    max_tokens: 512
+  - id: so-02-array
+    prompt: |
+      Output a JSON array of three integers in ascending order. Nothing else.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*\\[\\s*-?\\d+\\s*,\\s*-?\\d+\\s*,\\s*-?\\d+\\s*\\]\\s*$"}
+    max_tokens: 512
+  - id: so-03-nested
+    prompt: |
+      Output a JSON object with key "user" mapping to an object with keys "id"
+      (int) and "tags" (list of strings, length >= 2). No commentary, JSON only.
+    scoring:
+      type: json_schema
+      schema: {user: "dict"}
+      required_keys: ["user"]
+    max_tokens: 512
+  - id: so-04-csv
+    prompt: |
+      Output CSV with header row "name,quantity,price" and exactly three data
+      rows. Use realistic grocery values. Nothing else.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^name,quantity,price\\n"}
+        - {type: regex, pattern: "(?:[^,\\n]*,[^,\\n]*,[^,\\n]*\\n){3}", flags: ["M"]}
+    max_tokens: 512
+  - id: so-05-yaml
+    prompt: |
+      Output a YAML document describing a server with keys: host (string), port
+      (int), tls (bool). Nothing else, no code fences.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^host:\\s*\\S"}
+        - {type: regex, pattern: "(?m)^port:\\s*\\d+"}
+        - {type: regex, pattern: "(?mi)^tls:\\s*(true|false|yes|no)"}
+    max_tokens: 512
+  - id: so-06-markdown-table
+    prompt: |
+      Output a markdown table listing the three primary additive colours, one row
+      each, with columns "Colour" and "Hex". Use proper hex codes prefixed with
+      `#`. No commentary outside the table.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\\|\\s*Colou?r\\s*\\|\\s*Hex\\s*\\|", flags: ["I"]}
+        - {type: regex, pattern: "#[0-9a-fA-F]{3,6}.*\\n.*#[0-9a-fA-F]{3,6}.*\\n.*#[0-9a-fA-F]{3,6}", flags: ["S"]}
+    max_tokens: 512
+  - id: so-07-xml
+    prompt: |
+      Output a single XML element `<book>` with child elements `<title>` and
+      `<author>` (any sensible values). No commentary, just the XML.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "<book>"}
+        - {type: regex, pattern: "<title>[^<]+</title>"}
+        - {type: regex, pattern: "<author>[^<]+</author>"}
+        - {type: regex, pattern: "</book>"}
+    max_tokens: 512
+  - id: so-08-deeper-json
+    prompt: |
+      Output JSON only (no other text) representing a TODO list with key "items"
+      mapping to a list of objects each with keys "id" (int) and "done" (bool).
+      The list must contain exactly 3 items.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {items: "list"}, required_keys: ["items"]}
+        - {type: regex, pattern: "\"id\".*\"done\".*\"id\".*\"done\".*\"id\".*\"done\"", flags: ["S"]}
+    max_tokens: 512
+  - id: so-09-strict-enum
+    prompt: |
+      Output a JSON object with one key "status" whose value is one of:
+      "ok", "warn", "fail". Use "warn". Nothing else.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*\\{\\s*\"status\"\\s*:\\s*\"warn\"\\s*\\}\\s*$"}
+    max_tokens: 512
+  - id: so-10-iso-date
+    prompt: |
+      Output a JSON object with key "date" whose value is an ISO-8601 date string
+      (format YYYY-MM-DD) representing 1st March 2025. Nothing else.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"date\"\\s*:\\s*\"2025-03-01\""}
+    max_tokens: 512

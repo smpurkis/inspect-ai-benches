@@ -1,0 +1,104 @@
+category: instruction_following
+tasks:
+  - id: if-01-exact-words
+    prompt: |
+      Write a sentence about a dog that contains exactly seven words.
+    scoring: {type: length_range, min: 7, max: 7, unit: words}
+    max_tokens: 768
+  - id: if-02-uppercase
+    prompt: |
+      Write a single short paragraph describing autumn. Every letter in your
+      response must be uppercase.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^[^a-z]*$"}
+        - {type: length_range, min: 20, max: 200, unit: words}
+    max_tokens: 768
+  - id: if-03-no-letter
+    prompt: |
+      Write three sentences about coffee. None of them may contain the letter "e"
+      (case-insensitive).
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^[^eE]*$"}
+        - {type: regex, pattern: "(?s)\\..*\\..*\\."}
+    max_tokens: 768
+  - id: if-04-bullet-count
+    prompt: |
+      List exactly five tips for staying focused while working. Use a markdown
+      bullet list with `-` as the bullet marker. Nothing before or after the list.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*-\\s+\\S.*\\n-\\s+\\S.*\\n-\\s+\\S.*\\n-\\s+\\S.*\\n-\\s+\\S", flags: ["M"]}
+        - {type: regex, pattern: "(?s)\\A\\s*-\\s+"}
+    max_tokens: 768
+  - id: if-05-mention-keyword
+    prompt: |
+      Write a short paragraph (under 100 words) about climate change. The word
+      "ocean" must appear exactly three times.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?i)(^|\\W)ocean(\\W|$).*?(^|\\W)ocean(\\W|$).*?(^|\\W)ocean(\\W|$)", flags: ["S"]}
+        - {type: length_range, max: 100, unit: words}
+    max_tokens: 768
+  - id: if-06-json-only
+    prompt: |
+      Reply with a single JSON object on one line containing exactly the keys
+      "name" and "score". `name` should be a string and `score` should be the
+      integer 42. Do not include any other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*\\{[^\\n]*\\}\\s*$"}
+        - {type: json_schema, schema: {name: "str", score: "int"}, required_keys: ["name","score"]}
+    max_tokens: 768
+  - id: if-07-no-markdown
+    prompt: |
+      Describe the water cycle in three short sentences. Do not use any markdown
+      formatting — no asterisks, hashes, backticks, dashes, or numbered lists.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^[^*#`\\-]*$", flags: ["S"]}
+        - {type: regex, pattern: "^(?:[^.]*\\.){3}[^.]*$", flags: ["S"]}
+    max_tokens: 768
+  - id: if-08-numbered-only
+    prompt: |
+      List three benefits of exercise as a numbered list ("1.", "2.", "3."). Each
+      benefit must be a single sentence under 12 words. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*1\\.\\s+\\S.*\\n2\\.\\s+\\S.*\\n3\\.\\s+\\S.*$", flags: ["S"]}
+    max_tokens: 768
+  - id: if-09-end-with
+    prompt: |
+      Write a one-paragraph description of a quiet morning. The paragraph must end
+      with the exact sentence: "And then the kettle whistled."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "And then the kettle whistled\\.\\s*$"}
+    max_tokens: 768
+  - id: if-10-words-start
+    prompt: |
+      Write a sentence about the sea where every word starts with the letter "s"
+      (case-insensitive).
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*([sS][^\\s.,;:!?]*[\\s.,;:!?]+)+\\s*$"}
+    max_tokens: 768

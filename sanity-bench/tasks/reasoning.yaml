@@ -1,0 +1,73 @@
+category: reasoning
+tasks:
+  - id: reas-01-syllogism
+    prompt: |
+      All bloops are razzles. All razzles are lazzles. Are all bloops lazzles?
+      Answer just yes or no.
+    scoring: {type: regex, pattern: "^\\s*yes\\b", flags: ["I"]}
+    max_tokens: 768
+  - id: reas-02-deduction
+    prompt: |
+      Alice, Bob and Carol each picked one different colour: red, green, blue.
+      Alice did not pick red. Bob picked the colour Alice would have picked second-
+      most-likely if her favourite were not available — but actually, Bob picked
+      green. What colour did Alice pick?
+      Reply with just the colour.
+    scoring: {type: exact_match, expected: "blue"}
+    max_tokens: 768
+  - id: reas-03-river
+    prompt: |
+      A farmer has a fox, a chicken and a sack of grain on one side of a river. He
+      can take exactly one item across the river at a time in his small boat. The
+      fox will eat the chicken if left alone with it; the chicken will eat the
+      grain if left alone with it. What does he take across first?
+      Reply with just one word: fox, chicken, or grain.
+    scoring: {type: exact_match, expected: "chicken"}
+    max_tokens: 768
+  - id: reas-04-clocks
+    prompt: |
+      A clock is showing 3:15. What is the smaller angle, in degrees, between the
+      hour hand and the minute hand at exactly this time?
+      Answer with just the number.
+    scoring: {type: regex_number, expected: 7.5, tolerance: 0.5}
+    max_tokens: 768
+  - id: reas-05-seq
+    prompt: |
+      What is the next number in this sequence?
+      2, 6, 12, 20, 30, 42, __
+      Answer with just the number.
+    scoring: {type: regex_number, expected: 56}
+    max_tokens: 768
+  - id: reas-06-coins
+    prompt: |
+      You have 9 coins; one is fake (heavier than the rest). What is the minimum
+      number of weighings on a two-pan balance required to guarantee finding it?
+      Answer with just the number.
+    scoring: {type: regex_number, expected: 2}
+    max_tokens: 768
+  - id: reas-07-lateral
+    prompt: |
+      A man is found dead in the middle of an empty field, with no footprints
+      around him. Beside him is an unopened backpack. What is the simplest
+      plausible explanation? Answer in one short sentence.
+    scoring: {type: contains_any, expected: ["parachute", "skydiv", "fell from", "jumped", "plane"]}
+    max_tokens: 768
+  - id: reas-08-truth
+    prompt: |
+      You meet two people, X and Y. One always tells the truth, the other always lies.
+      X says: "Y is a liar." Y says: "X and I are the same type."
+      Who is the truth-teller? Reply with just X or Y.
+    scoring: {type: regex, pattern: "^\\s*X\\b", flags: ["M"]}
+    max_tokens: 768
+  - id: reas-09-cause
+    prompt: |
+      Every time it rains, the pavement gets wet. The pavement is wet today.
+      Can we conclude that it rained? Answer just yes or no.
+    scoring: {type: regex, pattern: "^\\s*no\\b", flags: ["I"]}
+    max_tokens: 768
+  - id: reas-10-graph
+    prompt: |
+      In a tournament every pair of 5 teams plays exactly one match (no draws).
+      How many total matches are played? Answer with just the number.
+    scoring: {type: regex_number, expected: 10}
+    max_tokens: 768

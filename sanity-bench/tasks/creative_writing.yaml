@@ -1,0 +1,129 @@
+category: creative_writing
+tasks:
+  - id: cw-01-haiku
+    prompt: |
+      Write a haiku about a thunderstorm. Three lines, syllable structure 5-7-5.
+      Mention thunder explicitly. No title.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^[^\\n]+\\n[^\\n]+\\n[^\\n]+\\s*$"}
+        - {type: contains, expected: "thunder"}
+        - {type: length_range, min: 3, max: 5, unit: lines}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: cw-02-acrostic
+    prompt: |
+      Write an acrostic poem where the first letters of each line spell BRAVE.
+      Five lines total. No title.
+    scoring:
+      type: regex
+      pattern: "^\\s*B[^\\n]*\\n\\s*R[^\\n]*\\n\\s*A[^\\n]*\\n\\s*V[^\\n]*\\n\\s*E[^\\n]*"
+      flags: ["M","I"]
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: cw-03-six-word
+    prompt: |
+      Write a six-word story about regret. Reply with exactly six words, no
+      surrounding quotes or trailing commentary.
+    scoring: {type: length_range, min: 6, max: 6, unit: words}
+    max_tokens: 1024
+    temperature: 0.7
+
+  - id: cw-04-dialogue
+    prompt: |
+      Write a 6-line dialogue between a tired barista and a chatty customer.
+      Each line must start with either "Barista:" or "Customer:". No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^(Barista|Customer):", flags: ["M"]}
+        - {type: length_range, min: 6, max: 8, unit: lines}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: cw-05-limerick
+    prompt: |
+      Write a limerick (AABBA rhyme, five lines) about a cat who loses its hat.
+      No title, no commentary, just the five lines.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, min: 5, max: 5, unit: lines}
+        - {type: contains_all, expected: ["cat", "hat"]}
+    max_tokens: 1024
+    temperature: 0.6
+
+  - id: cw-06-letter
+    prompt: |
+      Write a short, warm letter (3-4 paragraphs, separated by blank lines) from a
+      grandmother to her grandchild going to university. Start with "Dear " and
+      end with "Love, Nana".
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^Dear\\s"}
+        - {type: regex, pattern: "Love,\\s*Nana\\s*$"}
+        - {type: length_range, min: 60, max: 300, unit: words}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: cw-07-twist
+    prompt: |
+      Write a 60-90 word micro-story that ends with a surprising twist. Conclude
+      with a single sentence beginning "But that was when".
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, min: 60, max: 110, unit: words}
+        - {type: regex, pattern: "But that was when[^.]*\\.\\s*$"}
+    max_tokens: 1024
+    temperature: 0.7
+
+  - id: cw-08-metaphor
+    prompt: |
+      Write three distinct metaphors describing loneliness. Format: a numbered
+      list (1., 2., 3.). Each item must contain the word "like" or "as".
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*1\\..*\\n2\\..*\\n3\\.", flags: ["S"]}
+        - {type: regex, pattern: "(?i)(like|as)\\b.*(like|as)\\b.*(like|as)\\b", flags: ["S"]}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: cw-09-opener
+    prompt: |
+      Write an opening sentence for a thriller novel set in Reykjavík in winter.
+      Make it under 30 words. Include the word "Reykjavík" (or "Reykjavik").
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, min: 5, max: 30, unit: words}
+        - {type: contains_any, expected: ["Reykjavík", "Reykjavik"]}
+    max_tokens: 1024
+    temperature: 0.6
+
+  - id: cw-10-genre-pivot
+    prompt: |
+      Continue this fairytale opening into the next 2-3 sentences, but pivot the
+      genre to noir detective fiction. Keep the same protagonist (a princess).
+      Opening: "Once upon a time there was a princess who could not sleep."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["princess"]}
+        - {type: length_range, min: 20, max: 120, unit: words}
+        - {type: contains_any, expected: ["case", "detective", "rain", "smoke", "alley", "cigarette", "dame", "shadow", "gun", "clue"]}
+    max_tokens: 1024
+    temperature: 0.6

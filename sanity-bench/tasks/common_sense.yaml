@@ -1,0 +1,73 @@
+category: common_sense
+tasks:
+  - id: cs-01-water
+    prompt: |
+      If you put an ice cube in a glass of warm water, what happens to the ice cube
+      over time? Answer in one short sentence.
+    scoring: {type: contains_any, expected: ["melt", "melts", "dissolve"]}
+    max_tokens: 384
+  - id: cs-02-letter
+    prompt: |
+      You leave a paper letter outside in heavy rain for an hour. When you pick it
+      up, is it more likely to be wet or dry? Answer with one word.
+    scoring: {type: exact_match, expected: "wet"}
+    max_tokens: 384
+  - id: cs-03-glass
+    prompt: |
+      If you knock a glass cup off a hard tile floor, what is most likely to happen
+      to the cup? Answer in five words or fewer.
+    scoring: {type: contains_any, expected: ["break", "breaks", "shatter", "shatters", "smash"]}
+    max_tokens: 384
+  - id: cs-04-traffic
+    prompt: |
+      A traffic light shows red. What should a driver approaching the intersection
+      do? Answer with one word.
+    scoring: {type: exact_match, expected: "stop"}
+    max_tokens: 384
+  - id: cs-05-seeds
+    prompt: |
+      You plant a tomato seed in dry soil and never water it. Will the tomato plant
+      grow? Answer yes or no.
+    scoring: {type: regex, pattern: "^\\s*no\\b", flags: ["I"]}
+    max_tokens: 384
+  - id: cs-06-shadow
+    prompt: |
+      At noon on a sunny day, where would your shadow be? Answer in one short phrase.
+    scoring: {type: contains_any, expected: ["below", "underneath", "under you", "at your feet", "beneath", "directly below"]}
+    max_tokens: 384
+  - id: cs-07-order
+    prompt: |
+      A person needs to make tea. Put these steps in the correct order using only
+      the letters, separated by ' > ': (A) drink tea, (B) pour boiling water on
+      teabag, (C) boil the water, (D) wait for it to brew.
+      Reply with just the ordered letters like 'C > B > D > A'.
+    scoring: {type: regex, pattern: "C\\s*>\\s*B\\s*>\\s*D\\s*>\\s*A"}
+    max_tokens: 384
+  - id: cs-08-fire
+    prompt: |
+      Is it safe to pour gasoline on a small grease fire in a kitchen? Answer yes or no
+      and explain in one short sentence.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*no\\b", flags: ["I"]}
+        - {type: contains_any, expected: ["explode", "explosive", "spread", "ignite", "flammable", "worse", "dangerous"]}
+    max_tokens: 384
+  - id: cs-09-ages
+    prompt: |
+      Sara is 12 years older than her brother Tom. Tom was born in 2010. In what
+      year was Sara born? Answer with just the year.
+    scoring: {type: regex_number, expected: 1998}
+    max_tokens: 384
+  - id: cs-10-magnet
+    prompt: |
+      Which of these objects will a regular fridge magnet stick to? Reply with only the items, comma separated.
+      Items: a steel cutlery knife, a glass window, a wooden door, an iron nail, a plastic ruler.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["steel", "iron"]}
+        - {type: regex, pattern: "(glass|wood|plastic)", flags: ["I"]}
+    max_tokens: 384

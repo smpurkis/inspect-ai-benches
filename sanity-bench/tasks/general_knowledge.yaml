@@ -1,0 +1,55 @@
+category: general_knowledge
+tasks:
+  - id: gk-01-capital
+    prompt: |
+      What is the capital of Australia? Answer with just the city name.
+    scoring: {type: exact_match, expected: "Canberra"}
+    max_tokens: 384
+  - id: gk-02-element
+    prompt: |
+      What is the chemical symbol for gold? Answer with just the symbol.
+    scoring: {type: exact_match, expected: "Au"}
+    max_tokens: 384
+  - id: gk-03-event-year
+    prompt: |
+      In what year did the Chernobyl nuclear disaster occur? Answer with just the year.
+    scoring: {type: regex_number, expected: 1986}
+    max_tokens: 384
+  - id: gk-04-author
+    prompt: |
+      Who wrote the novel "One Hundred Years of Solitude"? Answer with just the author's name.
+    scoring: {type: contains_all, expected: ["García", "Márquez"]}
+    max_tokens: 384
+  - id: gk-05-planet
+    prompt: |
+      Which planet in our solar system has the most moons (as confirmed by IAU as of 2024)?
+      Answer with just the planet name.
+    scoring: {type: contains_any, expected: ["Saturn"]}
+    max_tokens: 384
+  - id: gk-06-physics
+    prompt: |
+      What is the speed of light in a vacuum, in meters per second, to three significant figures?
+      Answer with just the number in scientific notation like 3.00e8.
+    scoring: {type: regex, pattern: "3(\\.0+)?\\s*[xX*×]?\\s*10\\^?8|3\\.0+e\\+?0?8|299,?792,?458"}
+    max_tokens: 384
+  - id: gk-07-geography
+    prompt: |
+      What is the longest river in Africa? Answer with just the river name.
+    scoring: {type: contains, expected: "Nile"}
+    max_tokens: 384
+  - id: gk-08-economics
+    prompt: |
+      What does GDP stand for? Answer in exactly four words.
+    scoring: {type: contains_all, expected: ["gross", "domestic", "product"]}
+    max_tokens: 384
+  - id: gk-09-history
+    prompt: |
+      Who was the first president of the United States? Answer with just the name.
+    scoring: {type: contains, expected: "George Washington"}
+    max_tokens: 384
+  - id: gk-10-biology
+    prompt: |
+      What organelle in a eukaryotic cell is the site of aerobic respiration?
+      Answer with just the organelle name.
+    scoring: {type: contains, expected: "mitochondri"}
+    max_tokens: 384

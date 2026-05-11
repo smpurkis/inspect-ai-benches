@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "searxng": {
+      "type": "stdio",
+      "command": "bunx",
+      "args": ["-y", "mcp-searxng@1.0.3"],
+      "env": {
+        "SEARXNG_URL": "http://localhost:5001",
+        "AUTH_USERNAME": "your-username",
+        "AUTH_PASSWORD": "your-password",
+        "USER_AGENT": "MyBot/1.0"
+      }
+    }
+  }
+}
