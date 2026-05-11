@@ -36,9 +36,9 @@ tasks:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "(?m)^.*Pro.*Con", flags: ["I"]}
+        - {type: regex, pattern: "(?mi)^.*Pro.*Con"}
         - {type: contains_any, expected: ["latency", "deploy", "scaling", "complex", "team", "operations", "network"]}
-        - {type: regex, pattern: "(?m)(^.*\\n){3,}"}
+        - {type: length_range, min: 3, max: 20, unit: lines}
     max_tokens: 1024
   - id: dr-04-explain-concept
     prompt: |

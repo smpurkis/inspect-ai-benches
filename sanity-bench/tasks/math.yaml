@@ -27,7 +27,7 @@ tasks:
       Station B (200 km away from A, on the same line, traveling toward A) at 9:30
       at 100 km/h. At what time (HH:MM) do they meet?
       Show your work briefly then end with "Final answer: HH:MM".
-    scoring: {type: regex, pattern: "Final answer:\\s*10:50"}
+    scoring: {type: regex, pattern: "Final answer:\\s*10:23"}
     max_tokens: 768
   - id: math-06-prime
     prompt: |

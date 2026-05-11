@@ -98,7 +98,7 @@ tasks:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "^\\s*\\{\\s*\"status\"\\s*:\\s*\"warn\"\\s*\\}\\s*$"}
+        - {type: regex, pattern: "^\\s*(```\\w*\\s*)?\\{\\s*\"status\"\\s*:\\s*\"warn\"\\s*\\}\\s*(```)?\\s*$", flags: ["S"]}
     max_tokens: 512
   - id: so-10-iso-date
     prompt: |

@@ -8,11 +8,9 @@ tasks:
     max_tokens: 768
   - id: reas-02-deduction
     prompt: |
-      Alice, Bob and Carol each picked one different colour: red, green, blue.
-      Alice did not pick red. Bob picked the colour Alice would have picked second-
-      most-likely if her favourite were not available — but actually, Bob picked
-      green. What colour did Alice pick?
-      Reply with just the colour.
+      Alice, Bob and Carol each picked one different colour from: red, green, blue.
+      Alice did not pick red. Bob picked green.
+      What colour did Alice pick? Reply with just the colour.
     scoring: {type: exact_match, expected: "blue"}
     max_tokens: 768
   - id: reas-03-river

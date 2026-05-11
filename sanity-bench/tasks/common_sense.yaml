@@ -62,12 +62,13 @@ tasks:
     max_tokens: 384
   - id: cs-10-magnet
     prompt: |
-      Which of these objects will a regular fridge magnet stick to? Reply with only the items, comma separated.
+      Which of these objects will a regular fridge magnet stick to? List just the
+      ferromagnetic ones, comma separated. Do not list the non-magnetic items.
       Items: a steel cutlery knife, a glass window, a wooden door, an iron nail, a plastic ruler.
     scoring:
       type: composite
       mode: all
       parts:
         - {type: contains_all, expected: ["steel", "iron"]}
-        - {type: regex, pattern: "(glass|wood|plastic)", flags: ["I"]}
+        - {type: regex, pattern: "^((?!glass|wood|plastic).)*$", flags: ["I", "S"]}
     max_tokens: 384
