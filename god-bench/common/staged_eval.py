@@ -29,7 +29,7 @@ from inspect_ai.tool import bash, python
 from inspect_ai.util import sandbox
 
 from inspect_cyber import create_agentic_eval_dataset
-from inspect_evals.harbor.harbor import _convert_sandbox_for_local_build
+from _harbor_compat import _convert_sandbox_for_local_build
 
 
 # ---------------------------------------------------------------------------
