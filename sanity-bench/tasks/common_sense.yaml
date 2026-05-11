@@ -72,3 +72,88 @@ tasks:
         - {type: contains_all, expected: ["steel", "iron"]}
         - {type: regex, pattern: "^((?!glass|wood|plastic).)*$", flags: ["I", "S"]}
     max_tokens: 384
+  - id: cs-11-umbrella
+    prompt: |
+      It is pouring with rain outside and you have to walk to the bus stop down
+      the road. Of these items, which is the most useful to bring? Reply with
+      one word: umbrella, hammer, candle, dictionary.
+    scoring: {type: exact_match, expected: "umbrella"}
+    max_tokens: 256
+
+  - id: cs-12-blender-cake
+    prompt: |
+      You want to mix cake batter but the only working appliance is a blender.
+      Will using the blender on its lowest setting work, in principle?
+      Answer just yes or no.
+    scoring: {type: regex, pattern: "^\\s*yes\\b", flags: ["I"]}
+    max_tokens: 256
+
+  - id: cs-13-causation
+    prompt: |
+      Your phone battery drops 30% in 10 minutes while you are watching a video
+      with the screen at maximum brightness. What is the MOST likely cause?
+      Reply with one short phrase.
+    scoring: {type: contains_any, expected: ["brightness", "screen", "video", "display"]}
+    max_tokens: 256
+
+  - id: cs-14-puddle
+    prompt: |
+      You see a 2cm-deep puddle in the road. Is it safe to step in it wearing
+      ordinary shoes? Answer yes or no, then one short reason.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*(yes|safe|no)\\b", flags: ["I"]}
+    max_tokens: 256
+
+  - id: cs-15-weather
+    prompt: |
+      The sky is dark grey, the wind has picked up, and you can hear distant
+      rumbling. What is most likely about to happen? Answer in one short
+      sentence.
+    scoring: {type: contains_any, expected: ["storm", "thunder", "rain", "downpour", "shower"]}
+    max_tokens: 256
+
+  - id: cs-16-overcook
+    prompt: |
+      You put bread in the toaster, set the dial to 5, and walk away for 20
+      minutes. When you return, what is most likely the state of the bread?
+      Answer in one short phrase.
+    scoring: {type: contains_any, expected: ["burn", "burnt", "charred", "black", "smoke"]}
+    max_tokens: 256
+
+  - id: cs-17-key
+    prompt: |
+      You drop your house key into a thin metal grate that drops into a deep
+      sewer below. Pick the most likely useful next step:
+      A) Use chewing gum on a stick to fish it out
+      B) Pour water down the grate
+      C) Call a locksmith
+      D) Try a magnet on a string
+      Reply with just one letter.
+    scoring: {type: multiple_choice, expected: D}
+    max_tokens: 256
+
+  - id: cs-18-ladder
+    prompt: |
+      You are climbing a ladder and the bottom of the ladder is on a slippery
+      tile floor with no foot-grips. Is this safe? Answer just yes or no.
+    scoring: {type: regex, pattern: "^\\s*no\\b", flags: ["I"]}
+    max_tokens: 256
+
+  - id: cs-19-cooking-time
+    prompt: |
+      Boiling a single chicken egg in plain boiling water until the yolk is just
+      set and slightly soft takes roughly how many minutes? Answer with just a
+      number between 1 and 15.
+    scoring: {type: regex_number, expected: 6, tolerance: 2.5}
+    max_tokens: 256
+
+  - id: cs-20-distance
+    prompt: |
+      Your car is parked at home. Your friend's flat is 3 km away by the most
+      direct walking route. Estimating only by everyday experience, roughly how
+      many minutes does a brisk walk take? Answer with just the number.
+    scoring: {type: regex_number, expected: 30, tolerance: 12}
+    max_tokens: 256

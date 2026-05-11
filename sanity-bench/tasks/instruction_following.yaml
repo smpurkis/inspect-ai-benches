@@ -102,3 +102,130 @@ tasks:
       parts:
         - {type: regex, pattern: "^\\s*([sS][^\\s.,;:!?]*[\\s.,;:!?]+)+\\s*$"}
     max_tokens: 768
+  - id: if-11-no-punct
+    prompt: |
+      Write three sentences about coffee. Do not use any punctuation other than
+      single spaces (no periods, commas, question marks, exclamation marks,
+      hyphens, colons, semicolons, apostrophes, or quotation marks).
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^[A-Za-z0-9 \\n]+$", flags: ["S"]}
+        - {type: length_range, min: 10, unit: words}
+    max_tokens: 512
+
+  - id: if-12-line-len
+    prompt: |
+      List four advantages of bicycles. One per line, each line beginning with
+      "* " and being at most 8 words long. Nothing before, nothing after.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\*\\s+\\S.*\\n\\*\\s+\\S.*\\n\\*\\s+\\S.*\\n\\*\\s+\\S.*\\s*$"}
+        - {type: length_range, min: 4, max: 5, unit: lines}
+    max_tokens: 512
+
+  - id: if-13-repeat
+    prompt: |
+      Write a short paragraph (50-80 words) about gardening. The word
+      "soil" must appear exactly twice, and the word "water" exactly twice.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?i)\\bsoil\\b[\\s\\S]*?\\bsoil\\b"}
+        - {type: regex, pattern: "(?i)\\bwater\\b[\\s\\S]*?\\bwater\\b"}
+        - {type: length_range, min: 40, max: 100, unit: words}
+    max_tokens: 512
+
+  - id: if-14-prefix-suffix
+    prompt: |
+      Write a single sentence that starts with the word "Curiously" and ends
+      with the word "yesterday." (with a period).
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^Curiously\\b"}
+        - {type: regex, pattern: "yesterday\\.\\s*$"}
+    max_tokens: 256
+
+  - id: if-15-roman-numerals
+    prompt: |
+      List the first five even positive integers. Format each as a Roman
+      numeral, one per line, prefixed with "- ". Nothing else.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^-\\s*II\\s*$", flags: ["M"]}
+        - {type: regex, pattern: "^-\\s*IV\\s*$", flags: ["M"]}
+        - {type: regex, pattern: "^-\\s*VI\\s*$", flags: ["M"]}
+        - {type: regex, pattern: "^-\\s*VIII\\s*$", flags: ["M"]}
+        - {type: regex, pattern: "^-\\s*X\\s*$", flags: ["M"]}
+    max_tokens: 384
+
+  - id: if-16-each-line-letter
+    prompt: |
+      Write four lines, each containing exactly one word, and each word
+      starting with a different vowel (A, E, I, O — in that order).
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^[Aa]\\w*\\s*\\n[Ee]\\w*\\s*\\n[Ii]\\w*\\s*\\n[Oo]\\w*\\s*$"}
+    max_tokens: 256
+
+  - id: if-17-yaml-only
+    prompt: |
+      Emit exactly this YAML document and nothing else (no preamble, no fence):
+
+      version: 1
+      enabled: true
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*version:\\s*1\\s*\\nenabled:\\s*true\\s*$", flags: ["S"]}
+    max_tokens: 256
+
+  - id: if-18-double-space
+    prompt: |
+      Write a single sentence about the sea. Separate every word with exactly
+      two spaces, not one. End with a single full stop.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\S+(  \\S+){4,}\\.$"}
+    max_tokens: 256
+
+  - id: if-19-mixed-constraints
+    prompt: |
+      Write exactly three sentences about a clock. Each sentence must contain
+      the word "tick". No sentence may contain the letter "z". End with the
+      sentence "Time runs forward." (exact phrasing).
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?i)(tick[\\s\\S]*?tick[\\s\\S]*?tick)"}
+        - {type: regex, pattern: "^[^zZ]*$", flags: ["S"]}
+        - {type: regex, pattern: "Time runs forward\\.\\s*$"}
+    max_tokens: 384
+
+  - id: if-20-table
+    prompt: |
+      Output a 2-column markdown table with header columns "Item" and "Cost",
+      followed by exactly 2 data rows. Nothing else. Use realistic stationery
+      item names and £-prefixed costs.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\\|\\s*Item\\s*\\|\\s*Cost\\s*\\|"}
+        - {type: regex, pattern: "\\|[-\\s|]+\\|"}
+        - {type: regex, pattern: "(?s)\\|[^|]+\\|[^|\\n]*£\\d"}
+    max_tokens: 384

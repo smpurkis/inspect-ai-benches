@@ -53,3 +53,68 @@ tasks:
       Answer with just the organelle name.
     scoring: {type: contains, expected: "mitochondri"}
     max_tokens: 384
+  - id: gk-11-bones
+    prompt: |
+      How many bones are in the typical adult human body? Answer with just the number.
+    scoring: {type: regex_number, expected: 206}
+    max_tokens: 256
+
+  - id: gk-12-currency
+    prompt: |
+      What is the official currency of Japan? Answer with just the currency name (one word).
+    scoring: {type: contains, expected: "yen"}
+    max_tokens: 256
+
+  - id: gk-13-moon
+    prompt: |
+      In what year did humans first land on the Moon? Answer with just the year.
+    scoring: {type: regex_number, expected: 1969}
+    max_tokens: 256
+
+  - id: gk-14-mohs
+    prompt: |
+      Which naturally occurring substance is at the top of the Mohs hardness scale?
+      Answer with just the substance name.
+    scoring: {type: contains, expected: "diamond"}
+    max_tokens: 256
+
+  - id: gk-15-element-au
+    prompt: |
+      Which element has the atomic number 79? Answer with just the element name.
+    scoring: {type: contains, expected: "gold"}
+    max_tokens: 256
+
+  - id: gk-16-ocean
+    prompt: |
+      Which is the largest ocean on Earth by area? Answer with just the name.
+    scoring: {type: contains, expected: "Pacific"}
+    max_tokens: 256
+
+  - id: gk-17-painter
+    prompt: |
+      Who painted the ceiling of the Sistine Chapel? Answer with just the artist's first name.
+    scoring: {type: contains, expected: "Michelangelo"}
+    max_tokens: 256
+
+  - id: gk-18-dna
+    prompt: |
+      What does the acronym DNA stand for? Answer with the full term, nothing else.
+    scoring: {type: contains_all, expected: ["deoxyribonucleic", "acid"]}
+    max_tokens: 256
+
+  - id: gk-19-monarch
+    prompt: |
+      Which English monarch had six wives? Reply with just their name and ordinal (e.g., "Henry VIII").
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "Henry"}
+        - {type: regex, pattern: "VIII|8th|the 8th|eighth", flags: ["I"]}
+    max_tokens: 256
+
+  - id: gk-20-pi
+    prompt: |
+      What is the value of π to four decimal places? Answer with just the number.
+    scoring: {type: regex, pattern: "3\\.1415\\b|3\\.1416\\b"}
+    max_tokens: 256

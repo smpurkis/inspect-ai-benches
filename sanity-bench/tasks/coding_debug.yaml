@@ -195,3 +195,189 @@ tasks:
         - "assert unique_in_order([1,1,2,3,2,1]) == [1,2,3]"
         - "assert unique_in_order(['b','a','b','c','a']) == ['b','a','c']"
     max_tokens: 1536
+  - id: debug-11-truthy
+    prompt: |
+      `pick_truthy` should return the first truthy item in `xs`, or None if
+      none are truthy. The buggy version returns False on `[0, 0, 1]`. Fix it.
+      Reply with just the corrected Python code block.
+
+      ```python
+      def pick_truthy(xs):
+          for x in xs:
+              if x: return True
+          return None
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert pick_truthy([0,0,7]) == 7"
+        - "assert pick_truthy([0,0,0]) is None"
+        - "assert pick_truthy(['','hello']) == 'hello'"
+    max_tokens: 768
+
+  - id: debug-12-deepcopy
+    prompt: |
+      `clone_grid` should deep-copy a 2D list. The buggy version uses the same
+      inner lists. Fix it. Reply with just the corrected Python code block.
+
+      ```python
+      def clone_grid(g):
+          return [row for row in g]
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "g=[[1,2],[3,4]]; h=clone_grid(g); h[0][0]=99; assert g[0][0]==1"
+        - "assert clone_grid([]) == []"
+        - "assert clone_grid([[1]]) == [[1]]"
+    max_tokens: 768
+
+  - id: debug-13-divisor-bug
+    prompt: |
+      `is_divisible` should return True iff a is divisible by b. The buggy
+      version crashes when b == 0; instead it should return False. Fix it.
+      Reply with just the corrected Python code block.
+
+      ```python
+      def is_divisible(a, b):
+          return a % b == 0
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert is_divisible(10,2) is True"
+        - "assert is_divisible(10,3) is False"
+        - "assert is_divisible(10,0) is False"
+    max_tokens: 768
+
+  - id: debug-14-iter
+    prompt: |
+      `pairs` should return a list of consecutive pairs (i, i+1) from `xs`.
+      The buggy version raises IndexError on the last element. Fix it.
+      Reply with just the corrected Python code block.
+
+      ```python
+      def pairs(xs):
+          return [(xs[i], xs[i+1]) for i in range(len(xs))]
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert pairs([]) == []"
+        - "assert pairs([1]) == []"
+        - "assert pairs([1,2,3,4]) == [(1,2),(2,3),(3,4)]"
+    max_tokens: 768
+
+  - id: debug-15-strip-newlines
+    prompt: |
+      `strip_trailing_newlines` should remove only trailing newline characters,
+      not other whitespace. The buggy version uses `.strip()` which removes
+      everything. Fix it. Reply with just the corrected Python code block.
+
+      ```python
+      def strip_trailing_newlines(s: str) -> str:
+          return s.strip()
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert strip_trailing_newlines('  hello  \\n') == '  hello  '"
+        - "assert strip_trailing_newlines('a\\n\\n') == 'a'"
+        - "assert strip_trailing_newlines('') == ''"
+        - "assert strip_trailing_newlines('\\nhello\\n') == '\\nhello'"
+    max_tokens: 768
+
+  - id: debug-16-bool-coerce
+    prompt: |
+      `to_bool` should turn the strings 'true','yes','1' into True (case
+      insensitive) and 'false','no','0' into False; everything else into None.
+      The buggy version returns True for 'banana'. Fix it. Reply with just the
+      corrected Python code block.
+
+      ```python
+      def to_bool(s: str):
+          return s.lower() in ('true','yes','1') or None
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert to_bool('True') is True"
+        - "assert to_bool('NO') is False"
+        - "assert to_bool('banana') is None"
+        - "assert to_bool('1') is True"
+        - "assert to_bool('0') is False"
+    max_tokens: 768
+
+  - id: debug-17-mean
+    prompt: |
+      `mean` should return the arithmetic mean of a non-empty list. The buggy
+      version performs integer division. Fix it so the result is a float.
+      Reply with just the corrected Python code block.
+
+      ```python
+      def mean(xs):
+          return sum(xs) // len(xs)
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert mean([1,2]) == 1.5"
+        - "assert mean([10,20,30]) == 20.0"
+        - "assert mean([1,1,1,1]) == 1.0"
+    max_tokens: 768
+
+  - id: debug-18-typo
+    prompt: |
+      `count_vowels` should count occurrences of any of 'aeiou' in `s`,
+      case-insensitively. The buggy version misses uppercase vowels. Fix it.
+      Reply with just the corrected Python code block.
+
+      ```python
+      def count_vowels(s: str) -> int:
+          return sum(1 for c in s if c in 'aeiou')
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert count_vowels('Hello') == 2"
+        - "assert count_vowels('AEIOU') == 5"
+        - "assert count_vowels('') == 0"
+        - "assert count_vowels('Bcdfg') == 0"
+    max_tokens: 768
+
+  - id: debug-19-recursion-depth
+    prompt: |
+      `tree_sum` should sum all integers in an arbitrarily nested list. The
+      buggy version errors on a deeply nested list because it iterates wrong.
+      Fix it. Reply with just the corrected Python code block.
+
+      ```python
+      def tree_sum(xs):
+          return sum(xs)
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert tree_sum([1,2,3]) == 6"
+        - "assert tree_sum([1,[2,[3,[4]]]]) == 10"
+        - "assert tree_sum([]) == 0"
+    max_tokens: 768
+
+  - id: debug-20-tz
+    prompt: |
+      `to_minutes` parses a time string like '01:30' as total minutes. The
+      buggy version ignores the hours. Fix it. Reply with just the corrected
+      Python code block.
+
+      ```python
+      def to_minutes(s: str) -> int:
+          h, m = s.split(':')
+          return int(m)
+      ```
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert to_minutes('00:00') == 0"
+        - "assert to_minutes('01:30') == 90"
+        - "assert to_minutes('10:15') == 615"
+    max_tokens: 768

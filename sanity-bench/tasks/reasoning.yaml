@@ -69,3 +69,85 @@ tasks:
       How many total matches are played? Answer with just the number.
     scoring: {type: regex_number, expected: 10}
     max_tokens: 768
+  - id: reas-11-bbh-chain
+    prompt: |
+      Anna is taller than Beth. Beth is taller than Carl. Carl is taller than
+      Dan. Who is the second-shortest of the four? Reply with just the name.
+    scoring: {type: exact_match, expected: "Carl"}
+    max_tokens: 512
+
+  - id: reas-12-bbh-objects
+    prompt: |
+      On a desk you have a red book, a blue mug, a green pen and a yellow
+      stapler. The book is to the immediate left of the mug. The pen is to the
+      immediate right of the mug. The stapler is at the far right. What item is
+      immediately left of the pen? Reply with just the item name.
+    scoring: {type: contains, expected: "mug"}
+    max_tokens: 512
+
+  - id: reas-13-temporal
+    prompt: |
+      It is currently Wednesday. What day of the week will it be 100 days from
+      now? Reply with just the day name.
+    scoring: {type: contains, expected: "Friday"}
+    max_tokens: 512
+
+  - id: reas-14-tracking
+    prompt: |
+      Alice has 4 apples. She gives 2 to Bob. Bob then gives Alice half of his
+      apples. How many apples does Alice now have? Answer with just the number.
+    scoring: {type: regex_number, expected: 3}
+    max_tokens: 384
+
+  - id: reas-15-monty
+    prompt: |
+      In the Monty Hall problem with 3 doors, you pick a door, the host opens a
+      different door revealing a goat, and offers you to switch. What is the
+      probability of winning the car if you switch? Reply as a simplified
+      fraction like a/b.
+    scoring: {type: regex, pattern: "2\\s*/\\s*3"}
+    max_tokens: 512
+
+  - id: reas-16-ages-2
+    prompt: |
+      A father is currently three times as old as his son. In 12 years he will
+      be only twice as old. How old is the father now? Answer with just the
+      number.
+    scoring: {type: regex_number, expected: 36}
+    max_tokens: 768
+
+  - id: reas-17-bridge
+    prompt: |
+      Four people must cross a bridge at night. They have one torch, the
+      bridge holds at most two, and walking together takes the slower of the
+      pair. Times: 1, 2, 5, 10 minutes. What is the minimum total time to get
+      all four across? Answer with just the number.
+    scoring: {type: regex_number, expected: 17}
+    max_tokens: 768
+
+  - id: reas-18-permutation
+    prompt: |
+      How many distinct arrangements are there of the letters in the word
+      "BANANA"? Answer with just the number.
+    scoring: {type: regex_number, expected: 60}
+    max_tokens: 512
+
+  - id: reas-19-implication
+    prompt: |
+      If "All ravens are black" is true and we observe a non-black bird, what
+      can we deduce? Pick one and reply with just the letter:
+      A) The bird is a raven
+      B) The bird is not a raven
+      C) Some ravens are not black
+      D) Nothing
+    scoring: {type: multiple_choice, expected: B}
+    max_tokens: 384
+
+  - id: reas-20-bbh-causal
+    prompt: |
+      Two boxes A and B each contain coloured balls. Box A: 2 red, 3 blue.
+      Box B: 4 red, 1 blue. You pick one box uniformly at random, then draw
+      one ball. What is the probability the ball is red? Reply as a simplified
+      fraction.
+    scoring: {type: regex, pattern: "3\\s*/\\s*5"}
+    max_tokens: 768

@@ -137,3 +137,158 @@ tasks:
         - {type: contains_any, expected: ["server", "rebooted", "memory", "operations", "ops"]}
         - {type: length_range, max: 60, unit: words}
     max_tokens: 768
+  - id: wri-11-tldr
+    prompt: |
+      Write a "TL;DR:" line (under 20 words) for the following text. Output
+      ONLY the line starting with "TL;DR:".
+
+      "Cycling to work has become more popular in many cities after recent
+      investments in protected bike lanes, with health, environmental and
+      cost-saving benefits cited."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^TL;DR:\\s+\\S"}
+        - {type: length_range, max: 20, unit: words}
+    max_tokens: 256
+
+  - id: wri-12-passive
+    prompt: |
+      Rewrite this passive-voice sentence in active voice. Output just the
+      rewritten sentence.
+
+      "The cake was baked by Maria for the school fair."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^Maria"}
+        - {type: contains_any, expected: ["baked", "made"]}
+    max_tokens: 128
+
+  - id: wri-13-acronyms
+    prompt: |
+      Rewrite this email so every acronym is spelled out the first time it
+      appears (acronym in parentheses after). Keep all other content. Output
+      just the rewritten email body.
+
+      "Please confirm the API and SLA before COB on Tuesday. CTO will review."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "Application Programming Interface"}
+        - {type: regex, pattern: "(?i)Service Level Agreement.*\\(SLA\\)"}
+        - {type: contains, expected: "Chief Technology Officer"}
+    max_tokens: 384
+
+  - id: wri-14-actions
+    prompt: |
+      Summarise this transcript as exactly three "Action: ..." bullet points
+      (use "- "). Each must include a name and a day. Nothing else.
+
+      Transcript: "Alice will draft the budget by Friday. Bob will book the
+      venue by Monday. Carol agreed to circulate the agenda before Wednesday."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?mi)^-\\s+Action:.*Alice.*Friday"}
+        - {type: regex, pattern: "(?mi)^-\\s+Action:.*Bob.*Monday"}
+        - {type: regex, pattern: "(?mi)^-\\s+Action:.*Carol.*Wednesday"}
+    max_tokens: 384
+
+  - id: wri-15-clarify
+    prompt: |
+      Rewrite this run-on sentence as two clear sentences, ≤25 words total.
+      Output just the rewrite.
+
+      "The deployment failed because the migration didn't apply because the
+      database role lacked permissions because the secrets file hadn't been
+      updated for the new environment."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?:[^.]*\\.\\s*){2}"}
+        - {type: length_range, max: 28, unit: words}
+        - {type: contains_any, expected: ["deployment", "migration", "permissions", "secrets"]}
+    max_tokens: 256
+
+  - id: wri-16-impersonal
+    prompt: |
+      Convert this first-person customer review into an impersonal,
+      third-person product description (≤30 words). Output just the
+      description.
+
+      "I love this kettle — it boils fast and the lid never gets stuck."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^((?!\\bI\\b|\\bmy\\b|\\bme\\b).)*$", flags: ["S"]}
+        - {type: length_range, max: 32, unit: words}
+    max_tokens: 256
+
+  - id: wri-17-numbers
+    prompt: |
+      Rewrite the following sentence with every digit-form number replaced by
+      its English word form. Output just the rewrite.
+
+      "The 3 dogs caught 12 balls in 5 minutes."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "three"}
+        - {type: contains, expected: "twelve"}
+        - {type: contains, expected: "five"}
+        - {type: regex, pattern: "^[^0-9]*$", flags: ["S"]}
+    max_tokens: 256
+
+  - id: wri-18-plain
+    prompt: |
+      Rephrase this dense engineering sentence in plain English suitable for
+      a junior intern (≤30 words). Output just the rewrite.
+
+      "The non-deterministic flakiness in the integration suite stems from a
+      race condition between the message broker and the worker pool's prefetch
+      counter."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, max: 35, unit: words}
+        - {type: regex, pattern: "(?i)(?!.*non-deterministic)(?!.*prefetch counter)", flags: ["S"]}
+        - {type: contains_any, expected: ["race", "timing", "order", "queue"]}
+    max_tokens: 256
+
+  - id: wri-19-internal
+    prompt: |
+      Convert this customer-friendly support reply into one suitable for
+      internal engineering — 1-2 sentences, technical and direct. Output
+      just the rewrite.
+
+      "We're really sorry, but it looks like your account got into a weird
+      state. We've kicked it back to normal and you should be good to go!"
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, max: 40, unit: words}
+        - {type: regex, pattern: "(?i)account[^\\n]*(state|reset|stale)"}
+    max_tokens: 256
+
+  - id: wri-20-cite
+    prompt: |
+      Add an in-line citation in (Author, Year) format after the relevant
+      sentence. Use the most plausible author: Albert Einstein, published
+      1905. Output just the modified sentence.
+
+      "The theory of special relativity introduced the equivalence of mass
+      and energy."
+    scoring:
+      type: regex
+      pattern: "\\(\\s*Einstein,\\s*1905\\s*\\)"
+    max_tokens: 256

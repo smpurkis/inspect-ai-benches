@@ -110,3 +110,135 @@ tasks:
       parts:
         - {type: regex, pattern: "\"date\"\\s*:\\s*\"2025-03-01\""}
     max_tokens: 512
+
+  - id: so-11-toml
+    prompt: |
+      Output a TOML config document with a [database] section containing these
+      keys: host (string "localhost"), port (integer 5432), name (string "mydb").
+      No commentary, no code fences, just the TOML.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^\\[database\\]"}
+        - {type: regex, pattern: "(?m)^host\\s*=\\s*\"localhost\""}
+        - {type: regex, pattern: "(?m)^port\\s*=\\s*5432"}
+        - {type: regex, pattern: "(?m)^name\\s*=\\s*\"mydb\""}
+    max_tokens: 512
+
+  - id: so-12-jsonl
+    prompt: |
+      Output exactly 3 lines of JSONL (one valid JSON object per line). Each
+      object must have keys "event" (string) and "ts" (integer timestamp).
+      Nothing else.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*\\{[^\\n]+\\}\\n\\{[^\\n]+\\}\\n\\{[^\\n]+\\}", flags: ["S"]}
+        - {type: regex, pattern: "\"event\"", flags: ["S"]}
+        - {type: regex, pattern: "\"ts\"\\s*:\\s*\\d+", flags: ["S"]}
+    max_tokens: 512
+
+  - id: so-13-null-json
+    prompt: |
+      Output a JSON object with exactly two keys: "found" (boolean false) and
+      "result" (null). No other keys. No commentary.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"found\"\\s*:\\s*false"}
+        - {type: regex, pattern: "\"result\"\\s*:\\s*null"}
+    max_tokens: 256
+
+  - id: so-14-compact-json
+    prompt: |
+      Output a compact JSON array (no unnecessary whitespace) of exactly two
+      objects, each with a single key "x" mapping to a distinct integer.
+      Example format: [{"x":1},{"x":2}]
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*\\[\\{\"x\":\\d+\\},\\{\"x\":\\d+\\}\\]\\s*$"}
+    max_tokens: 256
+
+  - id: so-15-mermaid
+    prompt: |
+      Output a Mermaid flowchart with exactly 3 nodes (A, B, C) connected as
+      A --> B --> C. Start with the line "graph TD". No code fences,
+      no commentary.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^graph\\s+TD"}
+        - {type: regex, pattern: "A\\s*-->\\s*B"}
+        - {type: regex, pattern: "B\\s*-->\\s*C"}
+    max_tokens: 512
+
+  - id: so-16-html-list
+    prompt: |
+      Output an HTML unordered list (<ul>) with exactly 3 <li> items naming the
+      three primary additive colours (red, green, blue). No other HTML or text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "<ul>", flags: ["I"]}
+        - {type: regex, pattern: "</ul>", flags: ["I"]}
+        - {type: regex, pattern: "(?i)<li>[^<]*red[^<]*</li>"}
+        - {type: regex, pattern: "(?i)<li>[^<]*green[^<]*</li>"}
+        - {type: regex, pattern: "(?i)<li>[^<]*blue[^<]*</li>"}
+    max_tokens: 512
+
+  - id: so-17-json-desc-array
+    prompt: |
+      Output a JSON array of exactly 5 integers in strictly descending order.
+      Nothing else.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*\\[\\s*-?\\d+\\s*(,\\s*-?\\d+\\s*){4}\\]\\s*$"}
+    max_tokens: 256
+
+  - id: so-18-yaml-list
+    prompt: |
+      Output a YAML list of exactly 4 programming language names using "-" bullet
+      syntax. No keys, no extra text, no code fences.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^- \\S"}
+        - {type: length_range, min: 4, max: 4, unit: lines}
+    max_tokens: 256
+
+  - id: so-19-users-array
+    prompt: |
+      Output a JSON object with key "users" mapping to an array of exactly
+      2 objects, each with keys "id" (integer) and "name" (string).
+      JSON only, no commentary.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {users: "list"}, required_keys: ["users"]}
+        - {type: regex, pattern: "\"id\"\\s*:\\s*\\d+.*\"name\"\\s*:\\s*\"[^\"]+\"", flags: ["S"]}
+        - {type: regex, pattern: "\"id\".*\"id\"", flags: ["S"]}
+    max_tokens: 512
+
+  - id: so-20-graphql-query
+    prompt: |
+      Output a GraphQL query that fetches a user by id (variable $id) and
+      requests the fields name and email. Output the query only, no explanation.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "query|\\{\\s*user"}
+        - {type: regex, pattern: "\\$id|id\\s*:"}
+        - {type: contains_all, expected: ["name", "email"]}
+    max_tokens: 512

@@ -125,3 +125,141 @@ tasks:
         - {type: contains_any, expected: ["solute", "particles", "ions", "dissolved"]}
         - {type: length_range, max: 90, unit: words}
     max_tokens: 1024
+
+  - id: dr-11-qubit
+    prompt: |
+      Explain what a qubit is, contrast it with a classical bit, and mention
+      superposition and entanglement. ≤80 words. No title.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["superposition", "entanglement"]}
+        - {type: contains_any, expected: ["qubit", "quantum bit"]}
+        - {type: length_range, max: 90, unit: words}
+    max_tokens: 1024
+
+  - id: dr-12-cap
+    prompt: |
+      State the CAP theorem. Name all three properties it refers to (spell them
+      out). Then state which two a traditional RDBMS typically prioritises.
+      ≤90 words.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["Consistency", "Availability", "Partition"]}
+        - {type: contains_any, expected: ["consistency", "Consistency"]}
+        - {type: contains_any, expected: ["availability", "Availability"]}
+        - {type: length_range, max: 100, unit: words}
+    max_tokens: 1024
+
+  - id: dr-13-amdahl
+    prompt: |
+      State Amdahl's law in one sentence, then explain why code that is 95%
+      parallelisable has a theoretical maximum speedup of 20×, regardless of
+      how many processors are used. ≤90 words.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["Amdahl", "serial", "sequential", "bottleneck"]}
+        - {type: contains_any, expected: ["20", "twenty", "1/0.05", "1/5%"]}
+        - {type: length_range, max: 100, unit: words}
+    max_tokens: 1024
+
+  - id: dr-14-evolution
+    prompt: |
+      Explain natural selection in 3-4 sentences. Include the words "variation",
+      "fitness" and "selection pressure". No title.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["variation", "fitness", "selection"]}
+        - {type: regex, pattern: "(?:[^.]*\\.\\s*){3}"}
+    max_tokens: 1024
+
+  - id: dr-15-dns
+    prompt: |
+      Describe what happens, step by step, from the moment you type a URL into
+      a browser until the web page starts loading. Focus on DNS resolution and
+      TCP connection. Four to six numbered steps. No preamble.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["DNS", "IP"]}
+        - {type: contains_any, expected: ["TCP", "TLS", "HTTP", "connect"]}
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^[4-6]\\."}
+    max_tokens: 1024
+
+  - id: dr-16-entropy
+    prompt: |
+      Explain thermodynamic entropy in ≤90 words. Include why heat naturally
+      flows from hot objects to cold ones, referencing disorder or microstates.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["disorder", "microstate", "entropy"]}
+        - {type: contains_any, expected: ["hot", "cold", "temperature"]}
+        - {type: length_range, max: 100, unit: words}
+    max_tokens: 1024
+
+  - id: dr-17-rsa
+    prompt: |
+      Explain RSA encryption at a high level in ≤100 words. Mention public key,
+      private key, and the mathematical hardness assumption (factoring large
+      numbers). No maths formulas required.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["public", "private"]}
+        - {type: contains_any, expected: ["factor", "prime", "modular", "product"]}
+        - {type: length_range, max: 110, unit: words}
+    max_tokens: 1024
+
+  - id: dr-18-backprop
+    prompt: |
+      In ≤100 words, describe how a neural network learns: briefly cover the
+      forward pass, loss function, and backpropagation. Mention "gradient" at
+      least once.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["loss", "gradient"]}
+        - {type: contains_any, expected: ["backprop", "back-prop", "backward", "chain rule"]}
+        - {type: length_range, max: 110, unit: words}
+    max_tokens: 1024
+
+  - id: dr-19-merge-vs-rebase
+    prompt: |
+      Give two bullet points contrasting git merge and git rebase. Each bullet
+      should start with the command name in backticks and state one concrete
+      trade-off. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "`?git merge`?"}
+        - {type: regex, pattern: "`?git rebase`?"}
+        - {type: length_range, min: 2, max: 15, unit: lines}
+    max_tokens: 512
+
+  - id: dr-20-ocean-acidification
+    prompt: |
+      Explain the causal chain from rising atmospheric CO2 to coral bleaching
+      in 4-5 numbered steps. No preamble.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: contains_all, expected: ["CO2", "pH"]}
+        - {type: contains_any, expected: ["coral", "bleach", "carbonate", "calcif"]}
+        - {type: regex, pattern: "(?m)^[4-5]\\."}
+    max_tokens: 1024

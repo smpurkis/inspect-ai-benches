@@ -126,3 +126,139 @@ tasks:
         - {type: contains_any, expected: ["case", "detective", "rain", "smoke", "alley", "cigarette", "dame", "shadow", "gun", "clue", "body", "crime", "murder", "killer", "blood", "noir", "secret", "whiskey", "scotch", "bourbon", "corpse", "suspect", "stiff", "fedora"]}
     max_tokens: 1024
     temperature: 0.6
+
+  - id: cw-11-alliteration
+    prompt: |
+      Write one sentence about a river where every word starts with the
+      letter "r" (case-insensitive).
+    scoring:
+      type: regex
+      pattern: "^\\s*([rR][^\\s.,;:!?]*[\\s.,;:!?]+)+\\s*$"
+    max_tokens: 256
+    temperature: 0.5
+
+  - id: cw-12-elevator-pitch
+    prompt: |
+      Write an elevator pitch (30-50 words) for a fictional startup that
+      delivers freshly baked sourdough by drone. Must include the words
+      "sourdough" and "drone".
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["sourdough", "drone"]}
+        - {type: length_range, min: 25, max: 55, unit: words}
+    max_tokens: 384
+    temperature: 0.5
+
+  - id: cw-13-rhyming
+    prompt: |
+      Write a four-line rhyming poem about autumn leaves. Rhyme scheme ABAB.
+      No title. No commentary.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, min: 4, max: 4, unit: lines}
+        - {type: contains_any, expected: ["leaf", "leaves", "autumn", "fall"]}
+    max_tokens: 384
+    temperature: 0.5
+
+  - id: cw-14-first-line
+    prompt: |
+      Continue the following story with one more sentence that introduces a
+      moment of unexpected stillness. Keep your sentence under 25 words.
+      Reply with just the new sentence (no quote marks, no preamble).
+
+      "The siren cut through the courtyard and the crowd began to scatter."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, min: 5, max: 25, unit: words}
+        - {type: contains_any, expected: ["still", "quiet", "silence", "froze", "stopped", "paused", "hushed", "calm"]}
+    max_tokens: 256
+    temperature: 0.5
+
+  - id: cw-15-tweet
+    prompt: |
+      Write a Twitter post (under 280 characters, no hashtags, no emojis,
+      no URLs) urging people to vote in a local council election.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, max: 280, unit: chars}
+        - {type: regex, pattern: "^[^#@]+$", flags: ["S"]}
+        - {type: contains_any, expected: ["vote", "voting"]}
+    max_tokens: 256
+    temperature: 0.5
+
+  - id: cw-16-monologue
+    prompt: |
+      Write a one-paragraph interior monologue (60-90 words) of someone who
+      has just received news they have been promoted. Convey relief and
+      apprehension without using either of those two words.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, min: 50, max: 100, unit: words}
+        - {type: regex, pattern: "^((?!relief|apprehension|apprehensive).)*$", flags: ["I", "S"]}
+    max_tokens: 512
+    temperature: 0.5
+
+  - id: cw-17-pastiche
+    prompt: |
+      Write 2-3 sentences in the style of a children's nursery rhyme about
+      a fox. End the piece with the words "and away she ran." (exact match).
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "and away she ran\\.\\s*$"}
+        - {type: contains, expected: "fox"}
+    max_tokens: 256
+    temperature: 0.5
+
+  - id: cw-18-prose-poem
+    prompt: |
+      Write a prose poem (40-70 words) about a thunderstorm using exactly
+      three colour words. Reply with just the prose, no title.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, min: 35, max: 80, unit: words}
+        - {type: contains_any, expected: ["thunder", "lightning", "storm"]}
+    max_tokens: 384
+    temperature: 0.5
+
+  - id: cw-19-instructions
+    prompt: |
+      Write step-by-step instructions for tying a bowtie, written from the
+      perspective of a pirate. Five numbered steps maximum. Start each step
+      with "Arr,".
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\.\\s*Arr,"}
+        - {type: regex, pattern: "(?m)^2\\.\\s*Arr,"}
+        - {type: regex, pattern: "(?m)^3\\.\\s*Arr,"}
+    max_tokens: 512
+    temperature: 0.5
+
+  - id: cw-20-flash
+    prompt: |
+      Write a flash-fiction story in exactly 50 words about a stranger and a
+      train station. The story must contain a single line of dialogue in
+      quotation marks.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, min: 45, max: 55, unit: words}
+        - {type: regex, pattern: "\"[^\"]+\"|'[^']+'"}
+    max_tokens: 384
+    temperature: 0.5

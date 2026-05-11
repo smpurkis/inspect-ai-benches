@@ -57,3 +57,79 @@ tasks:
       "Nπ" where N is an integer.
     scoring: {type: regex, pattern: "\\b25\\s*[*]?\\s*(π|pi)\\b", flags: ["I"]}
     max_tokens: 768
+  - id: math-11-percent-of
+    prompt: |
+      What is 15% of 240? Answer with just the number.
+    scoring: {type: regex_number, expected: 36}
+    max_tokens: 384
+
+  - id: math-12-gcd
+    prompt: |
+      What is gcd(126, 84)? Answer with just the number.
+    scoring: {type: regex_number, expected: 42}
+    max_tokens: 384
+
+  - id: math-13-quadratic
+    prompt: |
+      Find both roots of x^2 - 5x + 6 = 0. Answer in the form "x = a, b" where
+      a < b.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?:^|\\D)2\\b"}
+        - {type: regex, pattern: "(?:^|\\D)3\\b"}
+    max_tokens: 768
+
+  - id: math-14-series
+    prompt: |
+      What is the sum 1 + 2 + 3 + ... + 100? Answer with just the number.
+    scoring: {type: regex_number, expected: 5050}
+    max_tokens: 384
+
+  - id: math-15-rate
+    prompt: |
+      A pipe fills a tank in 12 minutes. A second pipe drains the same tank in
+      20 minutes. With both pipes open, how many minutes does it take to fill
+      the empty tank? Answer with just the number.
+    scoring: {type: regex_number, expected: 30}
+    max_tokens: 768
+
+  - id: math-16-logs
+    prompt: |
+      Solve for x: log_2(x) = 5. Answer with just the value of x.
+    scoring: {type: regex_number, expected: 32}
+    max_tokens: 384
+
+  - id: math-17-combo
+    prompt: |
+      How many ways are there to choose 3 books from 7 distinct books (order
+      does not matter)? Answer with just the number.
+    scoring: {type: regex_number, expected: 35}
+    max_tokens: 384
+
+  - id: math-18-modular
+    prompt: |
+      What is (7^13) mod 11? Answer with just the number from 0 to 10.
+    scoring: {type: regex_number, expected: 2}
+    max_tokens: 768
+
+  - id: math-19-tangent
+    prompt: |
+      A circle of radius 5 is centred at the origin. The line y = 5 is tangent
+      to it at exactly one point. What are the coordinates of that point?
+      Answer in the form "(x, y)".
+    scoring: {type: regex, pattern: "\\(\\s*0\\s*,\\s*5\\s*\\)"}
+    max_tokens: 384
+
+  - id: math-20-derivative
+    prompt: |
+      What is the derivative of f(x) = 3x^2 + 5x - 7 with respect to x?
+      Answer in the form "6x + 5" (or equivalent), nothing else.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "6\\s*\\*?\\s*x"}
+        - {type: regex, pattern: "\\+\\s*5\\b"}
+    max_tokens: 384

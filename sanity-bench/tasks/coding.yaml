@@ -132,3 +132,154 @@ tasks:
         - "assert top_words('', 5) == []"
         - "out = top_words('x y z', 2); assert out == ['x','y'], out"
     max_tokens: 1536
+  - id: code-11-rle
+    prompt: |
+      Write a Python function `run_length_encode(s: str) -> list[tuple[str,int]]`
+      that returns a list of (character, count) pairs in order of first
+      appearance, where each pair counts a run of the same character.
+      Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert run_length_encode('') == []"
+        - "assert run_length_encode('aaabb') == [('a',3),('b',2)]"
+        - "assert run_length_encode('abc') == [('a',1),('b',1),('c',1)]"
+        - "assert run_length_encode('aabbaa') == [('a',2),('b',2),('a',2)]"
+    max_tokens: 768
+
+  - id: code-12-deepget
+    prompt: |
+      Write `deep_get(obj, path: str, default=None)` that takes a nested
+      dict/list structure and a dotted/bracketed path (e.g. `"a.b[0].c"`) and
+      returns the value at that path, or `default` if any step fails.
+      Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "d={'a':{'b':[{'c':42}]}}; assert deep_get(d,'a.b[0].c') == 42"
+        - "assert deep_get({}, 'x.y', default=0) == 0"
+        - "assert deep_get({'a':[1,2,3]}, 'a[2]') == 3"
+        - "assert deep_get({'a':{'b':1}}, 'a.c', default='miss') == 'miss'"
+    max_tokens: 1024
+
+  - id: code-13-graph
+    prompt: |
+      Write `shortest_path(graph: dict, start, end)` returning the
+      shortest-edge-count path from `start` to `end` as a list of nodes (or
+      `[]` if no path). `graph` maps node -> list of neighbour nodes. Use BFS.
+      Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "g={'A':['B','C'],'B':['D'],'C':['D'],'D':[]}; assert shortest_path(g,'A','D') in (['A','B','D'],['A','C','D'])"
+        - "g={'A':['B'],'B':[],'C':[]}; assert shortest_path(g,'A','C') == []"
+        - "g={'A':['A']}; assert shortest_path(g,'A','A') == ['A']"
+    max_tokens: 1024
+
+  - id: code-14-perm
+    prompt: |
+      Write `next_permutation(nums: list[int]) -> list[int]` that returns the
+      next lexicographic permutation of `nums`. If `nums` is the largest
+      permutation, return its lowest (sorted ascending). Mutate or return — a
+      returned list is fine. Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert next_permutation([1,2,3]) == [1,3,2]"
+        - "assert next_permutation([3,2,1]) == [1,2,3]"
+        - "assert next_permutation([1,1,5]) == [1,5,1]"
+        - "assert next_permutation([]) == []"
+    max_tokens: 1024
+
+  - id: code-15-cache
+    prompt: |
+      Write a class `LRUCache` with `__init__(self, capacity: int)`,
+      `get(self, key) -> Any | None`, and `put(self, key, value)`. Evict the
+      least-recently-used entry when capacity is exceeded. Reply with just a
+      Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          c = LRUCache(2)
+          c.put('a',1); c.put('b',2)
+          assert c.get('a') == 1
+          c.put('c',3)  # evicts b
+          assert c.get('b') is None and c.get('a') == 1 and c.get('c') == 3
+        - |
+          c = LRUCache(1)
+          c.put('x',1); c.put('y',2)
+          assert c.get('x') is None and c.get('y') == 2
+    max_tokens: 1024
+
+  - id: code-16-dates
+    prompt: |
+      Write `days_between(d1: str, d2: str) -> int` returning the absolute
+      number of days between two dates in 'YYYY-MM-DD' format. You may use the
+      stdlib `datetime`. Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert days_between('2020-01-01','2020-01-02') == 1"
+        - "assert days_between('2020-02-28','2020-03-01') == 2"
+        - "assert days_between('2024-12-31','2024-01-01') == 365"
+    max_tokens: 768
+
+  - id: code-17-trie
+    prompt: |
+      Implement a `Trie` class with `insert(word)` and `search_prefix(prefix)`
+      that returns the number of inserted words starting with that prefix.
+      Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          t = Trie()
+          for w in ['apple','app','apt','banana']: t.insert(w)
+          assert t.search_prefix('ap') == 3
+          assert t.search_prefix('app') == 2
+          assert t.search_prefix('ban') == 1
+          assert t.search_prefix('zzz') == 0
+    max_tokens: 1024
+
+  - id: code-18-knapsack
+    prompt: |
+      Write `knapsack(weights: list[int], values: list[int], capacity: int) -> int`
+      that returns the maximum value achievable with the 0/1 knapsack problem.
+      Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert knapsack([1,3,4,5],[1,4,5,7],7) == 9"
+        - "assert knapsack([],[],10) == 0"
+        - "assert knapsack([10],[5],5) == 0"
+    max_tokens: 1024
+
+  - id: code-19-regex
+    prompt: |
+      Write `match_glob(pattern: str, name: str) -> bool` supporting `*` (any
+      run of chars including none) and `?` (exactly one char). Reply with just
+      a Python code block. Do not use the `fnmatch` module.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert match_glob('a*c','abc') is True"
+        - "assert match_glob('a*c','ac') is True"
+        - "assert match_glob('a?c','abc') is True"
+        - "assert match_glob('a?c','ac') is False"
+        - "assert match_glob('*','anything') is True"
+        - "assert match_glob('','') is True"
+    max_tokens: 1024
+
+  - id: code-20-rotate
+    prompt: |
+      Write `rotate_image(matrix: list[list[int]]) -> list[list[int]]` that
+      rotates an n×n matrix 90° clockwise. Return a new matrix (don't mutate
+      the input). Reply with just a Python code block.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert rotate_image([[1,2],[3,4]]) == [[3,1],[4,2]]"
+        - "assert rotate_image([[1]]) == [[1]]"
+        - "m=[[1,2,3],[4,5,6],[7,8,9]]; out=rotate_image(m); assert out==[[7,4,1],[8,5,2],[9,6,3]] and m==[[1,2,3],[4,5,6],[7,8,9]]"
+    max_tokens: 1024

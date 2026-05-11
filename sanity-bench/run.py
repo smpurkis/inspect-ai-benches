@@ -1,6 +1,6 @@
 """sanity-bench: inspect-ai tasks (one per category).
 
-13 categories, 10 tasks each — registered as separate @task functions so inspect
+15 categories, 20 tasks each — registered as separate @task functions so inspect
 can address them individually:
 
     uv run inspect eval sanity-bench/run.py@math \\
@@ -165,7 +165,7 @@ def _build_task(category: str) -> Task:
 
 
 # ---------------------------------------------------------------------------
-# 13 @task functions, one per category. These MUST be top-level for inspect-ai
+# 15 @task functions, one per category. These MUST be top-level for inspect-ai
 # to discover them via AST parsing.
 # ---------------------------------------------------------------------------
 
@@ -233,3 +233,13 @@ def structured_output() -> Task:
 @task
 def safety() -> Task:
     return _build_task("safety")
+
+
+@task
+def tool_use() -> Task:
+    return _build_task("tool_use")
+
+
+@task
+def agentic_conversation() -> Task:
+    return _build_task("agentic_conversation")

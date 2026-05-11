@@ -150,3 +150,146 @@ tasks:
         - {type: regex, pattern: "(users\\.id|u\\.id|orders\\.id|o\\.id)", flags: ["I"]}
         - {type: regex, pattern: "WHERE\\s+(users\\.id|u\\.id|orders\\.user_id|o\\.user_id)", flags: ["I"]}
     max_tokens: 1536
+  - id: agent-11-error-triage
+    prompt: |
+      Your test suite fails with: `ImportError: cannot import name 'foo' from
+      'mylib'`. Which file is the most likely first place to look? Pick one
+      letter:
+      A) tests/conftest.py
+      B) mylib/__init__.py
+      C) docs/intro.md
+      D) .github/workflows/ci.yml
+      Reply with just the letter.
+    scoring: {type: multiple_choice, expected: B}
+    max_tokens: 256
+
+  - id: agent-12-grep-flag
+    prompt: |
+      You need to find every occurrence of the word `api_key` in the codebase,
+      whole-word, case-sensitive, recursively from the current directory,
+      excluding the `.venv` directory. Output a single ripgrep one-liner, no
+      backticks.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^rg\\b"}
+        - {type: regex, pattern: "(-w|--word-regexp|\\\\b)"}
+        - {type: regex, pattern: "(-g|--glob|--iglob).*\\.venv|--exclude.*\\.venv|!.*\\.venv"}
+        - {type: regex, pattern: "api_key"}
+    max_tokens: 384
+
+  - id: agent-13-fixture
+    prompt: |
+      Write a single pytest fixture (use the `@pytest.fixture` decorator) named
+      `tmp_text_file` that creates a temporary text file containing
+      'hello\nworld', yields its path, and removes the file after the test.
+      Use `tmp_path` from pytest. Reply with just a Python code block.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "@pytest\\.fixture"}
+        - {type: regex, pattern: "def\\s+tmp_text_file\\s*\\("}
+        - {type: regex, pattern: "tmp_path"}
+        - {type: regex, pattern: "yield\\s"}
+    max_tokens: 512
+
+  - id: agent-14-stacktrace
+    prompt: |
+      You see this stack trace tail:
+
+      ```
+        File "scripts/clean.py", line 47, in clean
+          rows = json.loads(open(path).read())
+      json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+      ```
+
+      What is the single most likely cause? Reply in one short sentence.
+    scoring: {type: contains_any, expected: ["empty file", "empty json", "empty", "non-json", "not valid json", "invalid json", "wrong content"]}
+    max_tokens: 256
+
+  - id: agent-15-dockerfile
+    prompt: |
+      Write a minimal Dockerfile that bases on `python:3.12-slim`, copies the
+      current directory to /app, sets WORKDIR /app, runs `pip install -e .`,
+      and uses `python -m mymod` as the CMD. Reply with just the Dockerfile,
+      no commentary, no backticks.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?mi)^FROM\\s+python:3\\.12-slim"}
+        - {type: regex, pattern: "(?mi)^WORKDIR\\s+/app"}
+        - {type: regex, pattern: "(?mi)^COPY\\b"}
+        - {type: regex, pattern: "(?mi)^RUN\\s+pip\\s+install\\s+-e\\s+\\."}
+        - {type: regex, pattern: "(?mi)^CMD\\b.*python.*mymod"}
+    max_tokens: 512
+
+  - id: agent-16-bisect
+    prompt: |
+      A test passed on commit `abc123` and now fails on `HEAD`. Which single
+      git command begins the search to find the exact commit that introduced
+      the failure? Reply with the command on one line, no backticks.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^git\\s+bisect\\s+start\\b"}
+    max_tokens: 256
+
+  - id: agent-17-env-var
+    prompt: |
+      You need to set the environment variable `OPENAI_API_KEY` to the value
+      `sk-XXX` for a single command `python run.py`, then immediately run it,
+      WITHOUT exporting the variable to the parent shell. Write the single
+      line of bash. No backticks.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\s*OPENAI_API_KEY=sk-XXX\\s+python\\s+run\\.py"}
+    max_tokens: 256
+
+  - id: agent-18-readme
+    prompt: |
+      A user asks "I cloned the repo, what's the first command to run?"
+      Looking only at this manifest, what should they do FIRST? Pick a letter.
+      Files in the repo: README.md, pyproject.toml, src/, tests/, .python-version
+      A) git pull
+      B) Read README.md
+      C) Run pytest
+      D) Edit src/main.py
+      Reply with just the letter.
+    scoring: {type: multiple_choice, expected: B}
+    max_tokens: 256
+
+  - id: agent-19-cli-spec
+    prompt: |
+      Write the Python `argparse` code that defines a CLI with a required
+      positional argument `path` (str) and an optional flag `--limit N`
+      (int, default 100). Reply with just a Python code block, just the
+      argparse setup (no `if __name__`).
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "argparse\\.ArgumentParser"}
+        - {type: regex, pattern: "add_argument\\(\\s*['\"]path['\"]"}
+        - {type: regex, pattern: "add_argument\\(\\s*['\"]--limit"}
+        - {type: regex, pattern: "default\\s*=\\s*100"}
+        - {type: regex, pattern: "type\\s*=\\s*int"}
+    max_tokens: 512
+
+  - id: agent-20-revert
+    prompt: |
+      You merged a PR an hour ago that broke production. You need to undo just
+      that merge commit on the `main` branch and push, preserving history.
+      Which single git command (one line) is the safest standard approach?
+      Reply with the command, no commentary, no backticks.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^git\\s+revert\\b"}
+    max_tokens: 256

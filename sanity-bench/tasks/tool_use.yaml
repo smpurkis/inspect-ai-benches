@@ -1,0 +1,350 @@
+category: tool_use
+tasks:
+  - id: tu-01-simple-call
+    prompt: |
+      Available function:
+        get_weather(city: str) -> dict  # Returns current weather for a city.
+
+      User request: "What's the weather like in London?"
+
+      Output the function call as a JSON object with keys "name" and "arguments".
+      JSON only, no other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"get_weather\""}
+        - {type: regex, pattern: "\"city\"\\s*:\\s*\"London\"", flags: ["I"]}
+    max_tokens: 256
+
+  - id: tu-02-two-params
+    prompt: |
+      Available function:
+        send_email(to: str, subject: str) -> None  # Sends an email.
+
+      User request: "Send an email to alice@example.com with subject 'Meeting tomorrow'."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"send_email\""}
+        - {type: regex, pattern: "alice@example\\.com"}
+        - {type: regex, pattern: "Meeting tomorrow", flags: ["I"]}
+    max_tokens: 256
+
+  - id: tu-03-choose-right-tool
+    prompt: |
+      Available functions:
+        search_web(query: str) -> list   # Searches the internet.
+        calculate(expression: str) -> float  # Evaluates a maths expression.
+
+      User request: "What is 42 multiplied by 17?"
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"calculate\""}
+        - {type: regex, pattern: "42.*17|17.*42"}
+    max_tokens: 256
+
+  - id: tu-04-bool-param
+    prompt: |
+      Available function:
+        set_notifications(enabled: bool) -> None  # Enables or disables notifications.
+
+      User request: "Turn notifications on."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"set_notifications\""}
+        - {type: regex, pattern: "\"enabled\"\\s*:\\s*true"}
+    max_tokens: 256
+
+  - id: tu-05-int-param
+    prompt: |
+      Available function:
+        set_volume(level: int) -> None  # Sets volume 0–100.
+
+      User request: "Set the volume to 75."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"set_volume\""}
+        - {type: regex, pattern: "\"level\"\\s*:\\s*75"}
+    max_tokens: 256
+
+  - id: tu-06-list-param
+    prompt: |
+      Available function:
+        add_tags(tags: list[str]) -> None  # Adds tags to the current item.
+
+      User request: "Tag this as urgent, billing, and Q3."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"add_tags\""}
+        - {type: regex, pattern: "\"tags\"\\s*:\\s*\\["}
+        - {type: regex, pattern: "urgent", flags: ["I"]}
+    max_tokens: 256
+
+  - id: tu-07-three-params
+    prompt: |
+      Available function:
+        book_flight(origin: str, destination: str, date: str) -> dict
+
+      User request: "Book a flight from New York to Paris on 2025-08-15."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"book_flight\""}
+        - {type: regex, pattern: "New York", flags: ["I"]}
+        - {type: regex, pattern: "Paris", flags: ["I"]}
+        - {type: regex, pattern: "2025-08-15"}
+    max_tokens: 256
+
+  - id: tu-08-enum-param
+    prompt: |
+      Available function:
+        set_status(status: str) -> None
+        # status must be one of: "active", "inactive", "pending"
+
+      User request: "Put this account on hold (pending)."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"set_status\""}
+        - {type: regex, pattern: "\"status\"\\s*:\\s*\"pending\""}
+    max_tokens: 256
+
+  - id: tu-09-no-args
+    prompt: |
+      Available function:
+        get_current_time() -> str  # Returns the current UTC time as a string.
+
+      User request: "What time is it now?"
+
+      Output the function call as JSON with keys "name" and "arguments"
+      (arguments should be an empty object {}). JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"get_current_time\""}
+        - {type: regex, pattern: "\"arguments\"\\s*:\\s*\\{\\s*\\}"}
+    max_tokens: 256
+
+  - id: tu-10-date-format
+    prompt: |
+      Available function:
+        schedule_meeting(title: str, date: str) -> None
+        # date must be ISO-8601 format YYYY-MM-DD
+
+      User request: "Schedule a 'Team sync' meeting for the 3rd of April 2026."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"schedule_meeting\""}
+        - {type: regex, pattern: "2026-04-03"}
+    max_tokens: 256
+
+  - id: tu-11-nested-object
+    prompt: |
+      Available function:
+        create_address(address: object) -> None
+        # address object has keys: street (str), city (str), country (str)
+
+      User request: "Add address: 10 Downing Street, London, UK."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"create_address\""}
+        - {type: regex, pattern: "Downing", flags: ["I"]}
+        - {type: regex, pattern: "London", flags: ["I"]}
+    max_tokens: 256
+
+  - id: tu-12-choose-from-three
+    prompt: |
+      Available functions:
+        get_weather(city: str) -> dict
+        translate_text(text: str, target_language: str) -> str
+        calculate(expression: str) -> float
+
+      User request: "Translate 'Hello world' to Spanish."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"translate_text\""}
+        - {type: regex, pattern: "Hello world", flags: ["I"]}
+        - {type: regex, pattern: "Spanish|es\\b", flags: ["I"]}
+    max_tokens: 256
+
+  - id: tu-13-exact-name
+    prompt: |
+      Available function:
+        fetch_stock_price(ticker: str) -> float  # Returns latest stock price.
+
+      User request: "Get the price of AAPL stock."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"fetch_stock_price\""}
+        - {type: regex, pattern: "\"ticker\"\\s*:\\s*\"AAPL\""}
+    max_tokens: 256
+
+  - id: tu-14-optional-param
+    prompt: |
+      Available function:
+        search(query: str, limit: int = 10) -> list
+        # limit is optional; default is 10.
+
+      User request: "Search for 'climate change', I only want 5 results."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"search\""}
+        - {type: regex, pattern: "climate change", flags: ["I"]}
+        - {type: regex, pattern: "\"limit\"\\s*:\\s*5"}
+    max_tokens: 256
+
+  - id: tu-15-dont-hallucinate-tool
+    prompt: |
+      Available functions:
+        get_weather(city: str) -> dict
+        get_time() -> str
+
+      User request: "What is the capital of France?"
+
+      None of the available functions can answer this. Output a JSON object
+      {"name": null, "arguments": {}} to indicate no function applies. JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*null"}
+    max_tokens: 256
+
+  - id: tu-16-unit-conversion
+    prompt: |
+      Available function:
+        convert_units(value: float, from_unit: str, to_unit: str) -> float
+
+      User request: "Convert 100 kilometres to miles."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"convert_units\""}
+        - {type: regex, pattern: "\"value\"\\s*:\\s*100"}
+        - {type: regex, pattern: "km|kilomet", flags: ["I"]}
+        - {type: regex, pattern: "mile", flags: ["I"]}
+    max_tokens: 256
+
+  - id: tu-17-array-of-objects
+    prompt: |
+      Available function:
+        create_contacts(contacts: list[object]) -> None
+        # Each contact object: {name: str, phone: str}
+
+      User request: "Add contacts: Alice (555-1234) and Bob (555-5678)."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"create_contacts\""}
+        - {type: regex, pattern: "Alice", flags: ["I"]}
+        - {type: regex, pattern: "Bob", flags: ["I"]}
+        - {type: regex, pattern: "555-1234"}
+    max_tokens: 384
+
+  - id: tu-18-rename-file
+    prompt: |
+      Available function:
+        rename_file(old_path: str, new_path: str) -> bool
+
+      User request: "Rename the file /tmp/draft.txt to /tmp/final.txt."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"rename_file\""}
+        - {type: regex, pattern: "/tmp/draft\\.txt"}
+        - {type: regex, pattern: "/tmp/final\\.txt"}
+    max_tokens: 256
+
+  - id: tu-19-send-with-body
+    prompt: |
+      Available function:
+        send_slack_message(channel: str, text: str) -> None
+
+      User request: "Post 'Deployment complete!' to the #releases channel."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"send_slack_message\""}
+        - {type: regex, pattern: "releases", flags: ["I"]}
+        - {type: regex, pattern: "Deployment complete", flags: ["I"]}
+    max_tokens: 256
+
+  - id: tu-20-multi-param-search
+    prompt: |
+      Available function:
+        search_products(keyword: str, category: str, min_price: float,
+                        max_price: float) -> list
+
+      User request: "Find laptops in the electronics category priced between
+      £500 and £1200."
+
+      Output the function call as JSON with keys "name" and "arguments". JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "\"name\"\\s*:\\s*\"search_products\""}
+        - {type: regex, pattern: "laptop", flags: ["I"]}
+        - {type: regex, pattern: "electronic", flags: ["I"]}
+        - {type: regex, pattern: "500"}
+        - {type: regex, pattern: "1200"}
+    max_tokens: 384
