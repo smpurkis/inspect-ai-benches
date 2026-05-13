@@ -1,120 +1,343 @@
 category: general_knowledge
 tasks:
-  - id: gk-01-capital
+  - id: gk-01-mitochondrial-import
     prompt: |
-      What is the capital of Australia? Answer with just the city name.
-    scoring: {type: exact_match, expected: "Canberra"}
-    max_tokens: 384
-  - id: gk-02-element
-    prompt: |
-      What is the chemical symbol for gold? Answer with just the symbol.
-    scoring: {type: exact_match, expected: "Au"}
-    max_tokens: 384
-  - id: gk-03-event-year
-    prompt: |
-      In what year did the Chernobyl nuclear disaster occur? Answer with just the year.
-    scoring: {type: regex_number, expected: 1986}
-    max_tokens: 384
-  - id: gk-04-author
-    prompt: |
-      Who wrote the novel "One Hundred Years of Solitude"? Answer with just the author's name.
-    scoring: {type: contains_all, expected: ["García", "Márquez"]}
-    max_tokens: 384
-  - id: gk-05-planet
-    prompt: |
-      Which planet in our solar system has the most moons (as confirmed by IAU as of 2024)?
-      Answer with just the planet name.
-    scoring: {type: contains_any, expected: ["Saturn"]}
-    max_tokens: 384
-  - id: gk-06-physics
-    prompt: |
-      What is the speed of light in a vacuum, in meters per second, to three significant figures?
-      Answer with just the number in scientific notation like 3.00e8.
-    scoring: {type: regex, pattern: "3(\\.0+)?\\s*[xX*×]?\\s*10\\^?8|3\\.0+e\\+?0?8|299,?792,?458"}
-    max_tokens: 384
-  - id: gk-07-geography
-    prompt: |
-      What is the longest river in Africa? Answer with just the river name.
-    scoring: {type: contains, expected: "Nile"}
-    max_tokens: 384
-  - id: gk-08-economics
-    prompt: |
-      What does GDP stand for? Answer in exactly four words.
-    scoring: {type: contains_all, expected: ["gross", "domestic", "product"]}
-    max_tokens: 384
-  - id: gk-09-history
-    prompt: |
-      Who was the first president of the United States? Answer with just the name.
-    scoring: {type: contains, expected: "George Washington"}
-    max_tokens: 384
-  - id: gk-10-biology
-    prompt: |
-      What organelle in a eukaryotic cell is the site of aerobic respiration?
-      Answer with just the organelle name.
-    scoring: {type: contains, expected: "mitochondri"}
-    max_tokens: 384
-  - id: gk-11-bones
-    prompt: |
-      How many bones are in the typical adult human body? Answer with just the number.
-    scoring: {type: regex_number, expected: 206}
-    max_tokens: 256
-
-  - id: gk-12-currency
-    prompt: |
-      What is the official currency of Japan? Answer with just the currency name (one word).
-    scoring: {type: contains, expected: "yen"}
-    max_tokens: 256
-
-  - id: gk-13-moon
-    prompt: |
-      In what year did humans first land on the Moon? Answer with just the year.
-    scoring: {type: regex_number, expected: 1969}
-    max_tokens: 256
-
-  - id: gk-14-mohs
-    prompt: |
-      Which naturally occurring substance is at the top of the Mohs hardness scale?
-      Answer with just the substance name.
-    scoring: {type: contains, expected: "diamond"}
-    max_tokens: 256
-
-  - id: gk-15-element-au
-    prompt: |
-      Which element has the atomic number 79? Answer with just the element name.
-    scoring: {type: contains, expected: "gold"}
-    max_tokens: 256
-
-  - id: gk-16-ocean
-    prompt: |
-      Which is the largest ocean on Earth by area? Answer with just the name.
-    scoring: {type: contains, expected: "Pacific"}
-    max_tokens: 256
-
-  - id: gk-17-painter
-    prompt: |
-      Who painted the ceiling of the Sistine Chapel? Answer with just the artist's first name.
-    scoring: {type: contains, expected: "Michelangelo"}
-    max_tokens: 256
-
-  - id: gk-18-dna
-    prompt: |
-      What does the acronym DNA stand for? Answer with the full term, nothing else.
-    scoring: {type: contains_all, expected: ["deoxyribonucleic", "acid"]}
-    max_tokens: 256
-
-  - id: gk-19-monarch
-    prompt: |
-      Which English monarch had six wives? Reply with just their name and ordinal (e.g., "Henry VIII").
+      A nuclear-encoded protein destined for the mitochondrial matrix must traverse both the outer and inner membranes. Which pair of translocase complexes facilitates this import, and what provides the energetic driving force for the final step?
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: contains, expected: "Henry"}
-        - {type: regex, pattern: "VIII|8th|the 8th|eighth", flags: ["I"]}
+        - {type: contains_all, expected: ["TOM", "TIM23"]}
+        - {type: contains_any, expected: ["ATP hydrolysis", "ATP", "Hsp70"]}
+    max_tokens: 384
+
+  - id: gk-02-chandrasekhar-limit
+    prompt: |
+      A white dwarf with a mass of 1.5 solar masses would collapse under its own gravity because it exceeds the Chandrasekhar limit. What fundamental quantum mechanical principle prevents collapse below this threshold, and what degenerate particle species provides the supporting pressure?
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "Pauli"}
+        - {type: contains_any, expected: ["electron", "electrons"]}
+    max_tokens: 384
+
+  - id: gk-03-mens-rea-lect
+    prompt: |
+      In common law, the mens rea for murder is "malice aforethought." This does not require ill will but encompasses four mental states. Two are "intent to kill" and "intent to cause grievous bodily harm." Name the other two.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "depraved"}
+        - {type: contains_any, expected: ["heart", "reckless indifference"]}
+    max_tokens: 384
+
+  - id: gk-04-lagrange-points
+    prompt: |
+      In the circular restricted three-body problem, five Lagrange points exist where gravitational and centrifugal forces balance. Two are stable, three are unstable. Which L-point is located on the opposite side of Earth from the Sun, and why is it useful for space telescopes?
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "L2"}
+        - {type: contains_any, expected: ["stable", "cold", "unobstructed", "continuous view"]}
+    max_tokens: 384
+
+  - id: gk-05-synth-organic
+    prompt: |
+      In the Diels-Alder cycloaddition, an electron-rich diene reacts with an electron-deficient dienophile. If the diene bears an electron-donating group and the dienophile bears an electron-withdrawing group, which orbital interaction (HOMO/LUMO of which reactant) primarily governs the reaction rate?
+    scoring: {type: contains_any, expected: ["HOMO of diene", "HOMO diene"], flags: ["I"]}
     max_tokens: 256
 
-  - id: gk-20-pi
+  - id: gk-06-coase-theorem
     prompt: |
-      What is the value of π to four decimal places? Answer with just the number.
-    scoring: {type: regex, pattern: "3\\.1415\\b|3\\.1416\\b"}
+      The Coase theorem states that when property rights are clearly defined and transaction costs are zero, bargaining will lead to an efficient outcome regardless of the initial allocation. Name the economist who formulated this theorem and the key real-world friction that makes it often inapplicable.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "Coase"}
+        - {type: contains_any, expected: ["transaction cost", "transaction costs"]}
+    max_tokens: 384
+
+  - id: gk-07-grimms-law
+    prompt: |
+      Grimm's law describes the First Germanic Sound Shift, transforming Proto-Indo-European plosives into Germanic voiceless fricatives. The PIE voiceless stop /p/ becomes Germanic /f/. Apply the law: what is the regular Germanic reflex of PIE /k/ and give an English word that preserves it?
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "[hH]", flags: []}
+        - {type: contains_any, expected: ["heart", "hound", "horn", "hundred", "head", "hear"]}
+    max_tokens: 384
+
+  - id: gk-08-marbury-doctrine
+    prompt: |
+      In Marbury v. Madison (1803), Chief Justice Marshall established the principle of judicial review. However, the Court held that it lacked jurisdiction to issue the writ of mandamus sought by Marbury. Which section of which act did the Court strike down as unconstitutional?
+    scoring: {type: contains, expected: "Section 13 of the Judiciary Act"}
+    max_tokens: 384
+
+  - id: gk-09-open-reading-frame
+    prompt: |
+      In molecular biology, an open reading frame begins with a start codon and ends with a stop codon in the same reading frame. In the standard genetic code, name the start codon and the three stop codons, and state whether mitochondrial genetic code uses the same set.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "AUG"}
+        - {type: contains_all, expected: ["UAA", "UAG", "UGA"]}
+        - {type: contains_any, expected: ["different", "not", "varies", "some differ"]}
+    max_tokens: 384
+
+  - id: gk-10-psat-np
+    prompt: |
+      Which of these would immediately follow if a deterministic polynomial-time algorithm for SAT were discovered?
+      (A) P != NP
+      (B) P = NP and co-NP = NP
+      (C) NP-complete problems remain intractable
+      (D) Only co-NP problems become tractable
+      Answer with just the letter.
+    scoring: {type: multiple_choice, expected: "B"}
+    max_tokens: 384
+
+  - id: gk-11-krebs-cycle
+    prompt: |
+      In the citric acid cycle, citrate is isomerized to isocitrate via the enzyme aconitase, which contains an iron-sulfur cluster. Isocitrate then undergoes oxidative decarboxylation. Name the enzyme that catalyzes this step and the two products it generates directly.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["isocitrate dehydrogenase", "NADH", "alpha-ketoglutarate"]}
+    max_tokens: 384
+
+  - id: gk-12-library-of-alexandria
+    prompt: |
+      The Great Library of Alexandria was part of the Musaeum, a research institution funded by the Ptolemaic dynasty. It is said to have burned down multiple times. One major fire occurred during Julius Caesar's siege of Alexandria in 48 BCE. Which Alexandrian ruler was on the throne at that time?
+    scoring: {type: contains, expected: "Ptolemy"}
+    max_tokens: 256
+
+  - id: gk-13-thermohaline-circulation
+    prompt: |
+      The Atlantic Meridional Overturning Circulation (AMOC) is driven by density gradients caused by temperature and salinity differences. When warm, saline water from the tropics moves northward, it cools and sinks in the North Atlantic. What two processes increase the salinity in this region before sinking occurs?
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "sea ice formation"}
+        - {type: contains, expected: "evaporation"}
+    max_tokens: 384
+
+  - id: gk-14-encryption-rsa
+    prompt: |
+      RSA encryption relies on the practical difficulty of factoring the product of two large primes. The public key consists of (n, e) where n = p × q. The private key d satisfies e × d ≡ 1 (mod φ(n)). If an attacker could compute φ(n) efficiently, what function could they then compute to break the system?
+    scoring: {type: contains_any, expected: ["modular inverse of e", "private key", "d"]}
+    max_tokens: 256
+
+  - id: gk-15-leidenfrost-point
+    prompt: |
+      A water droplet on a surface heated well above boiling point skitters across the surface without wetting it. This is the Leidenfrost effect. Above a certain temperature called the Leidenfrost point, a vapor layer insulates the droplet. For water on a stainless steel surface at atmospheric pressure, what is the approximate temperature range of the Leidenfrost point (in Celsius)?
+    scoring: {type: regex, pattern: "(19[0-9]|2[0-4][0-9]|250)\\s*°?\\s*C"}
+    max_tokens: 256
+
+  - id: gk-16-laryngeal-theory
+    prompt: |
+      The laryngeal theory in Indo-European linguistics posits that PIE had phonemes /h1/, /h2/, /h3/ that were lost in most daughter languages but colored adjacent vowels. /h2/ colored a following /e/ to /a/. In which Anatolian language, a daughter of PIE, were laryngeals directly preserved in cuneiform writing?
+    scoring: {type: contains, expected: "Hittite"}
+    max_tokens: 256
+
+  - id: gk-17-general-equilibrium
+    prompt: |
+      General equilibrium theory, formalized by Arrow and Debreu, proves existence of equilibrium under assumptions including convex preferences and complete markets. However, Sonnenschein-Mantel-Debreu theorems show that excess demand functions inherit essentially no structure. What key implication does SMD have for uniqueness of equilibrium?
+    scoring: {type: contains_any, expected: ["multiple", "not unique", "uniqueness fails", "many"], flags: ["I"]}
+    max_tokens: 256
+
+  - id: gk-18-crispr-cas9
+    prompt: |
+      CRISPR-Cas9 gene editing requires two molecular components: the Cas9 nuclease and a guide RNA. The guide RNA combines crRNA (which targets DNA via complementarity) and tracrRNA. What sequence motif must be immediately adjacent to the target DNA sequence for Cas9 to bind and cleave, and what nucleotide pattern does this motif follow?
+    scoring: {type: contains_any, expected: ["PAM", "protospacer adjacent motif", "NGG"]}
+    max_tokens: 384
+
+  - id: gk-19-battle-of-teutoburg
+    prompt: |
+      In 9 CE, three Roman legions under Publius Quinctilius Varus were ambushed and annihilated by a coalition of Germanic tribes led by a chieftain who had been educated in Rome and granted Roman citizenship. Name this chieftain, the approximate location of the battle, and its primary strategic consequence for Roman expansion.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "Arminius"}
+        - {type: contains, expected: "Teutoburg"}
+        - {type: contains_any, expected: ["stopped", "halted", "ended", "Rhine"]}
+    max_tokens: 384
+
+  - id: gk-20-bose-einstein-condensate
+    prompt: |
+      A Bose-Einstein condensate forms when bosons are cooled to near absolute zero, occupying the same quantum ground state. This requires the de Broglie wavelength to exceed the interparticle spacing. Which alkali metal was first used to create a BEC in 1995, and what cooling technique was essential to reach the required temperature?
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["rubidium", "Rb"]}
+        - {type: contains_any, expected: ["laser cooling", "evaporative cooling", "laser"]}
+    max_tokens: 384
+
+  - id: gk-21-parliamentary-sovereignty
+    prompt: |
+      In UK constitutional law, the doctrine of parliamentary sovereignty means Parliament can make or unmake any law. A.V. Dicey articulated this principle. However, the European Communities Act 1972 created a tension. When the UK Supreme Court ruled in Miller (2017) that Parliament must authorize Article 50 notification, which constitutional principle limited prerogative powers?
+    scoring: {type: contains_any, expected: ["parliamentary sovereignty", "rule of law", "constitutional", "prerogative"]}
+    max_tokens: 384
+
+  - id: gk-22-radioactive-decay-series
+    prompt: |
+      Uranium-238 decays through a chain of 14 steps to stable lead-206. One intermediate is radon-222, a noble gas that can escape from rock and accumulate in buildings. Which isotope in the chain, an alpha-emitter with a 3.8-day half-life, is the first decay product of radon-222?
+    scoring: {type: contains_any, expected: ["polonium-218", "218Po", "Po-218", "polonium 218"]}
+    max_tokens: 256
+
+  - id: gk-23-mail-merge-art
+    prompt: |
+      Albrecht Dürer produced "Melencolia I" in 1514, an engraving dense with allegorical symbolism including a magic square, a truncated polyhedron, and an hourglass. The magic square sums to 34 in every row, column, diagonal, and each quadrant. What geometric solid is depicted beside the seated figure?
+    scoring: {type: contains_any, expected: ["truncated rhomboid", "truncated polyhedron", "polyhedron", "rhombohedron"]}
+    max_tokens: 256
+
+  - id: gk-24-hebbian-plasticity
+    prompt: |
+      Hebb's rule states that "neurons that fire together, wire together." This is mechanistically implemented by long-term potentiation (LTP) in the hippocampus. LTP at the Schaffer collateral-CA1 synapse requires activation of NMDA receptors, which are voltage-dependent due to magnesium block. What second messenger system is triggered by calcium influx through NMDA receptors?
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "CaMKII"}
+        - {type: contains_any, expected: ["calmodulin", "kinase"]}
+    max_tokens: 384
+
+  - id: gk-25-giffen-good
+    prompt: |
+      A Giffen good violates the law of demand: its price increase leads to higher consumption. This occurs for inferior goods with a large negative income effect. The classic postulated example was a staple food in 19th-century Ireland. Name the food and explain why the income effect must exceed the substitution effect for a good to be Giffen.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["potato", "potatoes"]}
+        - {type: contains, expected: "income effect"}
+    max_tokens: 384
+
+  - id: gk-26-luminiferous-aether
+    prompt: |
+      The Michelson-Morley experiment (1887) was designed to detect the luminiferous aether by measuring differences in the speed of light perpendicular and parallel to Earth's motion. They expected a fringe shift of 0.4 fringes but observed less than 0.01. Which two scientists performed the experiment, and what did Fitzgerald propose to explain the null result?
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["Michelson", "Morley"]}
+        - {type: contains_any, expected: ["length contraction", "Fitzgerald contraction", "Lorentz contraction"]}
+    max_tokens: 384
+
+  - id: gk-27-endosymbiotic-theory
+    prompt: |
+      The endosymbiotic theory proposes that mitochondria and chloroplasts originated from free-living bacteria engulfed by a host cell. Three lines of evidence support this: double membranes, circular DNA, and 70S ribosomes. Name the organelle that provides evidence for a secondary endosymbiosis event involving a red alga.
+    scoring: {type: contains_any, expected: ["apicoplast", "apicomplexan plastid", "plastid"]}
+    max_tokens: 256
+
+  - id: gk-28-pappus-theorem
+    prompt: |
+      In projective geometry, Pappus's hexagon theorem states that if points A, B, C lie on one line and D, E, F on another, then the intersection points of lines AE and DB, AF and DC, and BF and EC are collinear. This theorem holds in any projective plane. Is it also valid in a projective plane that is not Pappian? Answer yes or no.
+    scoring: {type: regex, pattern: "^\\s*no\\b", flags: ["I"]}
+    max_tokens: 256
+
+  - id: gk-29-katabatic-wind
+    prompt: |
+      A katabatic wind is a gravity-driven flow of cold, dense air down a slope, common in Antarctica and Greenland. These winds can reach hurricane force. What mechanism causes the extreme cooling of the air on the Antarctic plateau that drives katabatic winds, and what is the specific name for these winds in the Adriatic Sea?
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["radiative cooling", "radiation", "longwave"]}
+        - {type: contains, expected: "bora"}
+    max_tokens: 384
+
+  - id: gk-30-woodward-hoffmann
+    prompt: |
+      The Woodward-Hoffmann rules predict stereochemistry of pericyclic reactions based on conservation of orbital symmetry. For a thermal [4+2] cycloaddition (Diels-Alder), suprafacial-suprafacial addition is allowed under thermal conditions. What is the stereochemical outcome (endo or exo) for the kinetically favored transition state?
+    scoring: {type: contains, expected: "endo"}
+    max_tokens: 256
+
+  - id: gk-31-tantalus-myth
+    prompt: |
+      In Greek mythology, Tantalus was punished in Tartarus by standing in a pool of water beneath a fruit tree. When he reached for fruit, the branches rose; when he bent to drink, the water receded. Which crime did Tantalus commit that warranted this eternal punishment, and which of his children was restored to life?
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["killed his son", "Pelops", "sacrificed", "served his son"]}
+        - {type: contains, expected: "Pelops"}
+    max_tokens: 384
+
+  - id: gk-32-haber-bosch
+    prompt: |
+      The Haber-Bosch process fixes atmospheric nitrogen (N2 + 3H2 -> 2NH3) using an iron catalyst at 400-500°C and 150-200 bar. The forward reaction is exothermic, so high temperature reduces yield but increases rate. Fritz Haber developed the process, but which chemist commercialized it by designing high-pressure reactors? Answer with just the surname (4-6 letters).
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "Bosch"}
+        - {type: length_range, min: 3, max: 12, unit: chars}
+    max_tokens: 256
+
+  - id: gk-33-monty-hall-problem-origin
+    prompt: |
+      The Monty Hall problem appeared in Marilyn vos Savant's Parade column in 1990. The correct answer that switching gives a 2/3 probability of winning was controversial: many PhDs wrote insisting it was 1/2. The problem is named after the host of "Let's Make a Deal." What is the key conditional probability concept that resolves the paradox? Name the concept and the mathematician whose theorem formalizes it.
+    scoring: {type: contains_all, expected: ["conditional probability", "Bayes"]}
+    max_tokens: 256
+
+  - id: gk-34-schrodingers-cat-resolution
+    prompt: |
+      The Schrodinger's cat thought experiment illustrates the problem of quantum superposition applied to macroscopic objects. In the Copenhagen interpretation, the cat is both alive and dead until observation. Which interpretation resolves the paradox by postulating that wavefunction collapse is caused by gravity, and who proposed it?
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "Penrose"}
+        - {type: contains, expected: "gravity"}
+    max_tokens: 384
+
+  - id: gk-35-tragedy-of-commons
+    prompt: |
+      Hardin's "tragedy of the commons" describes how shared unregulated resources are depleted. Elinor Ostrom won the 2009 Nobel Prize for showing that communities can sustainably manage common-pool resources. Name three of her eight design principles for stable common-pool resource management.
+    scoring:
+      type: composite
+      mode: mean
+      parts:
+        - {type: contains_any, expected: ["boundaries", "defined", "clear"]}
+        - {type: contains_any, expected: ["proportional", "equitable", "benefits"]}
+        - {type: contains_any, expected: ["monitoring", "audit", "accountable"]}
+    max_tokens: 384
+
+  - id: gk-36-biotin-hair
+    prompt: |
+      Biotin (vitamin B7) is a water-soluble vitamin that serves as a cofactor for carboxylase enzymes involved in fatty acid synthesis, gluconeogenesis, and amino acid metabolism. Raw egg whites contain avidin, a glycoprotein that binds biotin with extremely high affinity, potentially causing deficiency. Cooking denatures avidin. What is the dissociation constant (Kd) order of magnitude for the avidin-biotin complex?
+    scoring: {type: regex, pattern: "10\\s*\\^?\\s*-?\\s*15|fM|femtomolar"}
+    max_tokens: 256
+
+  - id: gk-37-jet-stream-formation
+    prompt: |
+      The polar jet stream forms at the boundary between cold polar air and warm subtropical air, driven by the temperature gradient and the Coriolis effect. The thermal wind relationship states that the vertical wind shear is proportional to the horizontal temperature gradient. On which side of the jet core does the fastest wind speed occur?
+    scoring: {type: contains, expected: "poleward"}
+    max_tokens: 256
+
+  - id: gk-38-pyramids-construction
+    prompt: |
+      The Great Pyramid of Giza was originally 146.6 meters tall, with a base of 230.3 meters, giving a slope angle of approximately 51.5 degrees. It contains approximately 2.3 million blocks averaging 2.5 tonnes each. The internal structure includes the King's Chamber, Queen's Chamber, and what descending passage feature that points toward the constellation Orion?
+    scoring: {type: contains_any, expected: ["air shaft", "shaft", "ventilation shaft", "star shaft"]}
+    max_tokens: 384
+
+  - id: gk-39-gold-standard
+    prompt: |
+      Under the classical gold standard (1870s-1914), currencies were directly convertible to gold at fixed rates. The price-specie flow mechanism, described by David Hume, would correct trade imbalances automatically. If a country ran a trade deficit, gold would flow out, contracting the money supply and causing prices to fall. Explain the key weakness of the gold standard during the Great Depression in 2-4 sentences.
+    scoring: {type: length_range, min: 100, max: 600, unit: chars}
+    max_tokens: 384
+
+  - id: gk-40-antineutrino-discovery
+    prompt: |
+      The antineutrino was hypothesized by Pauli in 1930 to conserve energy, momentum, and spin in beta decay. It was experimentally detected in 1956 by Cowan and Reines at a nuclear reactor, using inverse beta decay: the antineutrino interacts with a proton to produce a neutron and what positively charged particle?
+    scoring: {type: contains_any, expected: ["positron", "e+", "antielectron"]}
     max_tokens: 256

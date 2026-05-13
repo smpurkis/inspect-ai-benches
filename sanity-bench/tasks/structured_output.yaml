@@ -1,244 +1,678 @@
 category: structured_output
 tasks:
-  - id: so-01-simple-json
+  - id: so-01-nested-org
     prompt: |
-      Emit a single JSON object (and nothing else, no commentary, no code fences)
-      describing a person with keys: name (string), age (integer), is_member
-      (boolean). Use any sensible values.
+      Output JSON: an object with key "organization" containing keys "name",
+      "departments" (array of objects), each with "id", "name", "employees"
+      (array of objects with "id", "role" as enum "dev"|"qa"|"pm"). Exactly
+      2 departments, 2 employees each. No other text.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "^\\s*\\{", flags: ["S"]}
-        - {type: json_schema, schema: {name: "str", age: "int", is_member: "bool"}, required_keys: ["name","age","is_member"]}
+        - {type: json_schema, schema: {organization: "dict"}, required_keys: ["organization"]}
+        - {type: contains, expected: "\"departments\""}
+        - {type: contains, expected: "\"employees\""}
+        - {type: regex, pattern: "\"role\"\\s*:\\s*\"(dev|qa|pm)\"", flags: ["S"]}
     max_tokens: 512
-  - id: so-02-array
+    temperature: 0.0
+
+  - id: so-02-json-conditional
     prompt: |
-      Output a JSON array of three integers in ascending order. Nothing else.
+      Output JSON with keys "type" ("user"|"admin"), "name" (string). If
+      type is "admin", include key "permissions" (array of strings). If
+      type is "user", include key "group" (string). Set type to "admin".
+      No other keys. JSON only.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "^\\s*\\[\\s*-?\\d+\\s*,\\s*-?\\d+\\s*,\\s*-?\\d+\\s*\\]\\s*$"}
-    max_tokens: 512
-  - id: so-03-nested
+        - {type: json_schema, schema: {type: "str", name: "str", permissions: "list"}, required_keys: ["type", "name", "permissions"]}
+        - {type: regex, pattern: "\"type\"\\s*:\\s*\"admin\""}
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-03-yaml-anchors
     prompt: |
-      Output a JSON object with key "user" mapping to an object with keys "id"
-      (int) and "tags" (list of strings, length >= 2). No commentary, JSON only.
-    scoring:
-      type: json_schema
-      schema: {user: "dict"}
-      required_keys: ["user"]
-    max_tokens: 512
-  - id: so-04-csv
-    prompt: |
-      Output CSV with header row "name,quantity,price" and exactly three data
-      rows. Use realistic grocery values. Nothing else.
+      Output YAML using anchors & aliases. Define a default config anchor
+      &default with keys timeout: 30, retry: 3. Then create two services
+      "api" and "worker" that both inherit from &default. api overrides
+      timeout: 60. No code fences, no extra text.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "^name,quantity,price\\n"}
+        - {type: regex, pattern: "&default"}
+        - {type: regex, pattern: "<<: \\*default"}
+        - {type: contains, expected: "timeout: 60"}
+        - {type: regex, pattern: "(?m)^\\s+timeout:\\s+30"}
+    max_tokens: 384
+    temperature: 0.0
+
+  - id: so-04-csv-quoted
+    prompt: |
+      Output CSV with header "item,description,price". Exactly 3 rows. The
+      second row's description must be a quoted field containing a comma
+      (e.g., "small, red"). Use realistic grocery data. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^item,description,price\\n"}
+        - {type: regex, pattern: '"[^"]*,[^"]*"'}
         - {type: regex, pattern: "(?:[^,\\n]*,[^,\\n]*,[^,\\n]*\\n){3}", flags: ["M"]}
-    max_tokens: 512
-  - id: so-05-yaml
-    prompt: |
-      Output a YAML document describing a server with keys: host (string), port
-      (int), tls (bool). Nothing else, no code fences.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "(?m)^host:\\s*\\S"}
-        - {type: regex, pattern: "(?m)^port:\\s*\\d+"}
-        - {type: regex, pattern: "(?mi)^tls:\\s*(true|false|yes|no)"}
-    max_tokens: 512
-  - id: so-06-markdown-table
-    prompt: |
-      Output a markdown table listing the three primary additive colours, one row
-      each, with columns "Colour" and "Hex". Use proper hex codes prefixed with
-      `#`. No commentary outside the table.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "\\|\\s*Colou?r\\s*\\|\\s*Hex\\s*\\|", flags: ["I"]}
-        - {type: regex, pattern: "#[0-9a-fA-F]{3,6}.*\\n.*#[0-9a-fA-F]{3,6}.*\\n.*#[0-9a-fA-F]{3,6}", flags: ["S"]}
-    max_tokens: 512
-  - id: so-07-xml
-    prompt: |
-      Output a single XML element `<book>` with child elements `<title>` and
-      `<author>` (any sensible values). No commentary, just the XML.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "<book>"}
-        - {type: regex, pattern: "<title>[^<]+</title>"}
-        - {type: regex, pattern: "<author>[^<]+</author>"}
-        - {type: regex, pattern: "</book>"}
-    max_tokens: 512
-  - id: so-08-deeper-json
-    prompt: |
-      Output JSON only (no other text) representing a TODO list with key "items"
-      mapping to a list of objects each with keys "id" (int) and "done" (bool).
-      The list must contain exactly 3 items.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: json_schema, schema: {items: "list"}, required_keys: ["items"]}
-        - {type: regex, pattern: "\"id\".*\"done\".*\"id\".*\"done\".*\"id\".*\"done\"", flags: ["S"]}
-    max_tokens: 512
-  - id: so-09-strict-enum
-    prompt: |
-      Output a JSON object with one key "status" whose value is one of:
-      "ok", "warn", "fail". Use "warn". Nothing else.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^\\s*(```\\w*\\s*)?\\{\\s*\"status\"\\s*:\\s*\"warn\"\\s*\\}\\s*(```)?\\s*$", flags: ["S"]}
-    max_tokens: 512
-  - id: so-10-iso-date
-    prompt: |
-      Output a JSON object with key "date" whose value is an ISO-8601 date string
-      (format YYYY-MM-DD) representing 1st March 2025. Nothing else.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "\"date\"\\s*:\\s*\"2025-03-01\""}
-    max_tokens: 512
-
-  - id: so-11-toml
-    prompt: |
-      Output a TOML config document with a [database] section containing these
-      keys: host (string "localhost"), port (integer 5432), name (string "mydb").
-      No commentary, no code fences, just the TOML.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "(?m)^\\[database\\]"}
-        - {type: regex, pattern: "(?m)^host\\s*=\\s*\"localhost\""}
-        - {type: regex, pattern: "(?m)^port\\s*=\\s*5432"}
-        - {type: regex, pattern: "(?m)^name\\s*=\\s*\"mydb\""}
-    max_tokens: 512
-
-  - id: so-12-jsonl
-    prompt: |
-      Output exactly 3 lines of JSONL (one valid JSON object per line). Each
-      object must have keys "event" (string) and "ts" (integer timestamp).
-      Nothing else.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^\\s*\\{[^\\n]+\\}\\n\\{[^\\n]+\\}\\n\\{[^\\n]+\\}", flags: ["S"]}
-        - {type: regex, pattern: "\"event\"", flags: ["S"]}
-        - {type: regex, pattern: "\"ts\"\\s*:\\s*\\d+", flags: ["S"]}
-    max_tokens: 512
-
-  - id: so-13-null-json
-    prompt: |
-      Output a JSON object with exactly two keys: "found" (boolean false) and
-      "result" (null). No other keys. No commentary.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "\"found\"\\s*:\\s*false"}
-        - {type: regex, pattern: "\"result\"\\s*:\\s*null"}
     max_tokens: 256
+    temperature: 0.0
 
-  - id: so-14-compact-json
+  - id: so-05-json-enum-switch
     prompt: |
-      Output a compact JSON array (no unnecessary whitespace) of exactly two
-      objects, each with a single key "x" mapping to a distinct integer.
-      Example format: [{"x":1},{"x":2}]
+      Output JSON: {"status": "processing"} where status is enum from
+      ["pending", "processing", "shipped", "delivered", "cancelled"].
+      Include second key "updated_at" with ISO 8601 date string.
+      JSON only, no other text.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "^\\s*\\[\\{\"x\":\\d+\\},\\{\"x\":\\d+\\}\\]\\s*$"}
+        - {type: json_schema, schema: {status: "str", updated_at: "str"}, required_keys: ["status", "updated_at"]}
+        - {type: regex, pattern: "\"status\"\\s*:\\s*\"(pending|processing|shipped|delivered|cancelled)\""}
     max_tokens: 256
+    temperature: 0.0
 
-  - id: so-15-mermaid
+  - id: so-06-graphql-nested
     prompt: |
-      Output a Mermaid flowchart with exactly 3 nodes (A, B, C) connected as
-      A --> B --> C. Start with the line "graph TD". No code fences,
-      no commentary.
+      Output a GraphQL query for: user(id: 42) { name, posts(limit: 5) {
+      title, comments { body, author { name } } } }. Request only the
+      specified fields. No extraneous whitespace. No explanation.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "(?m)^graph\\s+TD"}
-        - {type: regex, pattern: "A\\s*-->\\s*B"}
-        - {type: regex, pattern: "B\\s*-->\\s*C"}
-    max_tokens: 512
-
-  - id: so-16-html-list
-    prompt: |
-      Output an HTML unordered list (<ul>) with exactly 3 <li> items naming the
-      three primary additive colours (red, green, blue). No other HTML or text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "<ul>", flags: ["I"]}
-        - {type: regex, pattern: "</ul>", flags: ["I"]}
-        - {type: regex, pattern: "(?i)<li>[^<]*red[^<]*</li>"}
-        - {type: regex, pattern: "(?i)<li>[^<]*green[^<]*</li>"}
-        - {type: regex, pattern: "(?i)<li>[^<]*blue[^<]*</li>"}
-    max_tokens: 512
-
-  - id: so-17-json-desc-array
-    prompt: |
-      Output a JSON array of exactly 5 integers in strictly descending order.
-      Nothing else.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^\\s*\\[\\s*-?\\d+\\s*(,\\s*-?\\d+\\s*){4}\\]\\s*$"}
+        - {type: regex, pattern: "user\\(id:\\s*42\\)"}
+        - {type: contains_all, expected: ["title", "comments", "author"]}
+        - {type: regex, pattern: "posts\\(limit:\\s*5\\)"}
     max_tokens: 256
+    temperature: 0.0
 
-  - id: so-18-yaml-list
+  - id: so-07-deep-nested-json
     prompt: |
-      Output a YAML list of exactly 4 programming language names using "-" bullet
-      syntax. No keys, no extra text, no code fences.
+      Output JSON 4 levels deep: {"a": {"b": {"c": {"d": "value"}}}}.
+      Keys: a→b→c→d, value: any non-empty string. No other keys. JSON only.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "(?m)^- \\S"}
-        - {type: length_range, min: 4, max: 4, unit: lines}
+        - {type: regex, pattern: '\"a\"\\s*:\\s*\{[^}]*\"b\"\\s*:\\s*\{[^}]*\"c\"\\s*:\\s*\{[^}]*\"d\"\\s*:\\s*\"[^"]+\"[^}]*\}[^}]*\}[^}]*\}'}
+        - {type: json_schema, schema: {a: "dict"}, required_keys: ["a"]}
     max_tokens: 256
+    temperature: 0.0
 
-  - id: so-19-users-array
+  - id: so-08-json-array-conditional
     prompt: |
-      Output a JSON object with key "users" mapping to an array of exactly
-      2 objects, each with keys "id" (integer) and "name" (string).
-      JSON only, no commentary.
+      Output JSON: {"users": [{"name": "Alice", "role": "admin"},
+      {"name": "Bob", "role": "viewer"}]}. Only admin entries have a
+      "permissions" key. Give Alice permissions: ["read", "write", "delete"].
+      Bob has no permissions key. JSON only.
     scoring:
       type: composite
       mode: all
       parts:
+        - {type: contains, expected: "\"permissions\""}
         - {type: json_schema, schema: {users: "list"}, required_keys: ["users"]}
-        - {type: regex, pattern: "\"id\"\\s*:\\s*\\d+.*\"name\"\\s*:\\s*\"[^\"]+\"", flags: ["S"]}
-        - {type: regex, pattern: "\"id\".*\"id\"", flags: ["S"]}
-    max_tokens: 512
+        - {type: regex, pattern: '"Bob"[^}]*"[^"]*"[^}]*\}'}
+    max_tokens: 384
+    temperature: 0.0
 
-  - id: so-20-graphql-query
+  - id: so-09-docker-compose
     prompt: |
-      Output a GraphQL query that fetches a user by id (variable $id) and
-      requests the fields name and email. Output the query only, no explanation.
+      Output a docker-compose.yml (no code fences). Two services: "web"
+      (image: nginx, ports: "80:80") and "db" (image: postgres, env:
+      POSTGRES_PASSWORD: secret, volumes: pgdata:/var/lib/postgresql/data).
+      Top-level key "version: '3'". No other text.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "query|\\{\\s*user"}
-        - {type: regex, pattern: "\\$id|id\\s*:"}
-        - {type: contains_all, expected: ["name", "email"]}
+        - {type: contains, expected: "version: '3'"}
+        - {type: contains_all, expected: ["web", "db", "nginx", "postgres"]}
+        - {type: regex, pattern: "(?m)^\\s+POSTGRES_PASSWORD:"}
+    max_tokens: 384
+    temperature: 0.0
+
+  - id: so-10-swagger-path
+    prompt: |
+      Output a minimal OpenAPI 3.0 YAML snippet (no code fences). Path:
+      /users/{id}. GET operation. Parameters: id (path, integer). Responses:
+      200 (description: "OK"). Schema reference: "#/components/schemas/User".
+      Top-level: openapi: 3.0.0. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "openapi: 3.0.0"}
+        - {type: contains, expected: "/users/{id}"}
+        - {type: contains_all, expected: ["GET", "parameters", "responses"]}
+        - {type: contains, expected: "#/components/schemas/User"}
+    max_tokens: 384
+    temperature: 0.0
+
+  - id: so-11-json-csv-mixed
+    prompt: |
+      Output: first a JSON object with keys "format" (value "csv") and
+      "delimiter" (value ","). Then on the next line, output CSV with header
+      "a,b,c" and 2 data rows. No other text. No blank lines between.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^\\{[^\\n]+\\}\\n[a-z],[a-z],[a-z]"}
+        - {type: contains, expected: "\"format\""}
+        - {type: regex, pattern: "\\n[^,]+,[^,]+,[^,]+\\n[^,]+,[^,]+,[^,]+$", flags: ["S"]}
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-12-json-schema-self
+    prompt: |
+      Output a JSON Schema (draft-07) that validates: an object with required
+      key "name" (string, minLength 1) and optional key "age" (integer,
+      minimum 0). Top-level: {"$schema": "http://json-schema.org/draft-07/schema#",
+      "type": "object", ...}. JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '"\\$schema"\\s*:\\s*"http://json-schema.org/draft-07/schema#"'}
+        - {type: contains_all, expected: ["\"type\": \"object\"", "\"minLength\"", "\"minimum\""]}
+    max_tokens: 384
+    temperature: 0.0
+
+  - id: so-13-ts-declaration
+    prompt: |
+      Output TypeScript interface declarations (no code fences):
+      interface User { id: number; name: string; email?: string; }
+      interface Admin extends User { role: "admin"; permissions: string[]; }
+      Also export both. That's all.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "export interface User"}
+        - {type: regex, pattern: "interface Admin extends User"}
+        - {type: contains_all, expected: ["role:", "permissions:"]}
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-14-json-escaped
+    prompt: |
+      Output a JSON object with key "message" containing a string with
+      exactly: a double quote, a backslash, a newline character (\n), and a
+      tab character (\t) in sequence. The string should be: He said \"hello\\\n\tworld
+      properly escaped. JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: code_exec_python, tests: ["import json; d = json.loads(_output); assert 'message' in d; assert '\\\"' in d['message'] or '\\\\' in d['message']"]}
+        - {type: regex, pattern: '"message"\\s*:\\s*"[^"]*\\\\[^"]*"'}
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-15-protobuf-syntax
+    prompt: |
+      Output a protobuf definition (proto3 syntax). Package: "inventory".
+      Message "Item" with fields: int32 id = 1, string name = 2, double
+      price = 3. Message "Inventory" with repeated Item items = 1.
+      Use proper indentation. No code fences.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "syntax = \"proto3\""}
+        - {type: contains, expected: "package inventory"}
+        - {type: contains_all, expected: ["message Item", "message Inventory"]}
+        - {type: contains_all, expected: ["int32 id = 1", "string name = 2", "double price = 3"]}
+    max_tokens: 384
+    temperature: 0.0
+
+  - id: so-16-terraform-hcl
+    prompt: |
+      Output Terraform HCL (no code fences). Resource "aws_s3_bucket" named
+      "data_lake". Attributes: bucket = "my-app-data-lake", acl = "private",
+      tags = { Environment = "production" }. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: 'resource "aws_s3_bucket" "data_lake"'}
+        - {type: contains_all, expected: ["bucket =", "acl =", "tags ="]}
+        - {type: contains, expected: "production"}
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-17-json-array-counts
+    prompt: |
+      Output JSON: {"counts": {"even": 0, "odd": 0}, "numbers": [1,2,3,4,5]}.
+      The "even" and "odd" values must reflect the actual count of even/odd
+      numbers in the "numbers" array. JSON only, no other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {counts: "dict", numbers: "list"}, required_keys: ["counts", "numbers"]}
+        - {type: contains, expected: "\"even\": 2"}
+        - {type: contains, expected: "\"odd\": 3"}
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-18-python-dataclass
+    prompt: |
+      Output Python code (no code fences). A dataclass `Config` with fields:
+      host: str = "localhost", port: int = 8080, debug: bool = False.
+      Include the import. That's all.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "from dataclasses import is_dataclass; from typing import get_type_hints; assert is_dataclass(Config)"
+        - "c = Config(); assert c.host == 'localhost' and c.port == 8080 and c.debug == False"
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-19-regex-capture
+    prompt: |
+      Output a JSON object with key "regex" whose value is a regex string
+      that matches a valid IPv4 address. Also include key "test_string"
+      with value "192.168.1.1". JSON only. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {regex: "str", test_string: "str"}, required_keys: ["regex", "test_string"]}
+        - {type: contains, expected: "\"192.168.1.1\""}
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-20-json-error-response
+    prompt: |
+      Output a JSON error response following this exact shape:
+      {"error": {"code": "NOT_FOUND", "message": "Resource not found",
+      "details": {"resource_id": "abc-123", "request_id": "req-456"}}}.
+      The resource_id and request_id values must be strings. JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {error: "dict"}, required_keys: ["error"]}
+        - {type: contains_all, expected: ["\"code\": \"NOT_FOUND\"", "\"resource_id\": \"abc-123\"", "\"request_id\": \"req-456\""]}
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-21-json-5-level-nested
+    prompt: |
+      Output JSON 5 levels deep: {"level1": {"level2": {"level3": {"level4": {"level5": "deep"}}}}}
+      Exactly 5 nested keys: level1 through level5. The value at level5 must
+      be a string of exactly 4 characters. No other keys. JSON only.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {level1: "dict"}, required_keys: ["level1"]}
+        - {type: code_exec_python, tests: [
+            "import json; d = json.loads(_output); assert 'level1' in d; assert 'level2' in d['level1']; assert 'level3' in d['level1']['level2']; assert 'level4' in d['level1']['level2']['level3']; assert 'level5' in d['level1']['level2']['level3']['level4']; v = d['level1']['level2']['level3']['level4']['level5']; assert isinstance(v, str) and len(v) == 4"
+          ]}
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-22-openapi-full
+    prompt: |
+      Output a complete OpenAPI 3.0 YAML spec (no code fences). Must include:
+      openapi: 3.0.0, info.title, info.version, two paths (/users GET and
+      /users/{id} GET with parameters), components.schemas with User (id,
+      name, email) and Error (code, message). Use proper indentation.
+      No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "openapi: 3.0.0"}
+        - {type: contains_all, expected: ["/users:", "/users/{id}:"]}
+        - {type: regex, pattern: "components:\\n\\s+schemas:\\n\\s+User:"}
+        - {type: regex, pattern: "components:\\n\\s+schemas:\\n\\s+Error:"}
     max_tokens: 512
+    temperature: 0.0
+
+  - id: so-23-terraform-vpc
+    prompt: |
+      Output Terraform HCL (no code fences). Define provider "aws" region
+      "us-west-2". Resource "aws_vpc" "main" with cidr_block "10.0.0.0/16".
+      Resource "aws_subnet" "public" with vpc_id = aws_vpc.main.id,
+      cidr_block "10.0.1.0/24". Resource "aws_internet_gateway" "gw"
+      with vpc_id = aws_vpc.main.id. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: 'provider "aws"'}
+        - {type: regex, pattern: 'resource "aws_vpc" "main"'}
+        - {type: regex, pattern: 'resource "aws_subnet" "public"'}
+        - {type: regex, pattern: 'resource "aws_internet_gateway" "gw"'}
+    max_tokens: 512
+    temperature: 0.0
+
+  - id: so-24-kubernetes-deployment
+    prompt: |
+      Output a Kubernetes YAML manifest (no code fences). apiVersion: apps/v1,
+      kind: Deployment. Named "api-server". Replicas: 3. Selector matchLabels
+      app: api-server. Template container: name "api", image "nginx:1.25",
+      ports containerPort 80. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["apiVersion: apps/v1", "kind: Deployment"]}
+        - {type: regex, pattern: "replicas:\\s*3"}
+        - {type: contains_all, expected: ["matchLabels:", "app: api-server"]}
+        - {type: contains_all, expected: ["containerPort: 80", "image: nginx:1.25"]}
+    max_tokens: 512
+    temperature: 0.0
+
+  - id: so-25-graphql-schema-full
+    prompt: |
+      Output a complete GraphQL schema SDL (no code fences). Types:
+      type Query { users: [User!]! user(id: ID!): User }
+      type User { id: ID! name: String! email: String posts: [Post!] }
+      type Post { id: ID! title: String! body: String! author: User! }
+      Must include ! for non-nullable fields. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["type Query", "type User", "type Post"]}
+        - {type: contains_all, expected: ["[User!]!", "[Post!]!"]}
+        - {type: regex, pattern: "\\!"}
+        - {type: contains, expected: "user(id: ID!)"}
+    max_tokens: 512
+    temperature: 0.0
+
+  - id: so-26-protobuf-complex
+    prompt: |
+      Output a protobuf file (proto3, no code fences). Package: "order".
+      Import "google/protobuf/timestamp.proto". Message OrderItem with
+      fields: string sku = 1, int32 quantity = 2, double unit_price = 3.
+      Message Address with: string street = 1, string city = 2, string
+      zip = 3. Message Order with: string order_id = 1, google.protobuf.Timestamp
+      created_at = 2, repeated OrderItem items = 3, Address shipping = 4,
+      enum Status { PENDING = 0; SHIPPED = 1; DELIVERED = 2; } status = 5.
+      Use proper indentation. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "syntax = \"proto3\""}
+        - {type: contains, expected: "package order"}
+        - {type: contains, expected: "import \"google/protobuf/timestamp.proto\""}
+        - {type: contains_all, expected: ["message Order", "message OrderItem", "message Address"]}
+        - {type: regex, pattern: "PENDING\\s*=\\s*0"}
+    max_tokens: 512
+    temperature: 0.0
+
+  - id: so-27-yaml-anchors-deep
+    prompt: |
+      Output YAML (no code fences). Define anchors: &region with keys
+      provider: aws, region: us-east-1. &logging with keys level: info,
+      format: json. &alerts with keys enabled: true, channel: pagerduty.
+      Create two environments "staging" and "production" that both inherit
+      from all three anchors. production overrides region: eu-west-1 and
+      level: debug. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["&region", "&logging", "&alerts"]}
+        - {type: regex, pattern: "<<: \\*region\\s*\\n\\s*<<: \\*logging\\s*\\n\\s*<<: \\*alerts"}
+        - {type: regex, pattern: "(?m)^\\s+region: eu-west-1"}
+        - {type: regex, pattern: "(?m)^\\s+level: debug"}
+    max_tokens: 512
+    temperature: 0.0
+
+  - id: so-28-mermaid-flowchart
+    prompt: |
+      Output Mermaid.js flowchart definition (no code fences). A graph TD
+      flowchart for an order processing pipeline: Start → Validate → CheckStock,
+      CheckStock → |in stock| Ship, CheckStock → |out of stock| Backorder,
+      Ship → Deliver, Deliver → End, Backorder → Restock → Ship.
+      Use proper Mermaid syntax. graph TD on its own line. Arrow syntax: -->.
+      No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^graph TD"}
+        - {type: contains_all, expected: ["Start", "Validate", "CheckStock", "Ship", "Deliver", "Backorder", "End"]}
+        - {type: regex, pattern: "\\|in stock\\|"}
+        - {type: regex, pattern: "\\|out of stock\\|"}
+    max_tokens: 384
+    temperature: 0.0
+
+  - id: so-29-csv-to-json
+    prompt: |
+      Output: first a CSV with header "id,name,role" and exactly 3 data
+      rows. Then output a blank line, then output a JSON array where each
+      CSV row is converted to a JSON object with the same keys. The JSON
+      must be a valid array. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^id,name,role\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n\\n\\["}
+        - {type: code_exec_python, tests: [
+            "parts = _output.strip().split('\\n\\n'); assert len(parts) == 2, f'expected 2 parts, got {len(parts)}'",
+            "import json, csv, io; data = json.loads(parts[1]); assert len(data) == 3; all_objs = all(isinstance(r, dict) for r in data); assert all_objs"
+          ]}
+        - {type: contains, expected: "\"id\""}
+    max_tokens: 512
+    temperature: 0.0
+
+  - id: so-30-toml-config
+    prompt: |
+      Output TOML (no code fences). Section [server] with host =
+      "0.0.0.0", port = 8080. Section [database] with engine = "postgres",
+      host = "db.internal", port = 5432, name = "appdb". Section [logging]
+      with level = "info", file = "/var/log/app.log". Use proper TOML
+      syntax. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["[server]", "[database]", "[logging]"]}
+        - {type: regex, pattern: 'host = "0\\.0\\.0\\.0"'}
+        - {type: contains_all, expected: ['engine = "postgres"', 'name = "appdb"']}
+        - {type: contains, expected: 'port = 8080'}
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-31-json-array-self-reference
+    prompt: |
+      Output JSON: {"nodes": [{"id": 1, "children": [2, 3]}, {"id": 2,
+      "children": [4]}, {"id": 3, "children": []}, {"id": 4,
+      "children": []}]}. Each node has integer id and children array of
+      integers referencing other node IDs. The graph must form a valid tree
+      rooted at node 1. Exactly 4 nodes. JSON only, no other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {nodes: "list"}, required_keys: ["nodes"]}
+        - {type: code_exec_python, tests: [
+            "import json; d = json.loads(_output); assert len(d['nodes']) == 4; ids = {n['id'] for n in d['nodes']}; assert ids == {1,2,3,4}, f'ids: {ids}'",
+            "import json; d = json.loads(_output); parent_counts = {n['id']: sum(1 for p in d['nodes'] if n['id'] in p['children']) for n in d['nodes']}; assert parent_counts[1] == 0, 'root should have no parent'; assert all(parent_counts[i] == 1 for i in [2,3,4]), 'non-root should have parent'"
+          ]}
+    max_tokens: 512
+    temperature: 0.0
+
+  - id: so-32-ini-config
+    prompt: |
+      Output INI format (no code fences). Sections: [DEFAULT] with
+      timeout = 30, retries = 3. [production] inheriting from DEFAULT,
+      overriding timeout = 60 and adding host = prod.example.com.
+      [staging] inheriting from DEFAULT, overriding host = staging.example.com.
+      Use [section:parent] inheritance syntax. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "[DEFAULT]"}
+        - {type: contains_all, expected: ["[production]", "[staging]"]}
+        - {type: regex, pattern: "timeout\\s*=\\s*60"}
+        - {type: regex, pattern: "host\\s*=\\s*prod\\.example\\.com"}
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-33-json-ld-context
+    prompt: |
+      Output JSON-LD (no other text). @context with schema.org mappings:
+      name → http://schema.org/name, email → http://schema.org/email.
+      @type: Person. name: "Ada Lovelace". email: "ada@example.com".
+      @id: "https://example.com/persons/ada". Proper JSON-LD syntax.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {"@context": "dict", "@type": "str", "@id": "str"}, required_keys: ["@context", "@type", "@id"]}
+        - {type: contains_all, expected: ["http://schema.org/name", "http://schema.org/email"]}
+        - {type: contains, expected: "Ada Lovelace"}
+    max_tokens: 384
+    temperature: 0.0
+
+  - id: so-34-hcl-data-source
+    prompt: |
+      Output Terraform HCL (no code fences). Data source "aws_ami" "ubuntu"
+      with most_recent = true, filter name "name" values ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"],
+      filter name "virtualization-type" values ["hvm"]. Owners ["099720109477"]
+      (Canonical). Then output "resource" "aws_instance" "web" with
+      ami = data.aws_ami.ubuntu.id, instance_type = "t3.micro",
+      tags = { Name = "web-server" }. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: 'data "aws_ami" "ubuntu"'}
+        - {type: regex, pattern: 'resource "aws_instance" "web"'}
+        - {type: contains, expected: "most_recent = true"}
+        - {type: contains_all, expected: ["instance_type = \"t3.micro\"", "data.aws_ami.ubuntu.id"]}
+    max_tokens: 512
+    temperature: 0.0
+
+  - id: so-35-yaml-multi-doc
+    prompt: |
+      Output a multi-document YAML (no code fences). Three documents
+      separated by "---". Doc 1: apiVersion: v1, kind: ConfigMap, data with
+      key APP_ENV: production. Doc 2: apiVersion: v1, kind: Secret, type:
+      Opaque, data with key API_KEY: base64encodedstring. Doc 3:
+      apiVersion: apps/v1, kind: Deployment, metadata name: app, spec
+      replicas: 2. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "---\\napiVersion: apps/v1\\nkind: Deployment"}
+        - {type: contains_all, expected: ["kind: ConfigMap", "kind: Secret", "kind: Deployment"]}
+        - {type: contains_all, expected: ["APP_ENV", "API_KEY", "replicas: 2"]}
+        - {type: contains, expected: "kind: Secret"}
+    max_tokens: 512
+    temperature: 0.0
+
+  - id: so-36-mermaid-sequence
+    prompt: |
+      Output a Mermaid.js sequence diagram (no code fences). participant
+      Client, participant API, participant DB. Client->>API: POST /orders,
+      API->>DB: INSERT order, DB-->>API: order_id, API-->>Client: 201 Created,
+      Note over API,DB: Transaction committed. Use proper sequenceDiagram
+      syntax on first line. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^sequenceDiagram"}
+        - {type: contains_all, expected: ["participant Client", "participant API", "participant DB"]}
+        - {type: regex, pattern: "Client->>API: POST /orders"}
+        - {type: regex, pattern: "Note over API,DB:"}
+    max_tokens: 384
+    temperature: 0.0
+
+  - id: so-37-asyncapi-yaml
+    prompt: |
+      Output an AsyncAPI 2.0 YAML snippet (no code fences). asyncapi: 2.0.0,
+      info title: "Order Service", version: "1.0.0". One channel:
+      "order/placed" with subscribe operation. Message payload type: object
+      with properties orderId (string) and items (array of strings).
+      Use proper indentation. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains, expected: "asyncapi: 2.0.0"}
+        - {type: contains_all, expected: ["info:", "title: \"Order Service\"", "version: \"1.0.0\""]}
+        - {type: contains, expected: "order/placed"}
+        - {type: contains, expected: "subscribe"}
+    max_tokens: 384
+    temperature: 0.0
+
+  - id: so-38-json-patch
+    prompt: |
+      Output a JSON Patch (RFC 6902) document (no other text). An array of
+      operations to transform {"name": "old", "status": "active"} into
+      {"name": "new", "status": "active", "version": 2}. Must use exactly
+      two operations: one "replace" and one "add". Each operation has "op",
+      "path", "value". Output only the JSON array.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {}, required_keys: []}
+        - {type: code_exec_python, tests: [
+            "import json; patch = json.loads(_output); assert isinstance(patch, list); assert len(patch) == 2",
+            "import json; patch = json.loads(_output); ops = [p['op'] for p in patch]; assert 'replace' in ops and 'add' in ops"
+          ]}
+        - {type: regex, pattern: '"op"\\s*:\\s*"replace"'}
+        - {type: regex, pattern: '"op"\\s*:\\s*"add"'}
+    max_tokens: 256
+    temperature: 0.0
+
+  - id: so-39-bicep-arm
+    prompt: |
+      Output a Bicep file (no code fences). param location string default
+      'eastus'. resource storage 'Microsoft.Storage/storageAccounts@2022-09-01'
+      = { name: 'mystorageaccount' location: location kind: 'StorageV2'
+      sku: { name: 'Standard_LRS' } }. resource webApp
+      'Microsoft.Web/sites@2022-03-01' = { name: 'mywebapp' location:
+      location properties: { serverFarmId: appPlan.id } }. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "param location string"}
+        - {type: contains, expected: "Microsoft.Storage/storageAccounts@2022-09-01"}
+        - {type: contains, expected: "Microsoft.Web/sites@2022-03-01"}
+        - {type: contains, expected: "Standard_LRS"}
+    max_tokens: 512
+    temperature: 0.0
+
+  - id: so-40-json-conditional-nested
+    prompt: |
+      Output JSON with conditional nesting 3 levels deep. Root keys:
+      "type" ("standard"|"premium"), "config" (object). If type is "premium",
+      config must include key "features" (array of strings) and "limits"
+      (object with "rate" as integer). If type is "standard", config must
+      include key "max_users" (integer) but no "features" key.
+      Set type to "premium" with at least 2 features and rate: 1000.
+      JSON only, no other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {type: "str", config: "dict"}, required_keys: ["type", "config"]}
+        - {type: regex, pattern: "\"type\"\\s*:\\s*\"premium\""}
+        - {type: contains, expected: "\"features\""}
+        - {type: contains, expected: "\"rate\": 1000"}
+    max_tokens: 384
+    temperature: 0.0

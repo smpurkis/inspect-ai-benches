@@ -1,231 +1,546 @@
 category: instruction_following
 tasks:
-  - id: if-01-exact-words
+  - id: if-01-json-seven-e-words
     prompt: |
-      Write a sentence about a dog that contains exactly seven words.
-    scoring: {type: length_range, min: 7, max: 7, unit: words}
-    max_tokens: 768
-  - id: if-02-uppercase
-    prompt: |
-      Write a single short paragraph describing autumn. Every letter in your
-      response must be uppercase.
+      Output a JSON array containing exactly 7 words. Every word must
+      contain the letter "e". The array must be on a single line. No
+      other text before or after.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "^[^a-z]*$"}
-        - {type: length_range, min: 20, max: 200, unit: words}
-    max_tokens: 768
-  - id: if-03-no-letter
-    prompt: |
-      Write three sentences about coffee. None of them may contain the letter "e"
-      (case-insensitive).
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^[^eE]*$"}
-        - {type: regex, pattern: "(?s)\\..*\\..*\\."}
-    max_tokens: 768
-  - id: if-04-bullet-count
-    prompt: |
-      List exactly five tips for staying focused while working. Use a markdown
-      bullet list with `-` as the bullet marker. Nothing before or after the list.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^\\s*-\\s+\\S.*\\n-\\s+\\S.*\\n-\\s+\\S.*\\n-\\s+\\S.*\\n-\\s+\\S", flags: ["M"]}
-        - {type: regex, pattern: "(?s)\\A\\s*-\\s+"}
-    max_tokens: 768
-  - id: if-05-mention-keyword
-    prompt: |
-      Write a short paragraph (under 100 words) about climate change. The word
-      "ocean" must appear exactly three times.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "(?i)(^|\\W)ocean(\\W|$).*?(^|\\W)ocean(\\W|$).*?(^|\\W)ocean(\\W|$)", flags: ["S"]}
-        - {type: length_range, max: 100, unit: words}
-    max_tokens: 768
-  - id: if-06-json-only
-    prompt: |
-      Reply with a single JSON object on one line containing exactly the keys
-      "name" and "score". `name` should be a string and `score` should be the
-      integer 42. Do not include any other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^\\s*\\{[^\\n]*\\}\\s*$"}
-        - {type: json_schema, schema: {name: "str", score: "int"}, required_keys: ["name","score"]}
-    max_tokens: 768
-  - id: if-07-no-markdown
-    prompt: |
-      Describe the water cycle in three short sentences. Do not use any markdown
-      formatting — no asterisks, hashes, backticks, dashes, or numbered lists.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^[^*#`\\-]*$", flags: ["S"]}
-        - {type: regex, pattern: "^(?:[^.]*\\.){3}[^.]*$", flags: ["S"]}
-    max_tokens: 768
-  - id: if-08-numbered-only
-    prompt: |
-      List three benefits of exercise as a numbered list ("1.", "2.", "3."). Each
-      benefit must be a single sentence under 12 words. No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^\\s*1\\.\\s+\\S.*\\n2\\.\\s+\\S.*\\n3\\.\\s+\\S.*$", flags: ["S"]}
-    max_tokens: 768
-  - id: if-09-end-with
-    prompt: |
-      Write a one-paragraph description of a quiet morning. The paragraph must end
-      with the exact sentence: "And then the kettle whistled."
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "And then the kettle whistled\\.\\s*$"}
-    max_tokens: 768
-  - id: if-10-words-start
-    prompt: |
-      Write a sentence about the sea where every word starts with the letter "s"
-      (case-insensitive).
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^\\s*([sS][^\\s.,;:!?]*[\\s.,;:!?]+)+\\s*$"}
-    max_tokens: 768
-  - id: if-11-no-punct
-    prompt: |
-      Write three sentences about coffee. Do not use any punctuation other than
-      single spaces (no periods, commas, question marks, exclamation marks,
-      hyphens, colons, semicolons, apostrophes, or quotation marks).
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^[A-Za-z0-9 \\n]+$", flags: ["S"]}
-        - {type: length_range, min: 10, unit: words}
+        - {type: regex, pattern: '^\[.*\]$', flags: []}
+        - {type: regex, pattern: '[^"e]*e[^"]*","[^"e]*e[^"]*","[^"e]*e[^"]*","[^"e]*e[^"]*","[^"e]*e[^"]*","[^"e]*e[^"]*","[^"e]*e[^"]*"\]$'}
+        - {type: length_range, min: 1, max: 1, unit: lines}
     max_tokens: 512
 
-  - id: if-12-line-len
+  - id: if-02-allcaps-no-a
     prompt: |
-      List four advantages of bicycles. One per line, each line beginning with
-      "* " and being at most 8 words long. Nothing before, nothing after.
+      Write a paragraph in ALL CAPS about computer processors. No
+      punctuation except periods. The letter "a" (uppercase or lowercase)
+      may not appear anywhere. Exactly 40 to 60 words.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "^\\*\\s+\\S.*\\n\\*\\s+\\S.*\\n\\*\\s+\\S.*\\n\\*\\s+\\S.*\\s*$"}
-        - {type: length_range, min: 4, max: 5, unit: lines}
+        - {type: regex, pattern: '^[^aA]*$', flags: ["S"]}
+        - {type: regex, pattern: '^[^a-z]*$', flags: ["S"]}
+        - {type: length_range, min: 40, max: 60, unit: words}
+    max_tokens: 768
+
+  - id: if-03-json-single-line
+    prompt: |
+      Output a single-line JSON object with these keys: "name" (string),
+      "count" (integer between 1 and 100), "tags" (array of exactly 3
+      strings), and "active" (boolean true). No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {name: "str", count: "int", tags: "list", active: "bool"}, required_keys: ["name", "count", "tags", "active"]}
+        - {type: regex, pattern: '^\s*\{[^}]*count[^}]+(?:[1-9]\d?|100)[^}]*\}\s*$', flags: []}
+        - {type: length_range, min: 1, max: 1, unit: lines}
     max_tokens: 512
 
-  - id: if-13-repeat
+  - id: if-04-pyramid-sentences
     prompt: |
-      Write a short paragraph (50-80 words) about gardening. The word
-      "soil" must appear exactly twice, and the word "water" exactly twice.
+      Write exactly 4 lines about time. Line 1: a 3-word sentence.
+      Line 2: a 5-word sentence. Line 3: a 7-word sentence.
+      Line 4: a 9-word sentence. Each line must end with a period.
+      No other text or blank lines.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "(?i)\\bsoil\\b[\\s\\S]*?\\bsoil\\b"}
-        - {type: regex, pattern: "(?i)\\bwater\\b[\\s\\S]*?\\bwater\\b"}
-        - {type: length_range, min: 40, max: 100, unit: words}
+        - {type: regex, pattern: '^(\S+\s+){2}\S+\.\n(\S+\s+){4}\S+\.\n(\S+\s+){6}\S+\.\n(\S+\s+){8}\S+\.$', flags: []}
+        - {type: length_range, min: 4, max: 4, unit: lines}
     max_tokens: 512
 
-  - id: if-14-prefix-suffix
+  - id: if-05-vowel-started-languages
     prompt: |
-      Write a single sentence that starts with the word "Curiously" and ends
-      with the word "yesterday." (with a period).
+      List 5 programming languages. One per line. Each line must begin
+      with a different vowel (A, E, I, O, U) followed by ". " then the
+      language name. No other text.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "^Curiously\\b"}
-        - {type: regex, pattern: "yesterday\\.\\s*$"}
-    max_tokens: 256
+        - {type: regex, pattern: '^A\.\s+\S.*\nE\.\s+\S.*\nI\.\s+\S.*\nO\.\s+\S.*\nU\.\s+\S.*$', flags: ["S"]}
+        - {type: length_range, min: 5, max: 5, unit: lines}
+    max_tokens: 512
 
-  - id: if-15-roman-numerals
+  - id: if-06-db-question-constraint
     prompt: |
-      List the first five even positive integers. Format each as a Roman
-      numeral, one per line, prefixed with "- ". Nothing else.
+      Write a single sentence about databases that: ends with a question
+      mark, contains the word "SQL", is under 15 words, and does not
+      contain the letter "a" (case-insensitive).
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "^-\\s*II\\s*$", flags: ["M"]}
-        - {type: regex, pattern: "^-\\s*IV\\s*$", flags: ["M"]}
-        - {type: regex, pattern: "^-\\s*VI\\s*$", flags: ["M"]}
-        - {type: regex, pattern: "^-\\s*VIII\\s*$", flags: ["M"]}
-        - {type: regex, pattern: "^-\\s*X\\s*$", flags: ["M"]}
+        - {type: regex, pattern: '.*\?\s*$', flags: ["S"]}
+        - {type: contains, expected: "SQL"}
+        - {type: regex, pattern: '^[^aA]*$', flags: ["S"]}
+        - {type: length_range, max: 14, unit: words}
     max_tokens: 384
 
-  - id: if-16-each-line-letter
+  - id: if-07-exact-yaml
     prompt: |
-      Write four lines, each containing exactly one word, and each word
-      starting with a different vowel (A, E, I, O — in that order).
+      Output this exact YAML document with no code fences and no extra
+      text before or after:
+      server:
+        host: "localhost"
+        port: 5432
+        features:
+          - logging
+          - auth
+          - caching
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "^[Aa]\\w*\\s*\\n[Ee]\\w*\\s*\\n[Ii]\\w*\\s*\\n[Oo]\\w*\\s*$"}
-    max_tokens: 256
-
-  - id: if-17-yaml-only
-    prompt: |
-      Emit exactly this YAML document and nothing else (no preamble, no fence):
-
-      version: 1
-      enabled: true
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^\\s*version:\\s*1\\s*\\nenabled:\\s*true\\s*$", flags: ["S"]}
-    max_tokens: 256
-
-  - id: if-18-double-space
-    prompt: |
-      Write a single sentence about the sea. Separate every word with exactly
-      two spaces, not one. End with a single full stop.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^\\S+(  \\S+){4,}\\.$"}
-    max_tokens: 256
-
-  - id: if-19-mixed-constraints
-    prompt: |
-      Write exactly three sentences about a clock. Each sentence must contain
-      the word "tick". No sentence may contain the letter "z". End with the
-      sentence "Time runs forward." (exact phrasing).
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "(?i)(tick[\\s\\S]*?tick[\\s\\S]*?tick)"}
-        - {type: regex, pattern: "^[^zZ]*$", flags: ["S"]}
-        - {type: regex, pattern: "Time runs forward\\.\\s*$"}
+        - {type: regex, pattern: '^server:\n  host: "localhost"\n  port: 5432\n  features:\n    - logging\n    - auth\n    - caching$', flags: []}
+        - {type: length_range, min: 6, max: 6, unit: lines}
     max_tokens: 384
 
-  - id: if-20-table
+  - id: if-08-table-sum-100
     prompt: |
-      Output a 2-column markdown table with header columns "Item" and "Cost",
-      followed by exactly 2 data rows. Nothing else. Use realistic stationery
-      item names and £-prefixed costs.
+      Output a 2x2 markdown table with row headers "Row1" and "Row2"
+      and column headers "ColA" and "ColB". Each cell must contain a
+      single integer. The sum of all four integers must be 100.
+      No other text.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\\|\\s*Item\\s*\\|\\s*Cost\\s*\\|"}
-        - {type: regex, pattern: "\\|[-\\s|]+\\|"}
-        - {type: regex, pattern: "(?s)\\|[^|]+\\|[^|\\n]*£\\d"}
+        - {type: regex, pattern: '\|\s*Row1\s*\|.*\|\s*Row2\s*\|.*\|', flags: ["S"]}
+        - {type: regex, pattern: '\|\s*ColA\s*\|\s*ColB\s*\|', flags: []}
+        - {type: regex, pattern: '\|[-:\s|]+\|', flags: []}
+    max_tokens: 512
+
+  - id: if-09-alphabetical-words
+    prompt: |
+      Write exactly 10 words separated by commas. Every word must start
+      with a letter between A and M (case-insensitive). The words must
+      be in alphabetical order by first letter. No word may repeat.
+      The entire output must be on a single line.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^[A-Ma-m]\w+(?:,[A-Ma-m]\w+){9}$', flags: []}
+        - {type: length_range, min: 1, max: 1, unit: lines}
+    max_tokens: 512
+
+  - id: if-10-layer-count-precision
+    prompt: |
+      Write exactly 4 sentences about neural networks. The word "layer"
+      must appear exactly 3 times. The word "neuron" must appear exactly
+      once. No sentence may contain the word "network". Each sentence
+      must be a complete sentence ending with a period.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '(?i)\blayer\b[\s\S]*?\blayer\b[\s\S]*?\blayer\b', flags: []}
+        - {type: regex, pattern: '(?i)\bneuron\b', flags: []}
+        - {type: regex, pattern: '^(?:(?!\bnetwork\b)[\s\S])*$', flags: ["S"]}
+        - {type: length_range, min: 4, max: 4, unit: sentences}
+    max_tokens: 512
+
+  - id: if-11-python-list-multiples
+    prompt: |
+      Output a Python list literal containing exactly 5 integers. Every
+      integer must be a multiple of 7 and between 1 and 100. No other
+      text before or after the list. No whitespace between elements.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^\[\d+(?:,\d+){4}\]$', flags: []}
     max_tokens: 384
+
+  - id: if-12-question-answer-pair
+    prompt: |
+      Write exactly 2 sentences. First sentence: a question starting
+      with "What" and ending with "?". Second sentence: starting with
+      "It depends" and ending with ".". Each sentence must be at least
+      8 words long. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^What\b.*\?\s+It depends\b.*\.\s*$', flags: ["S"]}
+        - {type: length_range, min: 2, max: 2, unit: sentences}
+    max_tokens: 384
+
+  - id: if-13-csv-table
+    prompt: |
+      Output a CSV with exactly 3 columns (Name, Age, Role) and exactly
+      2 data rows. Use realistic employee data. No markdown fences, no
+      extra text. The CSV must have exactly 3 lines including header.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^Name,Age,Role\n\w+,\d+,\w+\n\w+,\d+,\w+$', flags: []}
+        - {type: length_range, min: 3, max: 3, unit: lines}
+    max_tokens: 384
+
+  - id: if-14-mixed-output
+    prompt: |
+      Output exactly 2 lines. Line 1 must contain: a number that is a
+      palindrome, a space, a word that is a palindrome, a space, then
+      the prime factorization of 42 separated by asterisks. Line 2 must
+      contain only the word "DONE" in uppercase.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^\d+\s+\w+\s+\d+(?:\*\d+)+\nDONE$', flags: []}
+        - {type: length_range, min: 2, max: 2, unit: lines}
+    max_tokens: 512
+
+  - id: if-15-climate-triple
+    prompt: |
+      Write exactly 3 sentences about climate change. Sentence 1 must
+      contain the word "temperature". Sentence 2 must contain the word
+      "carbon". Sentence 3 must contain the word "policy". Each sentence
+      must be at most 15 words. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '(?i)[^.]*\btemperature\b[^.]*\.\s+[^.]*\bcarbon\b[^.]*\.\s+[^.]*\bpolicy\b[^.]*\.\s*$', flags: []}
+        - {type: length_range, min: 3, max: 3, unit: sentences}
+    max_tokens: 512
+
+  - id: if-16-abab-rhyme
+    prompt: |
+      Write a 4-line poem in A-B-A-B rhyme scheme about programming.
+      Each line must be between 6 and 8 words. No title. No other text
+      before or after.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^\S[\s\S]*\S$', flags: []}
+        - {type: length_range, min: 4, max: 4, unit: lines}
+    max_tokens: 512
+
+  - id: if-17-json-word-analysis
+    prompt: |
+      Output a JSON array containing exactly 3 objects. Each object
+      must have keys: "word" (a 5-letter string), "vowels" (integer
+      count of vowels in the word), and "reversed" (the word reversed).
+      No other text. Make each word different.
+    scoring:
+      type: json_schema
+      schema: {word: "str", vowels: "int", reversed: "str"}
+      required_keys: ["word", "vowels", "reversed"]
+    max_tokens: 512
+
+  - id: if-18-palindrome-list
+    prompt: |
+      Write exactly 5 lines. Each line must contain exactly one word
+      that is a palindrome (reads the same forwards and backwards).
+      The palindromes must be in alphabetical order. No other text.
+      Each word must be at least 3 letters long.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^(?:\w+\n){4}\w+$', flags: []}
+        - {type: length_range, min: 5, max: 5, unit: lines}
+    max_tokens: 384
+
+  - id: if-19-acrostic-dangerous
+    prompt: |
+      Write a single paragraph where the first letter of each word
+      spells "DANGEROUS" in order (D A N G E R O U S). The paragraph
+      must be about software security. At least 9 words. Under 50 words.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^D\w*\s+A\w*\s+N\w*\s+G\w*\s+E\w*\s+R\w*\s+O\w*\s+U\w*\s+S\w*\b', flags: ["S"]}
+        - {type: length_range, min: 9, max: 49, unit: words}
+    max_tokens: 384
+
+  - id: if-20-balance-positional
+    prompt: |
+      Write exactly 3 sentences about work-life balance. The word
+      "balance" must appear as the first word of sentence 1, the last
+      word of sentence 2, and somewhere in the middle of sentence 3.
+      Each sentence must end with a period.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^Balance\b[\s\S]*?\bbalance\.[\s\S]*?\bbalance\b[\s\S]*?\.\s*$', flags: ["Si"]}
+        - {type: length_range, min: 3, max: 3, unit: sentences}
+    max_tokens: 512
+
+  - id: if-21-html-list
+    prompt: |
+      Output a valid HTML unordered list with exactly 4 list items
+      about space exploration. No markdown, no other text, no HTML
+      before or after the list element. Each item must be under 10 words.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '<ul>\s*<li>[\s\S]*?</li>\s*<li>[\s\S]*?</li>\s*<li>[\s\S]*?</li>\s*<li>[\s\S]*?</li>\s*</ul>', flags: ["S"]}
+        - {type: regex, pattern: '(?i)(?:moon|mars|orbit|planet|star|rocket|satellite|telescope)', flags: []}
+    max_tokens: 512
+
+  - id: if-22-comma-four-letter
+    prompt: |
+      Write exactly 8 words separated by commas. Every word must be
+      exactly 4 letters long. No word may repeat. The entire output
+      must be on a single line. No spaces around the commas.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^\w{4},\w{4},\w{4},\w{4},\w{4},\w{4},\w{4},\w{4}$', flags: []}
+        - {type: length_range, min: 1, max: 1, unit: lines}
+    max_tokens: 384
+
+  - id: if-23-json-squares
+    prompt: |
+      Output a JSON object where the keys are the strings "1", "2",
+      "3", "4", "5" and the values are their respective squares
+      (1, 4, 9, 16, 25). No other text. On a single line.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {"1": "int", "2": "int", "3": "int", "4": "int", "5": "int"}, required_keys: ["1", "2", "3", "4", "5"]}
+        - {type: length_range, min: 1, max: 1, unit: lines}
+    max_tokens: 384
+
+  - id: if-24-interrobang
+    prompt: |
+      Write a single sentence that is both a question and an exclamation.
+      It must end with "?!" (question mark immediately followed by
+      exclamation mark). The sentence must be about artificial
+      intelligence and at least 6 words long.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '\?\s*!\s*$', flags: ["S"]}
+        - {type: length_range, min: 6, unit: words}
+    max_tokens: 384
+
+  - id: if-25-all-questions
+    prompt: |
+      Write a paragraph about oceans that is exactly 4 sentences long.
+      Every sentence must be a question (ending with "?"). The paragraph
+      must be between 30 and 40 words total. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^[A-Z][^?!]*\?\s+[A-Z][^?!]*\?\s+[A-Z][^?!]*\?\s+[A-Z][^?!]*\?\s*$', flags: ["S"]}
+        - {type: length_range, min: 30, max: 40, unit: words}
+    max_tokens: 512
+
+  - id: if-26-simile-list
+    prompt: |
+      Write a numbered list with exactly 3 items about emotions. Each
+      item must be a complete sentence containing a simile using "like"
+      or "as". Format: "1. ", "2. ", "3. ". No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^1\.\s+[^.]*\b(?:like|as)\b[^.]*\.\s+2\.\s+[^.]*\b(?:like|as)\b[^.]*\.\s+3\.\s+[^.]*\b(?:like|as)\b[^.]*\.$', flags: ["S"]}
+        - {type: length_range, min: 3, max: 3, unit: lines}
+    max_tokens: 512
+
+  - id: if-27-csv-no-headers
+    prompt: |
+      Output a CSV with 4 columns and 3 rows. All cells must be single
+      words (no spaces). No column headers. No markdown fences. No extra
+      text. Numbers allowed. Exactly 3 lines.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^\w+,\w+,\w+,\w+\n\w+,\w+,\w+,\w+\n\w+,\w+,\w+,\w+$', flags: []}
+        - {type: length_range, min: 3, max: 3, unit: lines}
+    max_tokens: 384
+
+  - id: if-28-target-positions
+    prompt: |
+      Write a single sentence with exactly 12 words. The 4th word must
+      be "symphony". The 9th word must be "quietly". End with a period.
+      No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^\S+\s+\S+\s+\S+\s+symphony\s+\S+\s+\S+\s+\S+\s+\S+\s+quietly\s+\S+\s+\S+\.\s*$', flags: []}
+        - {type: length_range, min: 12, max: 12, unit: words}
+    max_tokens: 384
+
+  - id: if-29-fibonacci-json
+    prompt: |
+      Output a JSON array containing the first 5 Fibonacci numbers
+      greater than 0 (1, 1, 2, 3, 5). No other text. On a single line.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^\[\s*1\s*,\s*1\s*,\s*2\s*,\s*3\s*,\s*5\s*\]$', flags: []}
+        - {type: length_range, min: 1, max: 1, unit: lines}
+    max_tokens: 256
+
+  - id: if-30-prime-word-counts
+    prompt: |
+      Write 4 sentences that form a short story about a journey. The
+      first sentence must have exactly 2 words. The second must have
+      exactly 3 words. The third must have exactly 5 words. The fourth
+      must have exactly 7 words. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^\S+\s+\S+\.\s+\S+\s+\S+\s+\S+\.\s+(?:\S+\s+){4}\S+\.\s+(?:\S+\s+){6}\S+\.$', flags: []}
+        - {type: length_range, min: 4, max: 4, unit: sentences}
+    max_tokens: 384
+
+  - id: if-31-yaml-object
+    prompt: |
+      Output a valid YAML document with these keys: "name" (string),
+      "count" (integer), "tags" (list of strings), "active" (boolean).
+      Use realistic values. No code fences. No extra text. Exactly 4
+      lines of YAML.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^name:\s+\S+\ncount:\s+\d+\ntags:\n\s+-\s+\S+\n\s+-\s+\S+\n\s+-\s+\S+\nactive:\s+(?:true|false)\s*$', flags: []}
+    max_tokens: 384
+
+  - id: if-32-no-repeated-words
+    prompt: |
+      Write a paragraph about programming languages where no word
+      appears more than once. The paragraph must be between 20 and 30
+      words. Common words like "a", "an", "the", "is", "are", "in",
+      "of", "to" are excluded from the uniqueness constraint.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, min: 20, max: 30, unit: words}
+    max_tokens: 512
+
+  - id: if-33-escalating-commas
+    prompt: |
+      Write exactly 3 sentences about major world cities. Sentence 1
+      must contain exactly 1 comma. Sentence 2 must contain exactly
+      2 commas. Sentence 3 must contain exactly 3 commas. Each sentence
+      ends with a period. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, min: 3, max: 3, unit: sentences}
+    max_tokens: 512
+
+  - id: if-34-alpha-fruit-table
+    prompt: |
+      Output a markdown table with 3 columns (Fruit, Color, Price) and
+      4 data rows. Fruits must be in alphabetical order. Prices must
+      include a dollar sign. No other text before or after.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '\|\s*Fruit\s*\|\s*Color\s*\|\s*Price\s*\|', flags: []}
+        - {type: regex, pattern: '\|[-:\s|]+\|', flags: []}
+        - {type: regex, pattern: '(?s)\$\d+\.?\d*', flags: []}
+    max_tokens: 512
+
+  - id: if-35-pretty-json
+    prompt: |
+      Output a JSON object with keys "query" (string) and "params"
+      (object with keys "limit" as integer and "offset" as integer).
+      The JSON must be pretty-printed with 2-space indentation. No
+      other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: json_schema, schema: {query: "str", params: "dict"}, required_keys: ["query", "params"]}
+        - {type: regex, pattern: '\n  ', flags: []}
+    max_tokens: 384
+
+  - id: if-36-alpha-colors
+    prompt: |
+      Write 5 color names separated by commas. Every color must start
+      with a different letter. The colors must be in alphabetical order.
+      No spaces around commas. Single line. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^[A-Za-z]+(?:,[A-Za-z]+){4}$', flags: []}
+        - {type: length_range, min: 1, max: 1, unit: lines}
+    max_tokens: 384
+
+  - id: if-37-rivers-late-alphabet
+    prompt: |
+      Write a single sentence about rivers where every word starts with
+      a letter between R and Z (case-insensitive). The sentence must be
+      at least 6 words long. End with a period.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^[R-Zr-z]\w+(?:\s+[R-Zr-z]\w+){5,}\.$', flags: []}
+        - {type: length_range, min: 6, unit: words}
+    max_tokens: 384
+
+  - id: if-38-three-line-types
+    prompt: |
+      Output exactly 3 lines. Line 1: a prime number. Line 2: a
+      palindrome word (at least 4 letters). Line 3: the lowercase word
+      "true". No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^\d+\n\w{4,}\ntrue$', flags: []}
+        - {type: length_range, min: 3, max: 3, unit: lines}
+    max_tokens: 256
+
+  - id: if-39-numbers-both-forms
+    prompt: |
+      Write exactly 3 sentences about statistics. Each sentence must
+      contain at least one number written as a word (e.g., "seven")
+      AND at least one number written as a digit (e.g., "7"). Each
+      sentence ends with a period. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: length_range, min: 3, max: 3, unit: sentences}
+    max_tokens: 512
+
+  - id: if-40-json-squared
+    prompt: |
+      Output a JSON array where each element is an object with keys
+      "input" (integer) and "output" (integer). Include exactly 4
+      elements. "output" must be the square of "input". All inputs
+      must be positive and unique. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^\[\s*\{.*\}\s*\]$', flags: []}
+        - {type: json_schema, schema: {input: "int", output: "int"}, required_keys: ["input", "output"]}
+    max_tokens: 512
