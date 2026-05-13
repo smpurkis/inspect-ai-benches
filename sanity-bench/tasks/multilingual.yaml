@@ -1,5 +1,6 @@
 category: multilingual
 tasks:
+  # --- Math tasks (digits can be extracted; baseline) ---
   - id: ml-01-spanish-math
     prompt: |
       Resuelve: Un tren sale de Madrid a 80 km/h. Otro tren sale de Barcelona a 120 km/h.
@@ -26,7 +27,7 @@ tasks:
     scoring: {type: regex_number, expected: 36}
     max_tokens: 256
 
-  - id: ml-05-japanese-reasoning
+  - id: ml-05-japanese-math
     prompt: |
       1から100までの数字の中で、3の倍数はいくつありますか？数字だけで答えてください。
     scoring: {type: regex_number, expected: 33}
@@ -38,14 +39,90 @@ tasks:
     scoring: {type: regex_number, expected: 60}
     max_tokens: 256
 
-  - id: ml-07-german-reasoning
+  - id: ml-07-german-math
     prompt: |
       Wenn 5 Arbeiter 10 Tage für eine Arbeit brauchen, wie viele Tage brauchen 2 Arbeiter für die gleiche Arbeit? Antworte nur mit der Zahl.
     scoring: {type: regex_number, expected: 25}
     max_tokens: 256
 
-  - id: ml-08-portuguese-reasoning
+  - id: ml-08-portuguese-math
     prompt: |
       Em uma sala há 30 alunos. 40% são meninas. Quantos meninos há na sala? Responda apenas com o número.
     scoring: {type: regex_number, expected: 18}
     max_tokens: 256
+
+  # --- Language-specific reasoning tasks (require genuine language understanding) ---
+  - id: ml-09-spanish-idiom
+    prompt: |
+      ¿Qué significa la expresión "estar en la luna"? Elige la opción correcta y responde solo con la letra:
+      A) Estar muy feliz
+      B) Estar distraído
+      C) Estar en el espacio
+      D) Estar cansado
+    scoring: {type: multiple_choice, expected: "B"}
+    max_tokens: 128
+
+  - id: ml-10-mandarin-grammar
+    prompt: |
+      下面哪句话的语法是正确的？回答只写A、B或C。
+      A) 我昨天去商店买了三个苹果。
+      B) 我昨天去商店买了三苹果个。
+      C) 我昨天商店去买了三个苹果。
+    scoring: {type: multiple_choice, expected: "A"}
+    max_tokens: 128
+
+  - id: ml-11-hindi-gender
+    prompt: |
+      निम्नलिखित में से कौन सा वाक्य व्याकरण की दृष्टि से सही है? केवल A, B, या C में उत्तर दें।
+      A) वह अच्छा लड़की है।
+      B) वह अच्छी लड़की है।
+      C) वह अच्छे लड़की है।
+    scoring: {type: multiple_choice, expected: "B"}
+    max_tokens: 128
+
+  - id: ml-12-arabic-root
+    prompt: |
+      كلمة "مكتب" تأتي من نفس الجذر اللغوي لكلمة:
+      أ) كتاب
+      ب) نجم
+      ج) باب
+      د) جبل
+      أجب بالحرف فقط.
+    scoring: {type: multiple_choice, expected: "A"}
+    max_tokens: 128
+
+  - id: ml-13-japanese-honorific
+    prompt: |
+      目上の人に対して使う適切な表現はどれですか？A、B、Cの記号で答えてください。
+      A) 田中さん、レポートを見た？
+      B) 田中さん、レポートをご覧になりましたか？
+      C) 田中、レポート見ろよ。
+    scoring: {type: multiple_choice, expected: "B"}
+    max_tokens: 128
+
+  - id: ml-14-french-gender
+    prompt: |
+      Choisis la phrase correcte. Réponds uniquement par la lettre.
+      A) Le problème est complexe. La solution est élégante.
+      B) Le problème est complexe. Le solution est élégante.
+      C) La problème est complexe. La solution est élégante.
+    scoring: {type: multiple_choice, expected: "A"}
+    max_tokens: 128
+
+  - id: ml-15-german-case
+    prompt: |
+      Welcher Satz ist grammatikalisch korrekt? Antworte nur mit A, B oder C.
+      A) Der Mann gibt der Frau den Schlüssel.
+      B) Der Mann gibt die Frau der Schlüssel.
+      C) Der Mann gibt den Frau der Schlüssel.
+    scoring: {type: multiple_choice, expected: "A"}
+    max_tokens: 128
+
+  - id: ml-16-portuguese-subjunctive
+    prompt: |
+      Qual frase está correta? Responda apenas com a letra.
+      A) Espero que ele vem amanhã.
+      B) Espero que ele venha amanhã.
+      C) Espero que ele virá amanhã.
+    scoring: {type: multiple_choice, expected: "B"}
+    max_tokens: 128

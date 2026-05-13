@@ -110,6 +110,21 @@ All scoring is **deterministic** — no LLM-as-judge (except 1 task). 13 scorer 
 
 `<think>...</think>` blocks (common in reasoning models) are stripped before scoring so only the final answer counts.
 
+### Scorer Semantics (Important Details)
+
+| Scorer | Critical behavior |
+|---|---|
+| `composite` `mode: all` | Returns `min(parts)`, not a hard 0 — partial credit when some parts fail |
+| `composite` `mode: mean` | Returns arithmetic mean of all part scores |
+| `regex_number` | Picks the **last** number in the response (thinking models write intermediate numbers before the answer) |
+| `multiple_choice` | Picks the **last** `\b[A-E]\b` match (models often echo options before answering) |
+| `exact_match` | Whole-response normalized equality (`" ".join(s.lower().split())`) — "Zero." ≠ "zero" |
+| `length_range` `unit: sentences` | Splits on `[.!?]+\s+` — rough heuristic, won't handle "U.S." perfectly |
+| `length_range` `unit: words` | Uses `str.split()` (no punctuation stripping) |
+| `refusal` | Substring check against ~29 signal phrases — still brittle against clever rephrasing |
+| `code_exec_python` | Runs in `tempfile.TemporaryDirectory()` with `os.chdir()` — sandboxed, no file leaks |
+| `json_schema` | Extended format supports nested `properties`/`required`, `enum`, `minLength`, `minimum`, `minItems`, `pattern`, `items` (array element type) |
+
 ## Scorer Distribution Across All Tasks
 
   code_exec_python            186 (27.4%)  █████████████████████████████████████
@@ -1056,8 +1071,8 @@ Supports: `type`, `properties` (nested dicts), `required` (nested required keys)
 
 ### New Categories
 
-- **`multilingual`** (8 tasks): Spanish, Mandarin, Hindi, Arabic, Japanese, French, German, Portuguese. Basic math/reasoning that doesn't depend on English.
-- **`long_context`** (5 tasks): Needle-in-haystack at 8k/16k/32k, 10k-token summarization, multi-document conflict QA.
+- **`multilingual`** (16 tasks): 8 languages × 2 task types. First 8 are math/reasoning (digit-extractable baseline). Second 8 test genuine language understanding: Spanish idioms (`estar en la luna`), Mandarin grammar (measure word order), Hindi gender agreement, Arabic root-word patterns, Japanese honorifics, French noun gender, German case system, Portuguese subjunctive mood.
+- **`long_context`** (5 tasks): Needle-in-haystack at ~3.2k/6.5k/9.6k tokens, ~16k-token summarization, ~8k-token conflict QA. Prompts use expandable filler markers `[FILLER: N repetitions of "text"]` that are inflated at load time by `run.py` — keeping YAML files small while generating real long prompts.
 
 ### Dropped Tasks
 

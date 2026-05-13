@@ -25,6 +25,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import re
+
 import yaml
 
 ROOT = Path(__file__).resolve().parent
@@ -52,9 +54,21 @@ from scoring import score as score_response  # noqa: E402
 TASKS_DIR = ROOT / "tasks"
 
 
-# ---------------------------------------------------------------------------
-# Dataset construction
-# ---------------------------------------------------------------------------
+_FILLER_PAT = re.compile(r"\[FILLER:\s*(\d+)\s+repetitions?\s+of\s+\"([^\"]+)\"\s*\]")
+
+
+def _expand_fillers(prompt: str) -> str:
+    """Expand [FILLER: N repetitions of \"text\"] markers inline.
+
+    Keeps the YAML files small while generating the actual long prompts
+    needed for long-context evaluation.
+    """
+    def _replace(m: re.Match) -> str:
+        count = int(m.group(1))
+        text = m.group(2)
+        return text * count
+
+    return _FILLER_PAT.sub(_replace, prompt)
 
 
 def _load_category(category: str) -> list[Sample]:
@@ -62,13 +76,14 @@ def _load_category(category: str) -> list[Sample]:
     data = yaml.safe_load(yaml_path.read_text())
     samples: list[Sample] = []
     for t in data.get("tasks", []):
+        prompt = _expand_fillers(t["prompt"])
         if "system" in t:
             input_msgs = [
                 ChatMessageSystem(content=t["system"]),
-                ChatMessageUser(content=t["prompt"]),
+                ChatMessageUser(content=prompt),
             ]
         else:
-            input_msgs = t["prompt"]
+            input_msgs = prompt
         samples.append(
             Sample(
                 id=t["id"],
