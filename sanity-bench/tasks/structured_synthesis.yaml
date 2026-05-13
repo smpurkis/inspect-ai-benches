@@ -1,0 +1,704 @@
+category: structured_synthesis
+tasks:
+  - id: ss-01-caching-strategies
+    prompt: |
+      Compare 5 caching strategies (write-through, write-back, write-
+      around, cache-aside, read-through) across 4 axes: data staleness,
+      write latency, implementation complexity, and failure resilience.
+      Output a markdown table with columns "Strategy" | "Staleness" |
+      "Write Latency" | "Complexity" | "Resilience". Then a 1-sentence
+      recommendation starting "Best general-purpose:" on a new line.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["write-through", "write-back", "write-around", "cache-aside", "read-through"]}
+        - {type: regex, pattern: 'Best general-purpose:'}
+        - {type: regex, pattern: '\|.*Strategy.*\|.*Staleness.*\|'}
+        - {type: regex, pattern: '\|[-:\s|]+\|'}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: ss-02-tcp-congestion
+    prompt: |
+      Trace the causal chain from a TCP sender increasing its window to
+      potential congestion collapse. Numbered steps 1-6 covering:
+      window growth, queue buildup, packet loss, retransmission, further
+      window growth, and throughput collapse. Each step: one sentence
+      of at most 15 words. Begin: "1. Sender increases congestion window."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^1\. Sender increases congestion window\.'}
+        - {type: regex, pattern: '(?m)^[1-6]\.'}
+        - {type: contains_all, expected: ["window", "loss", "retransmission", "queue"]}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: ss-03-swot-architecture
+    prompt: |
+      Apply the SWOT framework to compare monolithic vs microservices
+      architecture. Output a 2x4 markdown table: rows "Monolith" and
+      "Microservices"; columns "Strengths" | "Weaknesses" | "Opportunities"
+      | "Threats". Each cell: 1-2 sentences. Then a new line: "Better for
+      startups:" followed by your choice.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["SWOT", "Monolith", "Microservices"]}
+        - {type: regex, pattern: 'Strengths.*Weaknesses.*Opportunities.*Threats'}
+        - {type: regex, pattern: 'Better for startups:'}
+        - {type: regex, pattern: '\|[-:\s|]+\|'}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: ss-04-saturated-fat-synthesis
+    prompt: |
+      Synthesize the contradictory research on saturated fat and heart
+      disease. Output 2 paragraphs separated by "---". Para 1: evidence
+      linking saturated fat to CVD (cite at least Ancel Keys and the
+      Seven Countries Study). Para 2: evidence questioning this link
+      (cite recent meta-analyses). Then a 1-sentence balanced conclusion.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["saturated", "Keys", "Seven Countries"]}
+        - {type: regex, pattern: '---'}
+        - {type: contains_any, expected: ["meta-analysis", "CVD", "LDL", "HDL", "cardiovascular"]}
+        - {type: length_range, min: 4, max: 8, unit: sentences}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: ss-05-nosql-comparison
+    prompt: |
+      Compare 6 NoSQL database types (document, key-value, column-
+      family, graph, time-series, and vector) across 3 axes: data model,
+      query pattern, and primary use case. Output a 6-row markdown table
+      with columns "Type" | "Data Model" | "Query Pattern" | "Use Case".
+      Then a 1-sentence answer: "Best for real-time analytics:" on a
+      new line.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["document", "key-value", "graph", "time-series", "vector"]}
+        - {type: regex, pattern: 'Best for real-time analytics:'}
+        - {type: regex, pattern: '\\|.*Type.*\\|.*Data Model.*\\|'}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: ss-06-cdn-causal-chain
+    prompt: |
+      Trace the full causal chain of how a CDN accelerates web content
+      delivery. Numbered steps 1-5: DNS routing to edge, cache hit/miss
+      logic, origin shield, TCP optimization at edge, and connection
+      reuse. Each step: start with an active verb and be at most 12
+      words. Begin: "1. Route user to nearest edge."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^1\. Route user to nearest edge\.'}
+        - {type: regex, pattern: '(?m)^[1-5]\.'}
+        - {type: contains_all, expected: ["edge", "cache", "origin", "TCP"]}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: ss-07-graph-vs-relational-tco
+    prompt: |
+      Perform a TCO (Total Cost of Ownership) analysis comparing a graph
+      database (Neo4j) vs a relational database (PostgreSQL) for a social
+      network feature: friend-of-friend recommendations. Output a 4-row
+      table with columns "Cost Factor" | "Graph DB" | "Relational DB".
+      Rows: Licensing, Infrastructure, Query complexity, Developer
+      productivity. Then 1-sentence verdict starting "TCO verdict:".
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["TCO", "Neo4j", "PostgreSQL", "friend"]}
+        - {type: regex, pattern: 'TCO verdict:'}
+        - {type: contains_any, expected: ["Licensing", "Infrastructure", "productivity"]}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: ss-08-quantum-misconceptions
+    prompt: |
+      Identify and correct 3 common misconceptions about quantum
+      computing that even experts sometimes debate. Number them 1-3.
+      For each: state the misconception in quotes, then explain why
+      it is wrong in 1-2 sentences. Then one sentence starting
+      "Consensus:" stating the expert-agreed position.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '(?m)^[1-3]\.'}
+        - {type: regex, pattern: 'Consensus:'}
+        - {type: contains_all, expected: ["qubit", "superposition", "entanglement"]}
+        - {type: contains, expected: '"'}
+    max_tokens: 768
+    temperature: 0.3
+
+  - id: ss-09-orchestrators-compare
+    prompt: |
+      Compare Kubernetes, Nomad, and Docker Swarm across 5 dimensions:
+      scheduling, networking, scaling, learning curve, and production
+      readiness. Output a 5-row markdown table: columns "Dimension" |
+      "Kubernetes" | "Nomad" | "Swarm". Then a 1-sentence recommendation
+      for a 10-person startup. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["Kubernetes", "Nomad", "Swarm"]}
+        - {type: regex, pattern: '\\|.*Dimension.*\\|'}
+        - {type: regex, pattern: '\\|[-:\s|]+\\|'}
+        - {type: contains_any, expected: ["scheduling", "networking", "scaling", "learning curve"]}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: ss-10-dns-lookup-chain
+    prompt: |
+      Trace the full DNS resolution chain for https://www.example.com
+      when no record is cached. Numbered steps 1-8: browser cache,
+      OS cache, hosts file, recursive resolver, root, TLD, authoritative,
+      response propagation. Each step: ≤10 words, start with active verb.
+      Begin: "1. Check browser DNS cache."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^1\. Check browser DNS cache\.'}
+        - {type: regex, pattern: '(?m)^[1-8]\.'}
+        - {type: contains_all, expected: ["root", "TLD", "authoritative", "recursive"]}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: ss-11-rice-prioritization
+    prompt: |
+      Apply the RICE prioritization framework to 4 hypothetical features:
+      Feature A (high reach, medium impact), Feature B (low reach, high
+      impact), Feature C (medium reach, medium impact, high confidence),
+      Feature D (high reach, high impact, low confidence). Output a
+      4-row markdown table with columns "Feature" | "Reach" | "Impact"
+      | "Confidence" | "Effort" | "RICE Score" using reasonable
+      hypothetical values. Then rank them. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["RICE", "Reach", "Impact", "Confidence", "Effort"]}
+        - {type: regex, pattern: '\\|[-:\s|]+\\|'}
+        - {type: length_range, min: 5, max: 12, unit: lines}
+    max_tokens: 768
+    temperature: 0.3
+
+  - id: ss-12-acid-base-new-sql
+    prompt: |
+      Compare ACID, BASE, and NewSQL across 5 dimensions: consistency
+      model, availability, partition tolerance, scalability, and use
+      cases. Output a 5-row markdown table with columns "Dimension" |
+      "ACID" | "BASE" | "NewSQL". Then a 1-sentence answer: "Best for
+      financial transactions:" followed by your choice.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["ACID", "BASE", "NewSQL"]}
+        - {type: regex, pattern: 'Best for financial transactions:'}
+        - {type: contains_any, expected: ["consistency", "availability", "partition", "scalability"]}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: ss-13-memory-leak-chain
+    prompt: |
+      Trace the causal chain from a memory leak to an OOM kill in a
+      Linux process. Numbered steps 1-6: allocation without free, heap
+      growth, swapping, OOM score increase, kernel invocation of OOM
+      killer, process termination. Each step: ≤12 words, start with a
+      verb. Begin: "1. Allocate memory without freeing."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^1\. Allocate memory without freeing\.'}
+        - {type: regex, pattern: '(?m)^[1-6]\.'}
+        - {type: contains_all, expected: ["heap", "swap", "OOM", "termination"]}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: ss-14-ml-model-decision-matrix
+    prompt: |
+      Compare 5 ML model types (linear regression, decision tree,
+      random forest, SVM, neural network) across 5 axes: interpretability,
+      training speed, handles non-linearity, data efficiency, and overfit
+      tendency. Output a 5-row markdown table: columns "Model" | "Interp."
+      | "Speed" | "Non-linear" | "Data Eff." | "Overfit". Score each
+      cell as Low/Med/High. Then 1-sentence guidance: "Use when data < 10K:".
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["linear regression", "decision tree", "random forest", "SVM", "neural network"]}
+        - {type: regex, pattern: 'Use when data < 10K:'}
+        - {type: contains_any, expected: ["Low", "Med", "High"]}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: ss-15-coffee-health
+    prompt: |
+      Synthesize the contradictory research on coffee and health
+      outcomes. Output 2 paragraphs separated by "===". Para 1: evidence
+      that coffee is harmful (anxiety, heart palpitations, sleep
+      disruption) with citations. Para 2: evidence coffee is beneficial
+      (antioxidants, reduced dementia risk, liver protection). Then a
+      1-sentence conclusion starting "Net health impact:".
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["coffee", "antioxidants", "dementia"]}
+        - {type: regex, pattern: '==='}
+        - {type: regex, pattern: 'Net health impact:'}
+        - {type: length_range, min: 4, max: 8, unit: sentences}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: ss-16-http-2xx-count
+    prompt: |
+      How many HTTP status codes are there in the 2xx (Success) class?
+      Answer with just the number.
+    scoring:
+      type: regex_number
+      expected: 8
+      tolerance: 1
+    max_tokens: 64
+    temperature: 0.0
+
+  - id: ss-17-bff-pattern
+    prompt: |
+      Evaluate the Backend-for-Frontend pattern. 3 paragraphs separated
+      by "---". Para 1: problem it solves (1 sentence). Para 2: concrete
+      trade-off for mobile vs web (2 sentences). Para 3: when NOT to
+      use it (1 sentence). Write "BFF" at least once in each paragraph.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '---'}
+        - {type: contains, expected: "BFF"}
+        - {type: length_range, min: 3, max: 6, unit: sentences}
+        - {type: contains_any, expected: ["mobile", "web", "client", "frontend"]}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: ss-18-mvcc-isolation
+    prompt: |
+      Which of the following best describes MVCC's approach to
+      concurrency?
+      A) Locks every row being read
+      B) Creates snapshots of data at transaction start
+      C) Serialises all transactions
+      D) Uses a single global lock
+      Answer with just the letter.
+    scoring:
+      type: multiple_choice
+      expected: "B"
+    max_tokens: 64
+    temperature: 0.0
+
+  - id: ss-19-k8s-scheduler
+    prompt: |
+      Trace how Kubernetes schedules a pod onto a node. Numbered steps
+      1-7 covering: watch, queue, filter, score, bind, kubelet watch,
+      container runtime. Each step: one line, at most 12 words. Begin:
+      "1. Scheduler watches for unscheduled pods."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^1\. Scheduler watches for unscheduled pods\.'}
+        - {type: regex, pattern: '(?m)^[1-7]\.'}
+        - {type: contains_all, expected: ["filter", "score", "bind", "kubelet"]}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: ss-20-bitcoin-energy
+    prompt: |
+      Debate: "Bitcoin mining is an environmental disaster." 2 paragraphs
+      separated by "---". Para 1 (Pro): cite energy consumption, e-waste,
+      and carbon footprint. Para 2 (Con): cite renewable adoption, grid
+      balancing, and methane mitigation. Each paragraph: exactly 2
+      sentences. No title or conclusion paragraph.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '---'}
+        - {type: contains_any, expected: ["energy", "e-waste", "renewable", "carbon", "grid", "methane"]}
+        - {type: length_range, min: 4, max: 5, unit: sentences}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: ss-21-rest-graphql-grpc
+    prompt: |
+      Compare REST, GraphQL, and gRPC across 5 dimensions: data fetching,
+      type safety, caching, tooling maturity, and learning curve. Output
+      a 5-row markdown table with columns "Dimension" | "REST" | "GraphQL"
+      | "gRPC". Score each cell: Excellent/Good/Fair/Poor. Then a
+      1-sentence recommendation starting "Best for internal services:".
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["REST", "GraphQL", "gRPC"]}
+        - {type: regex, pattern: 'Best for internal services:'}
+        - {type: contains_any, expected: ["Excellent", "Good", "Fair", "Poor"]}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: ss-22-write-amplification
+    prompt: |
+      Trace the causal chain of write amplification in SSDs. Numbered
+      steps 1-4: logical write, page mapping, garbage collection, block
+      erase. Each step: one sentence with the cause and effect linked
+      by "→". At most 15 words per step. Begin: "1. Logical write →
+      OS issues the write to SSD."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^1\. Logical write →'}
+        - {type: regex, pattern: '(?m)^[1-4]\.'}
+        - {type: contains_all, expected: ["page", "garbage collection", "erase", "amplification"]}
+    max_tokens: 384
+    temperature: 0.3
+
+  - id: ss-23-ice-framework
+    prompt: |
+      Apply the ICE (Impact, Confidence, Ease) prioritization framework
+      to 3 product features: User authentication overhaul, Dark mode
+      support, and AI-powered search. Output a 3-row markdown table
+      with columns "Feature" | "Impact" | "Confidence" | "Ease" | "ICE
+      Score" using 1-10 scores. Then rank them by total score. No other
+      text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["ICE", "Impact", "Confidence", "Ease"]}
+        - {type: regex, pattern: 'User authentication'}
+        - {type: regex, pattern: 'Dark mode'}
+        - {type: regex, pattern: 'AI-powered search'}
+    max_tokens: 768
+    temperature: 0.3
+
+  - id: ss-24-intermittent-fasting
+    prompt: |
+      Synthesize the conflicting evidence on intermittent fasting.
+      2 paragraphs separated by "---". Para 1: evidence supporting
+      benefits (autophagy, insulin sensitivity, weight loss). Para 2:
+      evidence against (muscle loss, cortisol increase, disordered
+      eating risk). Each paragraph: 2-3 sentences with specific study
+      references. Then 1 sentence: "Optimal protocol:".
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '---'}
+        - {type: regex, pattern: 'Optimal protocol:'}
+        - {type: contains_all, expected: ["autophagy", "insulin", "cortisol", "muscle"]}
+        - {type: length_range, min: 4, max: 8, unit: sentences}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: ss-25-isolation-levels
+    prompt: |
+      Compare 5 database isolation levels (Read Uncommitted, Read
+      Committed, Repeatable Read, Snapshot, Serializable) across 3 axes:
+      dirty reads, non-repeatable reads, and phantom reads. Output a
+      5-row markdown table with columns "Isolation Level" | "Dirty
+      Reads" | "Non-Repeatable" | "Phantoms". Use "Yes" and "No" for
+      susceptibility. Then: "ANSI SQL default:" followed by your answer.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["Read Uncommitted", "Read Committed", "Repeatable Read", "Snapshot", "Serializable"]}
+        - {type: regex, pattern: 'ANSI SQL default:'}
+        - {type: contains_all, expected: ["Yes", "No"]}
+    max_tokens: 768
+    temperature: 0.3
+
+  - id: ss-26-tls-handshake
+    prompt: |
+      Trace the TLS 1.3 handshake between client and server. Numbered
+      steps 1-7 covering: ClientHello, ServerHello+KeyShare, server
+      certificate, CertificateVerify, server Finished, client Finished,
+      encrypted data. Each step: ≤10 words. Begin: "1. Client sends
+      ClientHello with supported ciphers."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^1\. Client sends ClientHello with supported ciphers\.'}
+        - {type: regex, pattern: '(?m)^[1-7]\.'}
+        - {type: contains_all, expected: ["ClientHello", "ServerHello", "certificate", "Finished"]}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: ss-27-waterfall-agile-lean
+    prompt: |
+      Compare Waterfall, Agile, and Lean across 4 dimensions: risk
+      management, customer involvement, delivery cadence, and team
+      structure. Output a 4-row markdown table with columns "Dimension"
+      | "Waterfall" | "Agile" | "Lean". Then apply the Cynefin framework:
+      state which methodology fits each of Simple, Complicated, and
+      Complex problem domains on a new line.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["Waterfall", "Agile", "Lean", "Cynefin"]}
+        - {type: regex, pattern: '\\|.*Dimension.*\\|'}
+        - {type: contains_all, expected: ["Simple", "Complicated", "Complex"]}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: ss-28-ai-risk-synthesis
+    prompt: |
+      Synthesize expert perspectives on AI existential risk. 2 paragraphs
+      separated by "===". Para 1: arguments for high risk (Bostrom,
+      Yudkowsky, alignment difficulty). Para 2: arguments for low risk
+      (Brooks, Ng, historical technology pattern). Each paragraph: 2-3
+      sentences. Then 1 sentence: "My assessment:" with your synthesis.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '==='}
+        - {type: regex, pattern: 'My assessment:'}
+        - {type: contains_all, expected: ["alignment", "Bostrom", "Brooks"]}
+        - {type: length_range, min: 4, max: 8, unit: sentences}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: ss-29-moscow-priorities
+    prompt: |
+      Apply the MoSCoW framework to these 6 project requirements:
+      single sign-on, dark mode, PDF export, real-time collaboration,
+      mobile responsive design, and audit logging. Output a 6-row
+      markdown table with columns "Requirement" | "MoSCoW Category" |
+      "Rationale". Use each category (Must, Should, Could, Won't) at
+      least once. Then order by priority. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["Must", "Should", "Could", "Won't"]}
+        - {type: contains_all, expected: ["single sign-on", "dark mode", "PDF export", "collaboration"]}
+        - {type: regex, pattern: '\\|[-:\s|]+\\|'}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: ss-30-race-condition-chain
+    prompt: |
+      Trace the causal chain from a race condition to data corruption
+      in a multi-threaded bank transfer. Numbered steps 1-5: concurrent
+      reads, stale balance, overlapping writes, torn write, inconsistent
+      state. Each step: one sentence using "→" to link cause to effect.
+      Begin: "1. Thread A reads balance → Thread B reads same balance."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^1\. Thread A reads balance → Thread B reads same balance\.'}
+        - {type: regex, pattern: '(?m)^[1-5]\.'}
+        - {type: contains_all, expected: ["stale", "overlapping", "inconsistent", "corruption"]}
+    max_tokens: 384
+    temperature: 0.3
+
+  - id: ss-31-cloud-deployment-models
+    prompt: |
+      Compare 4 cloud deployment models (public, private, hybrid, multi-
+      cloud) across 5 axes: cost, security, scalability, compliance, and
+      vendor lock-in. Output a 5-row markdown table: columns "Axis" |
+      "Public" | "Private" | "Hybrid" | "Multi-Cloud". Score each cell
+      as Low/Medium/High. Then 1-sentence: "Best for regulated
+      industries:" on a new line.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["public", "private", "hybrid", "multi-cloud"]}
+        - {type: regex, pattern: 'Best for regulated industries:'}
+        - {type: regex, pattern: '\\|.*Axis.*\\|'}
+        - {type: contains_any, expected: ["Low", "Medium", "High"]}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: ss-32-blockchain-transaction
+    prompt: |
+      Trace a Bitcoin transaction from broadcast to confirmation.
+      Numbered steps 1-6: transaction broadcast, mempool entry, block
+      proposal, proof-of-work, block propagation, chain reorganization
+      check. Each step: ≤12 words, start with a verb. Begin: "1.
+      Broadcast transaction to network peers."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^1\. Broadcast transaction to network peers\.'}
+        - {type: regex, pattern: '(?m)^[1-6]\.'}
+        - {type: contains_all, expected: ["mempool", "block", "proof-of-work", "propagation"]}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: ss-33-eisenhower-matrix
+    prompt: |
+      Apply the Eisenhower Matrix to 4 task types: urgent-important,
+      urgent-not important, not urgent-important, not urgent-not
+      important. Output a 4-row markdown table: columns "Quadrant" |
+      "Action" | "Example" | "Risk of Neglect". Then 1-sentence:
+      "Most people spend too much time on:" followed by the quadrant.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["Eisenhower", "urgent", "important"]}
+        - {type: regex, pattern: 'Most people spend too much time on:'}
+        - {type: contains_any, expected: ["Quadrant", "Action", "Example", "Risk"]}
+    max_tokens: 768
+    temperature: 0.3
+
+  - id: ss-34-red-wine-health
+    prompt: |
+      Synthesize the contradictory evidence on red wine and health.
+      2 paragraphs separated by "---". Para 1: evidence for benefits
+      (resveratrol, French paradox, antioxidants). Para 2: evidence
+      against (any-dose carcinogen, J-shaped curve controversy,
+      confounding variables in observational studies). Then 1-sentence:
+      "Evidence-based recommendation:" on a new line.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '---'}
+        - {type: regex, pattern: 'Evidence-based recommendation:'}
+        - {type: contains_all, expected: ["resveratrol", "French paradox", "J-shaped", "confounding"]}
+        - {type: length_range, min: 4, max: 8, unit: sentences}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: ss-35-sorting-algorithms
+    prompt: |
+      Compare 5 sorting algorithms (bubble, merge, quick, heap, counting)
+      across 4 axes: average time, worst time, space complexity, and
+      stability. Output a 5-row markdown table: columns "Algorithm" |
+      "Avg Time" | "Worst Time" | "Space" | "Stable". Then 1-sentence:
+      "Best general purpose:" followed by your choice. Use Big-O
+      notation consistently.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["bubble", "merge", "quick", "heap", "counting"]}
+        - {type: regex, pattern: 'Best general purpose:'}
+        - {type: contains, expected: "O("}
+    max_tokens: 768
+    temperature: 0.3
+
+  - id: ss-36-oauth-flow
+    prompt: |
+      Trace the OAuth 2.0 Authorization Code flow with PKCE. Numbered
+      steps 1-7: auth request, login prompt, auth code grant, code
+      verifier, token exchange, access token response, API call. Each
+      step: ≤12 words. Begin: "1. Client initiates auth request to
+      authorization server."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^1\. Client initiates auth request to authorization server\.'}
+        - {type: regex, pattern: '(?m)^[1-7]\.'}
+        - {type: contains_all, expected: ["authorization", "code", "token", "verifier", "PKCE"]}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: ss-37-api-styles
+    prompt: |
+      Compare 4 API architectural styles (REST, GraphQL, gRPC, WebSocket)
+      across 5 axes: data format, caching, real-time support, tooling,
+      and use case fit. Output a 5-row markdown table: columns
+      "Dimension" | "REST" | "GraphQL" | "gRPC" | "WebSocket". Then
+      1-sentence: "Best for real-time dashboards:" on a new line.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["REST", "GraphQL", "gRPC", "WebSocket"]}
+        - {type: regex, pattern: 'Best for real-time dashboards:'}
+        - {type: regex, pattern: '\\|.*Dimension.*\\|'}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: ss-38-video-games-violence
+    prompt: |
+      Synthesize the conflicting research on video games and aggressive
+      behavior. 2 paragraphs separated by "===". Para 1: evidence for
+      a link (Anderson et al. meta-analyses, short-term aggression
+      priming). Para 2: evidence against (confounding variables, lack
+      of longitudinal evidence, methodological critiques). Then 1
+      sentence: "Policy implication:" on a new line.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '==='}
+        - {type: regex, pattern: 'Policy implication:'}
+        - {type: contains_all, expected: ["meta-analysis", "aggression", "confounding", "longitudinal"]}
+        - {type: length_range, min: 4, max: 8, unit: sentences}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: ss-39-smart-goals
+    prompt: |
+      Apply the SMART framework to evaluate 3 goals: "Increase revenue",
+      "Improve code quality", and "Learn TypeScript". Output a 3-row
+      markdown table with columns "Goal" | "Specific" | "Measurable" |
+      "Achievable" | "Relevant" | "Time-bound" | "SMART Score".
+      Score each criterion Yes/No. Calculate score as fraction of Yes.
+      Then rank the goals by SMART Score. No other text.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["SMART", "Specific", "Measurable", "Achievable", "Relevant", "Time-bound"]}
+        - {type: regex, pattern: 'Increase revenue'}
+        - {type: regex, pattern: 'Improve code quality'}
+        - {type: contains_any, expected: ["Yes", "No"]}
+    max_tokens: 768
+    temperature: 0.3
+
+  - id: ss-40-deadlock-chain
+    prompt: |
+      Trace the causal chain of a deadlock in concurrent database
+      transactions. Numbered steps 1-4: transaction A locks row 1,
+      transaction B locks row 2, A waits for row 2, B waits for row 1.
+      Each step: one sentence of at most 15 words. Then a 5th step
+      labeled "Resolution:" describing how the DBMS resolves it. Begin:
+      "1. Transaction A acquires lock on row 1."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '^1\. Transaction A acquires lock on row 1\.'}
+        - {type: regex, pattern: '(?m)^[1-5]\.'}
+        - {type: contains_all, expected: ["deadlock", "lock", "wait", "Resolution"]}
+        - {type: contains_any, expected: ["rollback", "abort", "timeout", "detect"]}
+    max_tokens: 384
+    temperature: 0.3

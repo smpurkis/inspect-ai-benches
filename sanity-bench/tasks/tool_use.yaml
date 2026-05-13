@@ -1,350 +1,724 @@
 category: tool_use
 tasks:
-  - id: tu-01-simple-call
+
+
+  - id: tu-11-secrets-mgmt
     prompt: |
-      Available function:
-        get_weather(city: str) -> dict  # Returns current weather for a city.
+      Tools:
+        store_secret(name: str, value: str, rotation: str) -> str
+        get_secret(arn: str) -> str
+        create_policy(name: str, actions: list[str], resource: str) -> str
+        attach_to_role(policy_arn: str, role: str) -> None
+        rotate_now(secret_arn: str) -> None
 
-      User request: "What's the weather like in London?"
+      User: "Store secret 'DB_PASSWORD' with value 's3cre+!' and rotation '30d'. Retrieve it to verify. Create policy allowing 'secretsmanager:GetSecretValue' on it. Attach to role 'app-server'. Trigger immediate rotation."
 
-      Output the function call as a JSON object with keys "name" and "arguments".
-      JSON only, no other text.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"get_weather\""}
-        - {type: regex, pattern: "\"city\"\\s*:\\s*\"London\"", flags: ["I"]}
-    max_tokens: 256
+        - {type: regex, pattern: '"store_secret"'}
+        - {type: regex, pattern: '"get_secret"'}
+        - {type: regex, pattern: '"create_policy"'}
+        - {type: regex, pattern: '"attach_to_role"'}
+        - {type: regex, pattern: '"rotate_now"'}
+    max_tokens: 512
+    temperature: 0.3
 
-  - id: tu-02-two-params
+  - id: tu-12-auto-scale
     prompt: |
-      Available function:
-        send_email(to: str, subject: str) -> None  # Sends an email.
+      Tools:
+        create_launch_template(name: str, image: str, instance_type: str) -> str
+        create_asg(name: str, template: str, min: int, max: int, desired: int) -> str
+        attach_lb(asg_name: str, tg_arn: str) -> None
+        create_scaling_policy(asg: str, metric: str, target: float) -> str
+        simulate_load(asg: str, duration_sec: int) -> dict
 
-      User request: "Send an email to alice@example.com with subject 'Meeting tomorrow'."
+      User: "Create launch template 'web-template' with ami-1234, t3.medium. Create ASG 'web-asg' min=2 max=10 desired=2. Attach target group 'web-tg'. Create CPU-based scaling policy targeting 60%. Simulate 5 min load."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"send_email\""}
-        - {type: regex, pattern: "alice@example\\.com"}
-        - {type: regex, pattern: "Meeting tomorrow", flags: ["I"]}
-    max_tokens: 256
+        - {type: regex, pattern: '"create_launch_template"'}
+        - {type: regex, pattern: '"create_asg"'}
+        - {type: regex, pattern: '"attach_lb"'}
+        - {type: regex, pattern: '"create_scaling_policy"'}
+        - {type: regex, pattern: '"simulate_load"'}
+    max_tokens: 512
+    temperature: 0.3
 
-  - id: tu-03-choose-right-tool
+  - id: tu-13-search-index
     prompt: |
-      Available functions:
-        search_web(query: str) -> list   # Searches the internet.
-        calculate(expression: str) -> float  # Evaluates a maths expression.
+      Tools:
+        create_index(name: str, mapping: dict) -> None
+        bulk_index(index: str, docs: list[dict]) -> int
+        search(index: str, query: str, fields: list[str]) -> list[dict]
+        update_alias(alias: str, index: str) -> None
+        refresh_index(index: str) -> None
 
-      User request: "What is 42 multiplied by 17?"
+      User: "Create Elasticsearch index 'products' with mapping: title (text), price (float), in_stock (boolean). Bulk index 3 sample docs. Search for 'laptop' in title and description fields. Point alias 'prod-search' to it. Refresh."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"calculate\""}
-        - {type: regex, pattern: "42.*17|17.*42"}
-    max_tokens: 256
+        - {type: regex, pattern: '"create_index"'}
+        - {type: regex, pattern: '"bulk_index"'}
+        - {type: regex, pattern: '"search"'}
+        - {type: regex, pattern: '"update_alias"'}
+        - {type: regex, pattern: '"refresh_index"'}
+    max_tokens: 768
+    temperature: 0.3
 
-  - id: tu-04-bool-param
+  - id: tu-14-message-queue
     prompt: |
-      Available function:
-        set_notifications(enabled: bool) -> None  # Enables or disables notifications.
+      Tools:
+        create_queue(name: str, dlq: str, timeout: int) -> str
+        create_subscription(topic: str, proto: str, endpoint: str) -> str
+        send_msg(queue_url: str, body: str, attrs: dict) -> str
+        receive_msg(queue_url: str, max: int) -> list[dict]
+        delete_msg(queue_url: str, receipt: str) -> None
 
-      User request: "Turn notifications on."
+      User: "Create SQS queue 'order-queue' with DLQ 'order-dlq' and 30s timeout. Subscribe 'order-topic' SNS → 'order-queue' with raw delivery. Send a test order. Receive and read messages. Delete the processed message."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"set_notifications\""}
-        - {type: regex, pattern: "\"enabled\"\\s*:\\s*true"}
-    max_tokens: 256
+        - {type: regex, pattern: '"create_queue"'}
+        - {type: regex, pattern: '"create_subscription"'}
+        - {type: regex, pattern: '"send_msg"'}
+        - {type: regex, pattern: '"receive_msg"'}
+        - {type: regex, pattern: '"delete_msg"'}
+    max_tokens: 512
+    temperature: 0.3
 
-  - id: tu-05-int-param
+  - id: tu-15-json-warehouse
     prompt: |
-      Available function:
-        set_volume(level: int) -> None  # Sets volume 0–100.
+      Tools:
+        http_get(url: str) -> str
+        validate_json(data: str, schema: dict) -> bool
+        flatten(nested: dict, sep: str) -> dict
+        copy_to_redshift(table: str, data: list[dict], cols: list[str]) -> int
+        query_redshift(sql: str) -> list[dict]
 
-      User request: "Set the volume to 75."
+      User: "GET https://api.example.com/orders. Validate result against schema {type:'array',items:{type:'object'}}. Flatten nested field 'line_items' with '_' separator. COPY to 'dw.orders' columns id,amount,status. Run SELECT COUNT(*) to verify."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"set_volume\""}
-        - {type: regex, pattern: "\"level\"\\s*:\\s*75"}
-    max_tokens: 256
+        - {type: regex, pattern: '"http_get"'}
+        - {type: regex, pattern: '"validate_json"'}
+        - {type: regex, pattern: '"flatten"'}
+        - {type: regex, pattern: '"copy_to_redshift"'}
+        - {type: regex, pattern: '"query_redshift"'}
+    max_tokens: 768
+    temperature: 0.3
 
-  - id: tu-06-list-param
+  - id: tu-16-ab-test
     prompt: |
-      Available function:
-        add_tags(tags: list[str]) -> None  # Adds tags to the current item.
+      Tools:
+        create_experiment(name: str, metric: str, variants: list[str]) -> str
+        assign_variant(exp_id: str, user: str) -> str
+        record_event(exp_id: str, variant: str, value: float) -> None
+        analyze(exp_id: str) -> dict
+        promote(exp_id: str, winner: str) -> None
 
-      User request: "Tag this as urgent, billing, and Q3."
+      User: "Create experiment 'pricing-v2' tracking 'conversion_rate' with variants ['control','treatment']. Assign user 'u_42' to get their variant. Record conversion event with value 1.0. Analyze results. Promote the winning variant."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"add_tags\""}
-        - {type: regex, pattern: "\"tags\"\\s*:\\s*\\["}
-        - {type: regex, pattern: "urgent", flags: ["I"]}
-    max_tokens: 256
+        - {type: regex, pattern: '"create_experiment"'}
+        - {type: regex, pattern: '"assign_variant"'}
+        - {type: regex, pattern: '"record_event"'}
+        - {type: regex, pattern: '"analyze"'}
+        - {type: regex, pattern: '"promote"'}
+    max_tokens: 512
+    temperature: 0.3
 
-  - id: tu-07-three-params
+  - id: tu-17-canary-deploy
     prompt: |
-      Available function:
-        book_flight(origin: str, destination: str, date: str) -> dict
+      Tools:
+        deploy_version(service: str, version: str, replicas: int) -> str
+        shift_traffic(service: str, from_ver: str, to_ver: str, pct: float) -> None
+        monitor_errors(service: str, window_min: int) -> dict
+        rollback(service: str, version: str) -> None
+        full_cutover(service: str, version: str) -> None
 
-      User request: "Book a flight from New York to Paris on 2025-08-15."
+      User: "Deploy v2.1.0 of 'payment-svc' with 1 replica. Shift 5% traffic from v2.0.0. Monitor errors for 10 minutes. If error_rate<0.01, cut over fully. If not, rollback to v2.0.0."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"book_flight\""}
-        - {type: regex, pattern: "New York", flags: ["I"]}
-        - {type: regex, pattern: "Paris", flags: ["I"]}
-        - {type: regex, pattern: "2025-08-15"}
-    max_tokens: 256
+        - {type: regex, pattern: '"deploy_version"'}
+        - {type: regex, pattern: '"shift_traffic"'}
+        - {type: regex, pattern: '"monitor_errors"'}
+        - {type: regex, pattern: '"full_cutover"|"rollback"'}
+    max_tokens: 512
+    temperature: 0.3
 
-  - id: tu-08-enum-param
+  - id: tu-18-db-migrate
     prompt: |
-      Available function:
-        set_status(status: str) -> None
-        # status must be one of: "active", "inactive", "pending"
+      Tools:
+        dump_db(conn_str: str, schema: str) -> str
+        transform_schema(sql: str, rules: dict) -> str
+        apply_migration(conn_str: str, migration: str) -> None
+        snapshot(conn_str: str) -> str
+        validate_data(conn_str: str, checks: list[str]) -> dict
+        rollback_migration(conn_str: str, snapshot: str) -> None
 
-      User request: "Put this account on hold (pending)."
+      User: "Dump 'public' schema from postgres://old:5432/prod. Transform: rename 'username'→'email', add 'created_at' DEFAULT NOW(). Apply migration to postgres://new:5432/prod. Snapshot before migration. Validate row counts match. If validation fails, rollback."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"set_status\""}
-        - {type: regex, pattern: "\"status\"\\s*:\\s*\"pending\""}
-    max_tokens: 256
+        - {type: regex, pattern: '"dump_db"'}
+        - {type: regex, pattern: '"transform_schema"'}
+        - {type: regex, pattern: '"snapshot"'}
+        - {type: regex, pattern: '"apply_migration"'}
+        - {type: regex, pattern: '"validate_data"|"rollback_migration"'}
+    max_tokens: 768
+    temperature: 0.3
 
-  - id: tu-09-no-args
+  - id: tu-19-rate-limit
     prompt: |
-      Available function:
-        get_current_time() -> str  # Returns the current UTC time as a string.
+      Tools:
+        create_usage_plan(name: str, quota: int, burst: int, rate: float) -> str
+        create_api_key(name: str, plan_id: str) -> dict
+        set_throttle(method: str, path: str, rate: float, burst: int) -> None
+        add_waf_rule(name: str, action: str, limit: int, window: str) -> str
+        test_endpoint(url: str, key: str, calls: int) -> list[int]
 
-      User request: "What time is it now?"
+      User: "Create usage plan 'basic' with quota=1000, burst=50, rate=10/s. Create API key 'client-1' under that plan. Set throttle on POST /orders: rate=5/s burst=10. Add WAF rate limit rule (block, 2000req, '5min'). Test with 10 rapid calls."
 
-      Output the function call as JSON with keys "name" and "arguments"
-      (arguments should be an empty object {}). JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"get_current_time\""}
-        - {type: regex, pattern: "\"arguments\"\\s*:\\s*\\{\\s*\\}"}
-    max_tokens: 256
+        - {type: regex, pattern: '"create_usage_plan"'}
+        - {type: regex, pattern: '"create_api_key"'}
+        - {type: regex, pattern: '"set_throttle"'}
+        - {type: regex, pattern: '"add_waf_rule"'}
+        - {type: regex, pattern: '"test_endpoint"'}
+    max_tokens: 768
+    temperature: 0.3
 
-  - id: tu-10-date-format
+  - id: tu-20-compliance-scan
     prompt: |
-      Available function:
-        schedule_meeting(title: str, date: str) -> None
-        # date must be ISO-8601 format YYYY-MM-DD
+      Tools:
+        run_scanner(profile: str, rules: list[str]) -> str
+        list_findings(scan_id: str, severity: str) -> list[dict]
+        suppress_finding(finding_id: str, reason: str) -> None
+        generate_report(scan_id: str, format: str) -> str
+        email_report(to: str, attachment: str) -> None
 
-      User request: "Schedule a 'Team sync' meeting for the 3rd of April 2026."
+      User: "Run CIS benchmark scan on 'prod-account' with rules ['cis_1.1','cis_1.2','cis_2.1']. List CRITICAL findings. Suppress finding 'F-001' as 'false positive'. Generate PDF report. Email to security@co."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"schedule_meeting\""}
-        - {type: regex, pattern: "2026-04-03"}
-    max_tokens: 256
+        - {type: regex, pattern: '"run_scanner"'}
+        - {type: regex, pattern: '"list_findings"'}
+        - {type: regex, pattern: '"suppress_finding"'}
+        - {type: regex, pattern: '"generate_report"'}
+        - {type: regex, pattern: '"email_report"'}
+    max_tokens: 512
+    temperature: 0.3
 
-  - id: tu-11-nested-object
+  - id: tu-21-img-pipeline
     prompt: |
-      Available function:
-        create_address(address: object) -> None
-        # address object has keys: street (str), city (str), country (str)
+      Tools:
+        read_file(path: str) -> bytes
+        resize(img: bytes, w: int, h: int) -> bytes
+        compress(img: bytes, quality: int) -> bytes
+        store(bucket: str, key: str, data: bytes) -> str
+        generate_thumbnail(src: str, size: int) -> str
 
-      User request: "Add address: 10 Downing Street, London, UK."
+      User: "Read 'photo.png'. Resize to 1920x1080. Compress at quality 80. Store in 'assets' bucket as 'photo.jpg'. Generate a 256px thumbnail and upload as 'thumb_photo.jpg'."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"create_address\""}
-        - {type: regex, pattern: "Downing", flags: ["I"]}
-        - {type: regex, pattern: "London", flags: ["I"]}
-    max_tokens: 256
+        - {type: regex, pattern: '"read_file"'}
+        - {type: regex, pattern: '"resize"'}
+        - {type: regex, pattern: '"compress"'}
+        - {type: regex, pattern: '"store"'}
+        - {type: regex, pattern: '"generate_thumbnail"'}
+    max_tokens: 512
+    temperature: 0.3
 
-  - id: tu-12-choose-from-three
+  - id: tu-22-notification-system
     prompt: |
-      Available functions:
-        get_weather(city: str) -> dict
-        translate_text(text: str, target_language: str) -> str
-        calculate(expression: str) -> float
+      Tools:
+        create_template(name: str, body: str, vars: list[str]) -> str
+        send_email(to: str, template: str, data: dict) -> None
+        send_sms(phone: str, msg: str) -> None
+        send_slack(channel: str, msg: str) -> None
+        log_delivery(msg_id: str, status: str) -> None
 
-      User request: "Translate 'Hello world' to Spanish."
+      User: "Create template 'welcome' with body 'Hi {{name}}, welcome!' and vars ['name']. Send email to 'alice@co'. Send SMS to '+1555123'. Send Slack to '#general' with msg 'New user!'. Log delivery as 'sent'."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"translate_text\""}
-        - {type: regex, pattern: "Hello world", flags: ["I"]}
-        - {type: regex, pattern: "Spanish|es\\b", flags: ["I"]}
-    max_tokens: 256
+        - {type: regex, pattern: '"create_template"'}
+        - {type: regex, pattern: '"send_email"'}
+        - {type: regex, pattern: '"send_sms"'}
+        - {type: regex, pattern: '"send_slack"'}
+        - {type: regex, pattern: '"log_delivery"'}
+    max_tokens: 512
+    temperature: 0.3
 
-  - id: tu-13-exact-name
+  - id: tu-23-payment-flow
     prompt: |
-      Available function:
-        fetch_stock_price(ticker: str) -> float  # Returns latest stock price.
+      Tools:
+        create_customer(email: str, name: str) -> str
+        add_payment_method(customer_id: str, token: str) -> None
+        create_invoice(customer_id: str, amount: int, currency: str) -> str
+        charge(customer_id: str, amount: int, currency: str) -> dict
+        refund(charge_id: str, amount: int) -> dict
 
-      User request: "Get the price of AAPL stock."
+      User: "Create customer 'bob@co', name 'Bob'. Add payment method token 'pm_abc'. Create invoice for 2999 USD. Charge the customer. If charge succeeds, issue full refund."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"fetch_stock_price\""}
-        - {type: regex, pattern: "\"ticker\"\\s*:\\s*\"AAPL\""}
-    max_tokens: 256
+        - {type: regex, pattern: '"create_customer"'}
+        - {type: regex, pattern: '"add_payment_method"'}
+        - {type: regex, pattern: '"create_invoice"'}
 
-  - id: tu-14-optional-param
+        - {type: regex, pattern: '"charge"'}
+        - {type: regex, pattern: '"refund"'}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: tu-24-websocket-server
     prompt: |
-      Available function:
-        search(query: str, limit: int = 10) -> list
-        # limit is optional; default is 10.
+      Tools:
+        create_ws_api(name: str, route: str) -> str
+        deploy_ws(api_id: str, stage: str) -> None
+        set_integration(api_id: str, route: str, target: str) -> None
+        connect_client(api_id: str, conn_str: str) -> str
+        broadcast(api_id: str, msg: str) -> None
 
-      User request: "Search for 'climate change', I only want 5 results."
+      User: "Create WebSocket API 'chat-app' with route '$connect'. Deploy to stage 'dev'. Set integration for $connect → 'connect-function'. Connect a test client at 'ws://example.com/ws'. Broadcast 'Hello all'."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"search\""}
-        - {type: regex, pattern: "climate change", flags: ["I"]}
-        - {type: regex, pattern: "\"limit\"\\s*:\\s*5"}
-    max_tokens: 256
+        - {type: regex, pattern: '"create_ws_api"'}
+        - {type: regex, pattern: '"deploy_ws"'}
+        - {type: regex, pattern: '"set_integration"'}
+        - {type: regex, pattern: '"connect_client"'}
+        - {type: regex, pattern: '"broadcast"'}
+    max_tokens: 512
+    temperature: 0.3
 
-  - id: tu-15-dont-hallucinate-tool
+  - id: tu-25-cron-cleanup
     prompt: |
-      Available functions:
-        get_weather(city: str) -> dict
-        get_time() -> str
+      Tools:
+        create_schedule(name: str, expr: str, cmd: str) -> int
+        list_schedules() -> list[dict]
+        test_run(schedule_id: int) -> dict
+        set_timeout(schedule_id: int, sec: int) -> None
+        delete_schedule(schedule_id: int) -> None
 
-      User request: "What is the capital of France?"
+      User: "Create schedule 'cleanup-logs' with cron '0 3 * * *' running 'rm -rf /var/log/old/*'. List all schedules. Test run. If it fails, set timeout to 300s and retry. If success, keep. Otherwise delete."
 
-      None of the available functions can answer this. Output a JSON object
-      {"name": null, "arguments": {}} to indicate no function applies. JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*null"}
-    max_tokens: 256
+        - {type: regex, pattern: '"create_schedule"'}
+        - {type: regex, pattern: '"list_schedules"'}
+        - {type: regex, pattern: '"test_run"'}
+        - {type: regex, pattern: '"set_timeout"'}
+        - {type: regex, pattern: '"delete_schedule"'}
+    max_tokens: 512
+    temperature: 0.3
 
-  - id: tu-16-unit-conversion
+  - id: tu-26-service-mesh
     prompt: |
-      Available function:
-        convert_units(value: float, from_unit: str, to_unit: str) -> float
+      Tools:
+        create_virtual_service(name: str, hosts: list[str]) -> str
+        add_route(vs_name: str, match: str, dest: str, weight: int) -> None
+        set_circuit_breaker(dest: str, max_conns: int, timeout: str) -> None
+        add_retry_policy(dest: str, attempts: int, per_try_timeout: str) -> None
+        enable_mtls(namespace: str, mode: str) -> None
 
-      User request: "Convert 100 kilometres to miles."
+      User: "Create virtual service 'checkout-svc' hosts ['checkout.app.com']. Add route matching 'prefix: /api' to 'checkout-v1:8080' weight 100. Set circuit breaker: max_connections=100, timeout=5s. Add retry: 3 attempts, 2s per try. Enable STRICT mTLS in 'prod' ns."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"convert_units\""}
-        - {type: regex, pattern: "\"value\"\\s*:\\s*100"}
-        - {type: regex, pattern: "km|kilomet", flags: ["I"]}
-        - {type: regex, pattern: "mile", flags: ["I"]}
-    max_tokens: 256
+        - {type: regex, pattern: '"create_virtual_service"'}
+        - {type: regex, pattern: '"add_route"'}
+        - {type: regex, pattern: '"set_circuit_breaker"'}
+        - {type: regex, pattern: '"add_retry_policy"'}
+        - {type: regex, pattern: '"enable_mtls"'}
+    max_tokens: 768
+    temperature: 0.3
 
-  - id: tu-17-array-of-objects
+  - id: tu-27-audit-pipeline
     prompt: |
-      Available function:
-        create_contacts(contacts: list[object]) -> None
-        # Each contact object: {name: str, phone: str}
+      Tools:
+        enable_audit(service: str, region: str) -> None
+        trail_create(name: str, bucket: str, events: list[str]) -> str
+        stream_to_lambda(trail_arn: str, fn_arn: str) -> None
+        query_athena(database: str, query: str) -> list[dict]
+        visualize(data: list[dict], chart_type: str, title: str) -> str
 
-      User request: "Add contacts: Alice (555-1234) and Bob (555-5678)."
+      User: "Enable CloudTrail in 'us-east-1'. Create trail 'org-trail' → 'audit-logs' bucket capturing 'Write' and 'Read' events. Stream trail to 'audit-processor' Lambda. Query 'SELECT event_name, count(*) FROM audit GROUP BY event_name' in Athena. Visualize as bar chart."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"create_contacts\""}
-        - {type: regex, pattern: "Alice", flags: ["I"]}
-        - {type: regex, pattern: "Bob", flags: ["I"]}
-        - {type: regex, pattern: "555-1234"}
-    max_tokens: 384
+        - {type: regex, pattern: '"enable_audit"'}
+        - {type: regex, pattern: '"trail_create"'}
+        - {type: regex, pattern: '"stream_to_lambda"'}
+        - {type: regex, pattern: '"query_athena"'}
+        - {type: regex, pattern: '"visualize"'}
+    max_tokens: 768
+    temperature: 0.3
 
-  - id: tu-18-rename-file
+  - id: tu-28-feature-flag
     prompt: |
-      Available function:
-        rename_file(old_path: str, new_path: str) -> bool
+      Tools:
+        create_flag(name: str, desc: str, default: bool) -> str
+        set_rule(flag: str, condition: str, value: bool) -> None
+        evaluate(flag: str, context: dict) -> bool
+        enable_for(flag: str, user_ids: list[str]) -> None
+        delete_flag(flag: str) -> None
 
-      User request: "Rename the file /tmp/draft.txt to /tmp/final.txt."
+      User: "Create flag 'dark-mode' default false. Set rule 'country == US' → true. Evaluate for user with country=US. Enable for users ['u_1','u_2']. Then delete flag."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"rename_file\""}
-        - {type: regex, pattern: "/tmp/draft\\.txt"}
-        - {type: regex, pattern: "/tmp/final\\.txt"}
-    max_tokens: 256
+        - {type: regex, pattern: '"create_flag"'}
+        - {type: regex, pattern: '"set_rule"'}
+        - {type: regex, pattern: '"evaluate"'}
+        - {type: regex, pattern: '"enable_for"'}
+        - {type: regex, pattern: '"delete_flag"'}
+    max_tokens: 512
+    temperature: 0.3
 
-  - id: tu-19-send-with-body
+  - id: tu-29-dns-migration
     prompt: |
-      Available function:
-        send_slack_message(channel: str, text: str) -> None
+      Tools:
+        list_zones() -> list[dict]
+        create_zone(name: str) -> str
+        export_records(zone_id: str) -> str
+        import_records(zone_id: str, records: str) -> int
+        set_ttl(zone_id: str, record: str, ttl: int) -> None
+        test_resolve(domain: str) -> str
 
-      User request: "Post 'Deployment complete!' to the #releases channel."
+      User: "List all hosted zones. Create zone 'new-app.com'. Export records from old zone 'app.com'. Import into new zone. Set TTL on A record 'www' to 60. Test resolve 'www.new-app.com'."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"send_slack_message\""}
-        - {type: regex, pattern: "releases", flags: ["I"]}
-        - {type: regex, pattern: "Deployment complete", flags: ["I"]}
-    max_tokens: 256
+        - {type: regex, pattern: '"list_zones"'}
+        - {type: regex, pattern: '"create_zone"'}
+        - {type: regex, pattern: '"export_records"'}
+        - {type: regex, pattern: '"import_records"'}
+        - {type: regex, pattern: '"set_ttl"'}
+        - {type: regex, pattern: '"test_resolve"'}
+    max_tokens: 512
+    temperature: 0.3
 
-  - id: tu-20-multi-param-search
+  - id: tu-30-cost-anomaly
     prompt: |
-      Available function:
-        search_products(keyword: str, category: str, min_price: float,
-                        max_price: float) -> list
+      Tools:
+        get_cost(service: str, period: str) -> dict
+        create_budget(name: str, amount: float, threshold: list[float]) -> str
+        set_anomaly_detection(service: str, sensitivity: str) -> None
+        get_recommendations(service: str) -> list[dict]
+        apply_rightsizing(resource: str, action: str) -> None
+        export_report(period: str, format: str) -> str
 
-      User request: "Find laptops in the electronics category priced between
-      £500 and £1200."
+      User: "Get EC2 cost for last month. Create budget 'ec2-budget' at $5000 with thresholds [50,80,100]. Enable anomaly detection with 'medium' sensitivity. Get savings recommendations. Apply 'downsize' to 'i-overprovisioned'. Export PDF report."
 
-      Output the function call as JSON with keys "name" and "arguments". JSON only.
+      Output JSON tool calls in order.
     scoring:
       type: composite
       mode: all
       parts:
-        - {type: regex, pattern: "\"name\"\\s*:\\s*\"search_products\""}
-        - {type: regex, pattern: "laptop", flags: ["I"]}
-        - {type: regex, pattern: "electronic", flags: ["I"]}
-        - {type: regex, pattern: "500"}
-        - {type: regex, pattern: "1200"}
-    max_tokens: 384
+        - {type: regex, pattern: '"get_cost"'}
+        - {type: regex, pattern: '"create_budget"'}
+        - {type: regex, pattern: '"set_anomaly_detection"'}
+        - {type: regex, pattern: '"get_recommendations"'}
+        - {type: regex, pattern: '"apply_rightsizing"'}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: tu-31-serverless-deploy
+    prompt: |
+      Tools:
+        create_function(name: str, runtime: str, handler: str, code: str) -> str
+        add_trigger(fn: str, source: str, event: str) -> None
+        set_env(fn: str, vars: dict) -> None
+        set_memory(fn: str, mb: int) -> None
+        invoke(fn: str, payload: dict) -> dict
+        view_logs(fn: str, hours: int) -> str
+
+      User: "Create Lambda 'order-processor' Python 3.12, handler 'index.handler', code from 'order.zip'. Add S3 trigger on 'incoming-orders' bucket for 's3:ObjectCreated:*'. Set env vars DB_URL and API_KEY. Set memory 512MB. Invoke with test payload. View last 1h logs."
+
+      Output JSON tool calls in order.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '"create_function"'}
+        - {type: regex, pattern: '"add_trigger"'}
+        - {type: regex, pattern: '"set_env"'}
+        - {type: regex, pattern: '"set_memory"'}
+        - {type: regex, pattern: '"invoke"'}
+        - {type: regex, pattern: '"view_logs"'}
+    max_tokens: 768
+    temperature: 0.3
+
+  - id: tu-32-ml-pipeline
+    prompt: |
+      Tools:
+        load_dataset(path: str) -> dict
+        preprocess(data: dict, steps: list[str]) -> dict
+        train_model(data: dict, algo: str, params: dict) -> str
+        evaluate(model_id: str, test_data: dict) -> dict
+        deploy_model(model_id: str, endpoint: str) -> str
+
+      User: "Load dataset from 's3://ml-data/train.csv'. Preprocess with ['normalize','encode','split']. Train XGBoost with params {'n_estimators':100,'max_depth':6}. Evaluate on test split. Deploy model to 'prod-endpoint'."
+
+      Output JSON tool calls in order.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '"load_dataset"'}
+        - {type: regex, pattern: '"preprocess"'}
+        - {type: regex, pattern: '"train_model"'}
+        - {type: regex, pattern: '"evaluate"'}
+        - {type: regex, pattern: '"deploy_model"'}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: tu-33-cross-region
+    prompt: |
+      Tools:
+        replicate_bucket(src_region: str, dst_region: str, bucket: str) -> None
+        create_read_replica(db_id: str, region: str, instance_class: str) -> str
+        promote_replica(replica_id: str) -> None
+        failover_test(db_id: str) -> dict
+        verify_sync(src_table: str, dst_table: str) -> bool
+
+      User: "Replicate 'app-data' bucket from us-east-1 to eu-west-1. Create read replica of 'prod-db' in eu-west-1, db.r5.large. Promote replica to standalone. Run failover test. Verify table 'users' is in sync."
+
+      Output JSON tool calls in order.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '"replicate_bucket"'}
+        - {type: regex, pattern: '"create_read_replica"'}
+        - {type: regex, pattern: '"promote_replica"'}
+        - {type: regex, pattern: '"failover_test"'}
+        - {type: regex, pattern: '"verify_sync"'}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: tu-34-db-read-replica
+    prompt: |
+      Tools:
+        create_replica(source: str, instance: str, multi_az: bool) -> str
+        configure_read_pool(replica_id: str, min: int, max: int) -> None
+        set_weight(replica_id: str, weight: int) -> None
+        monitor_replica_lag(replica_id: str) -> dict
+        promote(replica_id: str) -> None
+
+      User: "Create read replica of 'prod-pg' with instance 'db.r6g.large', multi-AZ. Configure connection pool min=5 max=50. Set replica weight 50. Monitor replica lag. If lag>10s, promote replica to standalone."
+
+      Output JSON tool calls in order.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '"create_replica"'}
+        - {type: regex, pattern: '"configure_read_pool"'}
+        - {type: regex, pattern: '"set_weight"'}
+        - {type: regex, pattern: '"monitor_replica_lag"'}
+        - {type: regex, pattern: '"promote"'}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: tu-35-tls-renewal
+    prompt: |
+      Tools:
+        list_certs(expiring_days: int) -> list[dict]
+        renew_cert(cert_arn: str) -> str
+        validate_dns(cert_arn: str, domain: str) -> bool
+        update_listener(lb_arn: str, cert_arn: str, port: int) -> None
+        test_tls(domain: str, port: int) -> dict
+
+      User: "List certs expiring within 30 days. Renew cert 'arn:aws:acm:...'. Validate DNS for 'api.app.com'. Update ALB listener 'arn:aws:elasticloadbalancing:...' on port 443 with new cert. Test TLS connection to api.app.com:443."
+
+      Output JSON tool calls in order.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '"list_certs"'}
+        - {type: regex, pattern: '"renew_cert"'}
+        - {type: regex, pattern: '"validate_dns"'}
+        - {type: regex, pattern: '"update_listener"'}
+        - {type: regex, pattern: '"test_tls"'}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: tu-36-error-recovery
+    prompt: |
+      Tools:
+        create_snapshot(vol: str) -> str
+        start_migration(src: str, dst: str) -> str
+        check_status(task_id: str) -> str
+        rollback(task_id: str) -> None
+        alert(msg: str) -> None
+
+      User: "Snapshot volume 'vol-src'. Start migration from vol-src to vol-dst. Check status—simulate it returns 'FAILED'. Rollback the migration. Alert 'Migration failed: rolled back'."
+
+      Output JSON tool calls in order.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '"create_snapshot"'}
+        - {type: regex, pattern: '"start_migration"'}
+        - {type: regex, pattern: '"check_status"'}
+        - {type: regex, pattern: '"rollback"'}
+        - {type: regex, pattern: '"alert"'}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: tu-37-ambiguous-request
+    prompt: |
+      Tools:
+        list_clusters(env: str) -> list[dict]
+        describe_nodegroup(cluster: str, name: str) -> dict
+        scale_nodegroup(cluster: str, ng: str, desired: int) -> None
+        cordon(cluster: str, node: str) -> None
+        drain(cluster: str, node: str) -> None
+
+      User: "Fix the slow node group in production."
+
+      Which cluster? Which nodegroup? What's "slow" (CPU? memory? network?)? Which node? Ask clarification questions. List at least 2 before acting. Output Q&A then tool calls.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_any, expected: ["cluster", "which", "name", "nodegroup", "slow", "metric", "CPU", "memory"]}
+        - {type: regex, pattern: '"list_clusters"'}
+        - {type: regex, pattern: '"describe_nodegroup"'}
+    max_tokens: 768
+    temperature: 0.3
+
+  - id: tu-38-rate-limited
+    prompt: |
+      Tools:
+        api_call(endpoint: str, data: dict) -> dict
+        check_rate_limit(endpoint: str) -> int
+        get_quota(endpoint: str) -> int
+        wait(ms: int) -> None
+
+      User: "Call POST /orders with {"item":"widget","qty":5}. But first check if rate limited. If remaining quota < 10, wait 1000ms before calling."
+
+      Output JSON tool calls in order.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '"check_rate_limit"|"get_quota"'}
+        - {type: regex, pattern: '"api_call"'}
+        - {type: regex, pattern: '"wait"'}
+    max_tokens: 512
+    temperature: 0.3
+
+  - id: tu-39-permissions-check
+    prompt: |
+      Tools:
+        whoami() -> dict
+        list_permissions(resource: str) -> list[str]
+        request_access(permission: str, reason: str, duration_h: int) -> str
+        approve_access(request_id: str) -> None
+        execute(action: str, resource: str) -> dict
+
+      User: "Check your identity. Check if you have 's3:PutObject' on 'backup-bucket'. If you don't, request access for 24h with reason 'backup task'. Once approved, upload 'data.zip' to 'backup-bucket'."
+
+      Output JSON tool calls in order.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '"whoami"'}
+        - {type: regex, pattern: '"list_permissions"'}
+        - {type: regex, pattern: '"request_access"'}
+        - {type: regex, pattern: '"approve_access"'}
+        - {type: regex, pattern: '"execute"'}
+    max_tokens: 768
+    temperature: 0.3
+
+  - id: tu-40-blue-green
+    prompt: |
+      Tools:
+        create_env(name: str, config: dict) -> str
+        deploy_build(env: str, build_id: str) -> None
+        switch_traffic(blue_env: str, green_env: str, pct: int) -> None
+        smoke_test(env: str, test_suite: str) -> dict
+        terminate_env(env: str) -> None
+
+      User: "Create 'green' environment for 'api-svc' with config {'instances':4,'memory':'2GB'}. Deploy build 'b-42' to it. Switch 100% traffic from 'blue' to 'green'. Run smoke tests. Terminate the old blue environment."
+
+      Output JSON tool calls in order.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: '"create_env"'}
+        - {type: regex, pattern: '"deploy_build"'}
+        - {type: regex, pattern: '"switch_traffic"'}
+        - {type: regex, pattern: '"smoke_test"'}
+        - {type: regex, pattern: '"terminate_env"'}
+    max_tokens: 512
+    temperature: 0.3

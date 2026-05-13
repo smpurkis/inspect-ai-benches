@@ -1,0 +1,51 @@
+category: multilingual
+tasks:
+  - id: ml-01-spanish-math
+    prompt: |
+      Resuelve: Un tren sale de Madrid a 80 km/h. Otro tren sale de Barcelona a 120 km/h.
+      Si la distancia entre las dos ciudades es de 600 km, ¿cuánto tiempo tardarán en encontrarse?
+      Responde solo con el número en horas.
+    scoring: {type: regex_number, expected: 3}
+    max_tokens: 256
+
+  - id: ml-02-mandarin-math
+    prompt: |
+      小明有5个苹果，小红有3个苹果，他们一共有几个苹果？请只回答数字。
+    scoring: {type: regex_number, expected: 8}
+    max_tokens: 256
+
+  - id: ml-03-hindi-math
+    prompt: |
+      एक दुकानदार के पास 24 सेब हैं। वह 15 सेब बेचता है। उसके पास कितने सेब बचे? केवल संख्या में उत्तर दें।
+    scoring: {type: regex_number, expected: 9}
+    max_tokens: 256
+
+  - id: ml-04-arabic-math
+    prompt: |
+      إذا كان سعر الكتاب 45 ريالًا وخصم 20٪، فما هو السعر بعد الخصم؟ أجب بالرقم فقط.
+    scoring: {type: regex_number, expected: 36}
+    max_tokens: 256
+
+  - id: ml-05-japanese-reasoning
+    prompt: |
+      1から100までの数字の中で、3の倍数はいくつありますか？数字だけで答えてください。
+    scoring: {type: regex_number, expected: 33}
+    max_tokens: 256
+
+  - id: ml-06-french-math
+    prompt: |
+      Un rectangle a une longueur de 12 cm et une largeur de 5 cm. Quelle est son aire en cm² ? Réponds uniquement par le nombre.
+    scoring: {type: regex_number, expected: 60}
+    max_tokens: 256
+
+  - id: ml-07-german-reasoning
+    prompt: |
+      Wenn 5 Arbeiter 10 Tage für eine Arbeit brauchen, wie viele Tage brauchen 2 Arbeiter für die gleiche Arbeit? Antworte nur mit der Zahl.
+    scoring: {type: regex_number, expected: 25}
+    max_tokens: 256
+
+  - id: ml-08-portuguese-reasoning
+    prompt: |
+      Em uma sala há 30 alunos. 40% são meninas. Quantos meninos há na sala? Responda apenas com o número.
+    scoring: {type: regex_number, expected: 18}
+    max_tokens: 256

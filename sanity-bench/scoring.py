@@ -142,8 +142,63 @@ def score_code_exec_python(response: str, cfg: dict) -> tuple[float, str]:
     return (score, detail)
 
 
+def _check_value(value: Any, schema_entry: dict) -> list[tuple[str, bool]]:
+    """Recursively check a value against a JSON-Schema-like entry."""
+    checks: list[tuple[str, bool]] = []
+    expected_type = schema_entry.get("type", "")
+    type_map = {"str": str, "int": int, "float": (int, float),
+                "bool": bool, "list": list, "dict": dict, "number": (int, float)}
+    py_type = type_map.get(expected_type)
+    if py_type is not None:
+        checks.append((f"is_{expected_type}", isinstance(value, py_type)))
+    if expected_type == "str" and isinstance(value, str):
+        if "minLength" in schema_entry:
+            checks.append((f"minLength>={schema_entry['minLength']}", len(value) >= schema_entry["minLength"]))
+        if "maxLength" in schema_entry:
+            checks.append((f"maxLength<={schema_entry['maxLength']}", len(value) <= schema_entry["maxLength"]))
+        if "enum" in schema_entry:
+            checks.append((f"in_enum({schema_entry['enum']})", value in schema_entry["enum"]))
+        if "pattern" in schema_entry:
+            checks.append((f"pattern({schema_entry['pattern']})", bool(re.search(schema_entry["pattern"], value))))
+    if expected_type in ("int", "float", "number") and isinstance(value, (int, float)):
+        if "minimum" in schema_entry:
+            checks.append((f">={schema_entry['minimum']}", value >= schema_entry["minimum"]))
+        if "maximum" in schema_entry:
+            checks.append((f"<={schema_entry['maximum']}", value <= schema_entry["maximum"]))
+    if expected_type == "list" and isinstance(value, list):
+        items_schema = schema_entry.get("items")
+        if items_schema is not None:
+            for i, item in enumerate(value):
+                checks.extend(
+                    (f"item[{i}].{k}", v) for k, v in _check_value(item, items_schema)
+                )
+        if "minItems" in schema_entry:
+            checks.append((f"minItems>={schema_entry['minItems']}", len(value) >= schema_entry["minItems"]))
+        if "maxItems" in schema_entry:
+            checks.append((f"maxItems<={schema_entry['maxItems']}", len(value) <= schema_entry["maxItems"]))
+    if expected_type == "dict" and isinstance(value, dict):
+        properties = schema_entry.get("properties", {})
+        for prop_name, prop_schema in properties.items():
+            if prop_name in value:
+                checks.extend(
+                    (f"{prop_name}.{k}", v) for k, v in _check_value(value[prop_name], prop_schema)
+                )
+        required = schema_entry.get("required", [])
+        for r in required:
+            checks.append((f"has_{r}", r in value))
+    return checks
+
+
 def score_json_schema(response: str, cfg: dict) -> tuple[float, str]:
-    """Parse JSON from response, check required keys / required types."""
+    """Parse JSON from response, check against schema.
+
+    Supports:
+    - Simple key:type mapping (legacy): {"name": "str", "count": "int"}
+    - Extended schema (new): {"name": {"type": "str", "minLength": 1},
+                               "items": {"type": "list", "items": {"type": "str"}, "minItems": 1}}
+    - Nested dict validation via "properties" on "dict" types
+    - Enum, min/max, pattern, minLength, minItems constraints
+    """
     text = strip_thinking(response)
     m = re.search(r"```(?:json)?\s*\n(.*?)```", text, re.DOTALL)
     if m:
@@ -155,18 +210,36 @@ def score_json_schema(response: str, cfg: dict) -> tuple[float, str]:
         return (0.0, f"invalid JSON: {e}")
 
     schema = cfg.get("schema") or {}
-    required_keys = cfg.get("required_keys") or list(schema.keys())
+    is_extended = any(isinstance(v, dict) and "type" in v for v in schema.values())
+    required_keys = cfg.get("required_keys") or (list(schema.keys()) if not is_extended else [])
     checks: list[tuple[str, bool]] = []
+
+    # Legacy: required_keys is a list of key names
     for k in required_keys:
         checks.append((f"has-{k}", k in obj))
+
+    # Legacy: simple type mapping
     for k, expected_type in schema.items():
-        if k not in obj:
-            continue
-        type_map = {"str": str, "int": int, "float": (int, float),
-                    "bool": bool, "list": list, "dict": dict, "number": (int, float)}
-        t = type_map.get(expected_type)
-        if t is not None:
-            checks.append((f"type-{k}", isinstance(obj[k], t)))
+        if isinstance(expected_type, str):
+            if k not in obj:
+                continue
+            type_map = {"str": str, "int": int, "float": (int, float),
+                        "bool": bool, "list": list, "dict": dict, "number": (int, float)}
+            t = type_map.get(expected_type)
+            if t is not None:
+                checks.append((f"type-{k}", isinstance(obj[k], t)))
+
+    # Extended schema: each value is a dict with "type" and optional constraints
+    for k, entry in schema.items():
+        if isinstance(entry, dict) and "type" in entry:
+            if k not in obj:
+                if is_extended:
+                    checks.append((f"has-{k}", False))
+            else:
+                checks.extend(
+                    (f"{k}.{ck}", cv) for ck, cv in _check_value(obj[k], entry)
+                )
+
     if not checks:
         return (1.0, "parsed ok (no schema checks)")
     passed = sum(1 for _, ok in checks if ok)

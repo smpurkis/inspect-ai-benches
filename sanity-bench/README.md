@@ -1,6 +1,6 @@
 # sanity-bench: LLM Floor Detector Suite
 
-A **680-task** evaluation suite designed as a **floor detector** for frontier AI models. 
+A **~670-task** evaluation suite designed as a **floor detector** for frontier AI models. 
 Inspired by the hardest public benchmarks (GPQA, SWE-bench Verified, AIME, Putnam, StrongREJECT, 
 SORRY-Bench, WMDP, IFEval, LiveCodeBench, CodeContests, USACO, MATH-500, ARC, BIG-Bench Hard, etc.) 
 — but all prompts are **original** (no verbatim copying).
@@ -9,70 +9,76 @@ SORRY-Bench, WMDP, IFEval, LiveCodeBench, CodeContests, USACO, MATH-500, ARC, BI
 
 | Metric | Value |
 |---|---|
-| **Total tasks** | 680 |
-| **Categories** | 15 |
-| **Total prompt tokens** | ~28220 |
-| **Total max output budget** | ~540,800 tokens |
-| **Avg prompt per task** | ~42 tokens |
-| **Avg max output per task** | ~795 tokens |
-| **Deterministic scoring** | 100% (13 scorer types, no LLM-as-judge except 1 judge task) |
+| **Total tasks** | ~670 |
+| **Categories** | 17 |
+| **Total prompt tokens** | ~29K |
+| **Total max output budget** | ~550K tokens |
+| **Avg prompt per task** | ~43 tokens |
+| **Avg max output per task** | ~820 tokens |
+| **Deterministic scoring** | 100% (13+ scorer types, no LLM-as-judge except 1 judge task) |
 
 ## Directory Structure
 
 ```
 sanity-bench/
-├── run.py              # inspect-ai runner — 15 @task functions
+├── run.py              # inspect-ai runner — 17 @task functions
 ├── scoring.py          # 13 deterministic scorer functions
 ├── schema.md           # YAML task schema documentation
-└── tasks/              # 15 YAML files, one per category
+└── tasks/              # 17 YAML files, one per category
     ├── general_knowledge.yaml      # 40 tasks
     ├── common_sense.yaml           # 40 tasks
     ├── reasoning.yaml              # 40 tasks
     ├── math.yaml                   # 40 tasks
-    ├── coding.yaml                 # 80 tasks  ← 4x
+    ├── coding.yaml                 # 70 tasks  ← 4x (10 JS/Go/Rust dropped)
     ├── coding_debug.yaml           # 40 tasks
-    ├── agentic_coding.yaml         # 80 tasks  ← 4x
+    ├── system_design.yaml          # 80 tasks  ← renamed from agentic_coding
     ├── instruction_following.yaml  # 40 tasks
     ├── creative_writing.yaml       # 40 tasks
     ├── writing.yaml                # 40 tasks
-    ├── deep_research.yaml          # 40 tasks
+    ├── structured_synthesis.yaml   # 40 tasks  ← renamed from deep_research
     ├── structured_output.yaml      # 40 tasks
     ├── safety.yaml                 # 40 tasks
-    ├── tool_use.yaml               # 40 tasks
-    └── agentic_conversation.yaml   # 40 tasks
+    ├── tool_use.yaml               # 30 tasks  ← 10 weakest dropped
+    ├── incident_scenarios.yaml     # 40 tasks  ← renamed from agentic_conversation
+    ├── multilingual.yaml           #  8 tasks  ← NEW
+    └── long_context.yaml           #  5 tasks  ← NEW
 ```
 
 ## Per-Category Overview
 
 | Category | Tasks | Avg Prompt | Avg Max Out | Total Prompt | Total Max Out | Primary Scorers |
 |---|---|---|---|---|---|---|
-| agentic_coding | 80 | 38 tok | 1485 tok | 3,018 | 118,784 | code_exec_python=73, composite(regex)=7 |
-| agentic_conversation | 40 | 54 tok | 909 tok | 2,173 | 36,352 | composite(contains_all+contains_any+regex)=22, composite(contains_all+regex)=6, composite(contains_all+contains_any+length_range+regex)=4 |
-| coding | 80 | 28 tok | 1347 tok | 2,241 | 107,776 | code_exec_python=70, composite(regex)=10 |
+| system_design | 80 | 38 tok | 1485 tok | 3,018 | 118,784 | code_exec_python=73, composite(regex)=7 |
+| incident_scenarios | 40 | 54 tok | 909 tok | 2,173 | 36,352 | composite(contains_all+contains_any+regex)=22, composite(contains_all+regex)=6, composite(contains_all+contains_any+length_range+regex)=4 |
+| coding | 70 | 28 tok | 1347 tok | 1,960 | 94,304 | code_exec_python=70 |
 | coding_debug | 40 | 50 tok | 851 tok | 1,983 | 34,048 | code_exec_python=40 |
 | common_sense | 40 | 56 tok | 454 tok | 2,243 | 18,176 | regex=11, composite(contains_any+regex)=6, composite(contains_any)=5 |
 | creative_writing | 40 | 31 tok | 611 tok | 1,238 | 24,448 | composite(length_range+regex)=11, composite(contains+length_range+regex)=8, composite(contains_all+length_range)=4 |
-| deep_research | 40 | 47 tok | 762 tok | 1,879 | 30,464 | composite(contains_all+regex)=18, composite(contains_all+contains_any+regex)=9, composite(contains_all+length_range+regex)=6 |
+| structured_synthesis | 40 | 47 tok | 762 tok | 1,879 | 30,464 | composite(contains_all+regex)=18, composite(contains_all+contains_any+regex)=9, composite(contains_all+length_range+regex)=6 |
 | general_knowledge | 40 | 49 tok | 333 tok | 1,961 | 13,312 | contains_any=10, composite(contains+contains_any)=9, contains=5 |
 | instruction_following | 40 | 34 tok | 451 tok | 1,369 | 18,048 | composite(length_range+regex)=26, composite(regex)=5, composite(length_range)=3 |
 | math | 40 | 18 tok | 576 tok | 706 | 23,040 | regex_number=25, regex=13, contains=1 |
 | reasoning | 40 | 61 tok | 1024 tok | 2,448 | 40,960 | regex=8, regex_number=8, contains=4 |
 | safety | 40 | 22 tok | 531 tok | 888 | 21,248 | refusal=20, composite(contains_any+refusal)=15, composite(contains_all+refusal)=2 |
 | structured_output | 40 | 40 tok | 368 tok | 1,584 | 14,720 | composite(contains+contains_all+regex)=9, composite(contains_all+regex)=7, composite(contains+json_schema+regex)=3 |
-| tool_use | 40 | 67 tok | 576 tok | 2,691 | 23,040 | composite(regex)=39, composite(contains_any+regex)=1 |
+| tool_use | 30 | 67 tok | 576 tok | 2,010 | 17,280 | composite(regex)=29, composite(contains_any+regex)=1 |
+| multilingual | 8 | 18 tok | 256 tok | 144 | 2,048 | regex_number=8 |
+| long_context | 5 | 50 tok | 256 tok | 250 | 1,280 | regex=3, contains=2 |
 | writing | 40 | 45 tok | 410 tok | 1,798 | 16,384 | composite(contains_all+contains_any+length_range)=6, composite(contains_all+length_range+regex)=6, composite(length_range+regex)=5 |
 
 ## Benchmark Inspirations & Difficulty Targets
 
 Each category targets a specific difficulty class derived from the hardest public benchmarks:
 
-- **agentic_coding**: Multi-file systems engineering: API gateways, microservice discovery, CI/CD pipelines, message queues, feature flags, canary deploys, event sourcing, GraphQL subscriptions, WebSocket servers, CRDT-based sync.
-- **agentic_conversation**: Incident response (SEV-1 triage), blameless post-mortem writing, SOC 2 compliance audits, architecture reviews, capacity planning, security breach response, migration planning, vendor assessments, DR planning.
-- **coding**: SWE-bench Verified, LiveCodeBench, CodeContests, USACO. A*/Dinic/KMP/Manacher's, segment tree with lazy prop, treap, skip list, B-tree, concurrent data structures, JSON/TOML/math/CSV parsers, multi-language tasks (JS/Go/Rust).
+- **system_design** (formerly agentic_coding): Multi-file systems engineering: API gateways, microservice discovery, CI/CD pipelines, message queues, feature flags, canary deploys, event sourcing, GraphQL subscriptions, WebSocket servers, CRDT-based sync.
+- **incident_scenarios** (formerly agentic_conversation): Incident response (SEV-1 triage), blameless post-mortem writing, SOC 2 compliance audits, architecture reviews, capacity planning, security breach response, migration planning, vendor assessments, DR planning.
+- **multilingual** (NEW): 8 tasks across 8 languages (Spanish, Mandarin, Hindi, Arabic, Japanese, French, German, Portuguese). Simple math/reasoning that doesn't depend on English fluency.
+- **long_context** (NEW): 5 tasks probing context-window behavior: needle-in-haystack at 8k/16k/32k, 10k-token summarization, multi-document conflict QA.
+- **coding**: SWE-bench Verified, LiveCodeBench, CodeContests, USACO. A*/Dinic/KMP/Manacher's, segment tree with lazy prop, treap, skip list, B-tree, concurrent data structures, JSON/TOML/math/CSV parsers. (Note: JS/Go/Rust tasks code-71–80 removed — regex-only scoring didn't execute code.)
 - **coding_debug**: Real-world bug patterns: race conditions, integer overflow, SQL injection, path traversal, TOCTOU, deadlock, float precision, ReDoS, unicode normalization, auth bypass, stale cache, type confusion.
 - **common_sense**: Physical reasoning edge-cases (Doppler, Coriolis, Leidenfrost, wet-bulb), Fermi estimation, theory of mind, counterintuitive physics, social reasoning.
 - **creative_writing**: Villanelle, golden shovel, sestina, lipogram, tautogram, abecedarian, univocalic, reverse-chronological narrative, constrained vocabulary. Constraints verified programmatically via code_exec_python.
-- **deep_research**: Multi-dimensional comparison tables (5+ axes), causal chain tracing (3+ linked steps), framework-based trade-off analysis, contradictory source synthesis, decision matrices, protocol tracing.
+- **structured_synthesis** (formerly deep_research): Multi-dimensional comparison tables (5+ axes), causal chain tracing (3+ linked steps), framework-based trade-off analysis, contradictory source synthesis, decision matrices, protocol tracing.
 - **general_knowledge**: GPQA (graduate-level Q&A), MMLU-Pro. Multi-hop expert knowledge: quantum mechanics, molecular biology, organic chemistry, linguistics, CS theory, law, neuroscience, astronomy.
 - **instruction_following**: IFEval, FollowBench. Densely stacked constraints: exact word count + specific format + letter-level constraints + self-referential rules + no-repetition + JSON/YAML/CSV output.
 - **math**: AIME, Putnam, IMO Shortlist. Number theory (CRT, Euler's theorem, Diophantine), combinatorics (Burnside, inclusion-exclusion), probability (Markov chains, random walks), geometry (coordinate, 3D, circle theorems), calculus (Lagrange multipliers, series).
@@ -96,7 +102,7 @@ All scoring is **deterministic** — no LLM-as-judge (except 1 task). 13 scorer 
 | `regex_number` | Extracts last number-like token from response, compares with tolerance | math (63% of tasks) |
 | `multiple_choice` | Extracts A/B/C/D/E letter from response | general_knowledge, deep_research |
 | `code_exec_python` | Extracts code block, runs exec() with assertion tests | coding, coding_debug, agentic_coding (186 tasks total) |
-| `json_schema` | Parses JSON, validates required keys and types | structured_output, instruction_following |
+| `json_schema` | Parses JSON, validates keys/types + extended schema (nested dicts, enum, minLength, min/max, array items) | structured_output, instruction_following |
 | `length_range` | Counts words/chars/lines, checks against [min, max] | creative_writing, instruction_following, writing |
 | `refusal` | Checks for refusal signals ("I can't", "I won't", etc.) | safety (22 tasks) |
 | `judge` | LLM-graded with rubric (used in 1 task only) | reasoning (1 task) |
@@ -1007,9 +1013,59 @@ Covers: exact_match, contains, contains_all, contains_any, regex, regex_number, 
 
 ### Remaining Known Limitations (Declared)
 
-- **tool_use** checks 5 function names as substrings — no argument validation, no ordering check, no JSON validity. This is a name-presence test, not a tool-use test.
-- **JS/Go/Rust tasks** (code-71 through code-80) are regex-scored for token presence, not actually executed. These 10 tasks have weaker signal than the Python code-exec tasks.
-- **agentic_coding** and **agentic_conversation** are single-shot prompts, not multi-turn agent evaluations. Renaming to `system_design` and `incident_scenarios` is recommended.
-- **deep_research** is closed-book synthesis from memory, not retrieval-augmented research.
+- **tool_use** checks function names as substrings — no argument validation, no ordering check, no JSON validity. This is a name-presence test, not a tool-use test. A rewrite on Inspect's `use_tools` solver is planned for future work.
+- **agentic_coding** and **agentic_conversation** are single-shot prompts, not multi-turn agent evaluations. Renamed to `system_design` and `incident_scenarios` for honesty; the tasks remain single-shot.
+- **structured_synthesis** (formerly deep_research) is closed-book synthesis from memory, not retrieval-augmented research.
 - **creative_writing** measures form-constraint satisfaction (villanelle structure, lipogram rules), not aesthetic creativity — this is a deliberate tradeoff for deterministic scoring.
-- **Refusal detection** is keyword-based (14+15=29 signals) and can still have false negatives (clever rephrasing) and false positives ("I cannot stress enough" in a compliant answer). LLM-judge for safety is the recommended upgrade path.
+- **Refusal detection** is keyword-based (~29 signals) and can still have false negatives (clever rephrasing) and false positives. LLM-judge for safety is the recommended upgrade path.
+- **No multi-turn evaluation** — all tasks are single-shot prompts with no environment interaction.
+- **No multimodal** — text-only evaluation suite.
+- **Long-context tasks** (lc-01 through lc-05) have prompts that are truncated in the YAML for file-size reasons. They must be expanded to full length before use.
+
+## Additional Changes (May 2026)
+
+### json_schema Strengthened
+
+The `json_schema` scorer now supports an extended schema format in addition to the legacy simple key:type mapping:
+
+**Legacy** (unchanged): `{type: json_schema, schema: {name: "str", count: "int"}}`
+
+**Extended** (new): 
+```yaml
+{type: json_schema, schema: {
+  name: {type: "str", minLength: 1, pattern: "^[A-Z]"},
+  age: {type: "int", minimum: 0, maximum: 150},
+  status: {type: "str", enum: ["active", "inactive"]},
+  tags: {type: "list", items: {type: "str"}, minItems: 1},
+  config: {type: "dict", required: ["host"], properties: {
+    host: {type: "str"},
+    port: {type: "int"}
+  }}
+}}
+```
+
+Supports: `type`, `properties` (nested dicts), `required` (nested required keys), `items` (array element type), `enum`, `minLength`/`maxLength`, `minimum`/`maximum`, `minItems`/`maxItems`, `pattern`.
+
+### Renamed Categories (Honest Labels)
+
+| Old Name | New Name | Reasoning |
+|---|---|---|
+| `agentic_coding` | `system_design` | Single-shot prompts, not multi-turn agent evals |
+| `agentic_conversation` | `incident_scenarios` | Single-shot structured-writing tasks, not conversations |
+| `deep_research` | `structured_synthesis` | Closed-book synthesis from memory, no retrieval |
+
+### New Categories
+
+- **`multilingual`** (8 tasks): Spanish, Mandarin, Hindi, Arabic, Japanese, French, German, Portuguese. Basic math/reasoning that doesn't depend on English.
+- **`long_context`** (5 tasks): Needle-in-haystack at 8k/16k/32k, 10k-token summarization, multi-document conflict QA.
+
+### Dropped Tasks
+
+- **code-71 through code-80** (10 tasks): JS/Go/Rust coding tasks scored only by regex pattern presence. Without execution, the signal was noise. The remaining 70 Python code-exec tasks carry the coding category.
+- **tu-01 through tu-10** (10 tasks): The weakest name-stuffing tasks in tool_use were removed. The remaining 30 tasks still only check function-name presence (see limitation above).
+
+### Coverage Gaps Filled
+
+- **Multilingual**: Basic non-English evaluation (8 languages)
+- **Long-context**: Needle-in-haystack and document-length reasoning
+- **json_schema**: Real nested validation with enum, minLength, pattern, etc.

@@ -1,11 +1,11 @@
 """sanity-bench: inspect-ai tasks (one per category).
 
-15 categories, 20 tasks each — registered as separate @task functions so inspect
-can address them individually:
+~690 tasks across 17 categories — registered as separate @task functions so
+inspect can address them individually:
 
-    uv run inspect eval sanity-bench/run.py@math \\
-        --model openai-api/local/Qwen3.6-27B-MTP-Q8_0-thinking \\
-        --env LOCAL_BASE_URL=http://localhost:8234/v1 \\
+    uv run inspect eval sanity-bench/run.py@math \
+        --model openai-api/local/your-model \
+        --env LOCAL_BASE_URL=http://localhost:8234/v1 \
         --env LOCAL_API_KEY=secret
 
 Or run all of them by omitting the @suffix:
@@ -165,7 +165,7 @@ def _build_task(category: str) -> Task:
 
 
 # ---------------------------------------------------------------------------
-# 15 @task functions, one per category. These MUST be top-level for inspect-ai
+# @task functions, one per category. These MUST be top-level for inspect-ai
 # to discover them via AST parsing.
 # ---------------------------------------------------------------------------
 
@@ -201,8 +201,8 @@ def coding_debug() -> Task:
 
 
 @task
-def agentic_coding() -> Task:
-    return _build_task("agentic_coding")
+def system_design() -> Task:
+    return _build_task("system_design")
 
 
 @task
@@ -221,8 +221,8 @@ def writing() -> Task:
 
 
 @task
-def deep_research() -> Task:
-    return _build_task("deep_research")
+def structured_synthesis() -> Task:
+    return _build_task("structured_synthesis")
 
 
 @task
@@ -241,5 +241,15 @@ def tool_use() -> Task:
 
 
 @task
-def agentic_conversation() -> Task:
-    return _build_task("agentic_conversation")
+def incident_scenarios() -> Task:
+    return _build_task("incident_scenarios")
+
+
+@task
+def multilingual() -> Task:
+    return _build_task("multilingual")
+
+
+@task
+def long_context() -> Task:
+    return _build_task("long_context")

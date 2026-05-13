@@ -1,285 +1,1145 @@
 category: coding
 tasks:
-  - id: code-01-reverse
+  - id: code-01-lis
     prompt: |
-      Write a Python function `reverse_string(s: str) -> str` that returns the
-      reverse of the input string. Reply with just a Python code block.
+      Write `lis_length(nums: list[int]) -> int` returning the length of the longest strictly increasing subsequence. O(n^2) is fine. Edge: empty → 0. Reply with just Python code.
     scoring:
       type: code_exec_python
       tests:
-        - "assert reverse_string('hello') == 'olleh'"
-        - "assert reverse_string('') == ''"
-        - "assert reverse_string('a') == 'a'"
-        - "assert reverse_string('AB CD') == 'DC BA'"
-    max_tokens: 1536
-  - id: code-02-fizzbuzz
-    prompt: |
-      Write a Python function `fizzbuzz(n: int) -> list[str]` that returns a list
-      of strings for i in 1..=n where:
-       - "FizzBuzz" if i is divisible by 15
-       - "Fizz" if divisible by 3 (and not 15)
-       - "Buzz" if divisible by 5 (and not 15)
-       - str(i) otherwise.
-      Reply with just a Python code block.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "out = fizzbuzz(15); assert out[0]=='1' and out[2]=='Fizz' and out[4]=='Buzz' and out[14]=='FizzBuzz', out"
-        - "assert fizzbuzz(0) == []"
-        - "assert fizzbuzz(3) == ['1','2','Fizz']"
-    max_tokens: 1536
-  - id: code-03-anagram
-    prompt: |
-      Write a Python function `is_anagram(a: str, b: str) -> bool` that returns
-      True iff `a` and `b` are anagrams of each other (case-insensitive, ignoring
-      spaces). Reply with just a Python code block.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert is_anagram('listen','silent') is True"
-        - "assert is_anagram('Listen ','SILENT') is True"
-        - "assert is_anagram('hello','world') is False"
-        - "assert is_anagram('','') is True"
-    max_tokens: 1536
-  - id: code-04-prime
-    prompt: |
-      Write a Python function `nth_prime(n: int) -> int` that returns the n-th
-      prime number where `nth_prime(1) == 2`. Assume 1 <= n <= 1000.
-      Reply with just a Python code block.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert nth_prime(1) == 2"
-        - "assert nth_prime(5) == 11"
-        - "assert nth_prime(10) == 29"
-        - "assert nth_prime(25) == 97"
-    max_tokens: 1536
-  - id: code-05-flatten
-    prompt: |
-      Write a Python function `flatten(xs)` that takes an arbitrarily nested list
-      and returns a flat list of leaf values in order.
-      Reply with just a Python code block.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert flatten([]) == []"
-        - "assert flatten([1,[2,[3,[4]]]]) == [1,2,3,4]"
-        - "assert flatten([[1,2],[3,4]]) == [1,2,3,4]"
-        - "assert flatten([1,'a',[None,[True]]]) == [1,'a',None,True]"
-    max_tokens: 1536
-  - id: code-06-roman
-    prompt: |
-      Write a Python function `roman_to_int(s: str) -> int` that converts a Roman
-      numeral (1..3999) to an integer. Reply with just a Python code block.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert roman_to_int('III') == 3"
-        - "assert roman_to_int('IV') == 4"
-        - "assert roman_to_int('LVIII') == 58"
-        - "assert roman_to_int('MCMXCIV') == 1994"
-    max_tokens: 1536
-  - id: code-07-balanced
-    prompt: |
-      Write a Python function `is_balanced(s: str) -> bool` that returns True iff
-      brackets `()`, `[]`, `{}` in `s` are correctly matched/nested. Other characters
-      should be ignored. Reply with just a Python code block.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert is_balanced('()') is True"
-        - "assert is_balanced('([{}])') is True"
-        - "assert is_balanced('([)]') is False"
-        - "assert is_balanced('(a + b) * [c]') is True"
-        - "assert is_balanced(')(') is False"
-    max_tokens: 1536
-  - id: code-08-running
-    prompt: |
-      Write a Python function `running_average(nums: list[float]) -> list[float]`
-      that returns a list of the same length where element i is the average of
-      `nums[:i+1]`. Reply with just a Python code block.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert running_average([]) == []"
-        - "out = running_average([1.0, 2.0, 3.0, 4.0]); assert out == [1.0, 1.5, 2.0, 2.5], out"
-        - "out = running_average([10.0]); assert out == [10.0], out"
-    max_tokens: 1536
-  - id: code-09-merge
-    prompt: |
-      Write a Python function `merge_sorted(a: list[int], b: list[int]) -> list[int]`
-      that takes two sorted ascending lists and returns their merged sorted list
-      without using `sorted()`. Reply with just a Python code block.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert merge_sorted([], []) == []"
-        - "assert merge_sorted([1,3,5], [2,4,6]) == [1,2,3,4,5,6]"
-        - "assert merge_sorted([1,1,2], [1,3]) == [1,1,1,2,3]"
-        - "assert merge_sorted([1,2,3], []) == [1,2,3]"
-    max_tokens: 1536
-  - id: code-10-words
-    prompt: |
-      Write a Python function `top_words(text: str, k: int) -> list[str]` that
-      returns the k most frequent lowercased word tokens (split on whitespace,
-      stripped of punctuation) in `text`. Break ties by alphabetical order.
-      Reply with just a Python code block.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert top_words('a b a c b a', 2) == ['a','b']"
-        - "assert top_words('Hello, hello world!', 2) == ['hello','world']"
-        - "assert top_words('', 5) == []"
-        - "out = top_words('x y z', 2); assert out == ['x','y'], out"
-    max_tokens: 1536
-  - id: code-11-rle
-    prompt: |
-      Write a Python function `run_length_encode(s: str) -> list[tuple[str,int]]`
-      that returns a list of (character, count) pairs in order of first
-      appearance, where each pair counts a run of the same character.
-      Reply with just a Python code block.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert run_length_encode('') == []"
-        - "assert run_length_encode('aaabb') == [('a',3),('b',2)]"
-        - "assert run_length_encode('abc') == [('a',1),('b',1),('c',1)]"
-        - "assert run_length_encode('aabbaa') == [('a',2),('b',2),('a',2)]"
-    max_tokens: 768
-
-  - id: code-12-deepget
-    prompt: |
-      Write `deep_get(obj, path: str, default=None)` that takes a nested
-      dict/list structure and a dotted/bracketed path (e.g. `"a.b[0].c"`) and
-      returns the value at that path, or `default` if any step fails.
-      Reply with just a Python code block.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "d={'a':{'b':[{'c':42}]}}; assert deep_get(d,'a.b[0].c') == 42"
-        - "assert deep_get({}, 'x.y', default=0) == 0"
-        - "assert deep_get({'a':[1,2,3]}, 'a[2]') == 3"
-        - "assert deep_get({'a':{'b':1}}, 'a.c', default='miss') == 'miss'"
+        - "assert lis_length([3,1,2,4]) == 3"
+        - "assert lis_length([5,4,3,2,1]) == 1"
+        - "assert lis_length([]) == 0"
+        - "assert lis_length([1,2,3,0,4,5]) == 5"
+        - "assert lis_length([10,9,2,5,3,7,101,18]) == 4"
     max_tokens: 1024
-
-  - id: code-13-graph
+  - id: code-02-dijkstra
     prompt: |
-      Write `shortest_path(graph: dict, start, end)` returning the
-      shortest-edge-count path from `start` to `end` as a list of nodes (or
-      `[]` if no path). `graph` maps node -> list of neighbour nodes. Use BFS.
-      Reply with just a Python code block.
+      Write `shortest_path(graph: dict[int, list[tuple[int,int]]], start: int, end: int) -> int` where graph[node] = [(neighbor, weight)]. Return shortest distance or -1 if unreachable. Reply with just Python code.
     scoring:
       type: code_exec_python
+      setup: |
+        import heapq
       tests:
-        - "g={'A':['B','C'],'B':['D'],'C':['D'],'D':[]}; assert shortest_path(g,'A','D') in (['A','B','D'],['A','C','D'])"
-        - "g={'A':['B'],'B':[],'C':[]}; assert shortest_path(g,'A','C') == []"
-        - "g={'A':['A']}; assert shortest_path(g,'A','A') == ['A']"
-    max_tokens: 1024
-
-  - id: code-14-perm
+        - |
+          g = {0:[(1,4),(2,2)],1:[(3,1)],2:[(1,1),(3,5)],3:[]}
+          assert shortest_path(g,0,3) == 4
+        - "assert shortest_path({0:[(1,2)],1:[(0,2)]},0,1) == 2"
+        - "assert shortest_path({0:[],1:[]},0,1) == -1"
+        - |
+          g = {0:[(1,10),(2,1)],1:[(3,1)],2:[(1,1)],3:[]}
+          assert shortest_path(g,0,3) == 3
+    max_tokens: 1536
+  - id: code-03-topo-sort
     prompt: |
-      Write `next_permutation(nums: list[int]) -> list[int]` that returns the
-      next lexicographic permutation of `nums`. If `nums` is the largest
-      permutation, return its lowest (sorted ascending). Mutate or return — a
-      returned list is fine. Reply with just a Python code block.
+      Write `topo_sort(n: int, edges: list[tuple[int,int]]) -> list[int]`. Nodes 0..n-1. Edges (from,to). Return a valid ordering or [] if cycle exists. Reply with just Python code.
     scoring:
       type: code_exec_python
+      setup: |
+        from collections import deque
       tests:
-        - "assert next_permutation([1,2,3]) == [1,3,2]"
-        - "assert next_permutation([3,2,1]) == [1,2,3]"
-        - "assert next_permutation([1,1,5]) == [1,5,1]"
-        - "assert next_permutation([]) == []"
-    max_tokens: 1024
-
-  - id: code-15-cache
+        - "assert topo_sort(4,[(0,1),(1,2),(2,3)]) == [0,1,2,3]"
+        - "assert topo_sort(2,[(0,1),(1,0)]) == []"
+        - "assert topo_sort(3,[(0,1),(0,2)]) in [[0,1,2],[0,2,1]]"
+        - "assert topo_sort(1,[]) == [0]"
+    max_tokens: 1536
+  - id: code-04-inorder-iter
     prompt: |
-      Write a class `LRUCache` with `__init__(self, capacity: int)`,
-      `get(self, key) -> Any | None`, and `put(self, key, value)`. Evict the
-      least-recently-used entry when capacity is exceeded. Reply with just a
-      Python code block.
+      Write `inorder(root: TreeNode) -> list[int]` returning inorder traversal values iteratively (no recursion). TreeNode: val, left, right. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        class TreeNode:
+            __slots__ = ('val','left','right')
+            def __init__(self, v): self.val = v; self.left = None; self.right = None
+        def t(v,l=None,r=None): n=TreeNode(v); n.left=l; n.right=r; return n
+      tests:
+        - |
+          root = t(1,None,t(2,t(3)))
+          assert inorder(root) == [1,3,2]
+        - "assert inorder(None) == []"
+        - "assert inorder(t(1)) == [1]"
+        - |
+          root = t(1,t(2),t(3))
+          assert inorder(root) == [2,1,3]
+    max_tokens: 1024
+  - id: code-05-lru-cache
+    prompt: |
+      Write `LRUCache` class with `get(key: int) -> int` and `put(key: int, value: int) -> None`. Capacity in `__init__(capacity: int)`. LRU eviction on overflow. get returns -1 if missing. Reply with just Python code.
     scoring:
       type: code_exec_python
       tests:
         - |
           c = LRUCache(2)
-          c.put('a',1); c.put('b',2)
-          assert c.get('a') == 1
-          c.put('c',3)  # evicts b
-          assert c.get('b') is None and c.get('a') == 1 and c.get('c') == 3
+          c.put(1,1); c.put(2,2)
+          assert c.get(1) == 1
+        - |
+          c = LRUCache(2)
+          c.put(1,1); c.put(2,2); c.put(3,3)
+          assert c.get(1) == -1
         - |
           c = LRUCache(1)
-          c.put('x',1); c.put('y',2)
-          assert c.get('x') is None and c.get('y') == 2
-    max_tokens: 1024
-
-  - id: code-16-dates
+          c.put(1,1); c.put(2,2)
+          assert c.get(1) == -1
+          assert c.get(2) == 2
+        - |
+          c = LRUCache(2)
+          c.put(1,1); c.get(1); c.put(2,2); c.put(3,3)
+          assert c.get(1) == 1
+          assert c.get(2) == -1
+    max_tokens: 1536
+  - id: code-06-rate-limiter
     prompt: |
-      Write `days_between(d1: str, d2: str) -> int` returning the absolute
-      number of days between two dates in 'YYYY-MM-DD' format. You may use the
-      stdlib `datetime`. Reply with just a Python code block.
+      Write `RateLimiter` class. `__init__(max_requests: int, window: float)`. `allow() -> bool` returns True if <= max_requests in the last window seconds. Use time.monotonic. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import time, unittest.mock
+      tests:
+        - |
+          with unittest.mock.patch('time.monotonic') as mt:
+              mt.side_effect = [0.0, 0.1]
+              r = RateLimiter(1, 1.0)
+              assert r.allow() == True
+              assert r.allow() == False
+        - |
+          with unittest.mock.patch('time.monotonic') as mt:
+              mt.side_effect = [0.0, 0.1, 0.2, 1.1, 1.2]
+              r = RateLimiter(2, 1.0)
+              assert r.allow() == True
+              assert r.allow() == True
+              assert r.allow() == False
+              assert r.allow() == True
+              assert r.allow() == False
+        - |
+          with unittest.mock.patch('time.monotonic') as mt:
+              mt.side_effect = [0.0]
+              r = RateLimiter(0, 1.0)
+              assert r.allow() == False
+    max_tokens: 1536
+  - id: code-07-edit-dist
+    prompt: |
+      Write `edit_distance(a: str, b: str) -> int` returning Levenshtein distance (min insertions, deletions, substitutions). Reply with just Python code.
     scoring:
       type: code_exec_python
       tests:
-        - "assert days_between('2020-01-01','2020-01-02') == 1"
-        - "assert days_between('2020-02-28','2020-03-01') == 2"
-        - "assert days_between('2024-12-31','2024-01-01') == 365"
-    max_tokens: 768
-
-  - id: code-17-trie
+        - "assert edit_distance('horse','ros') == 3"
+        - "assert edit_distance('intention','execution') == 5"
+        - "assert edit_distance('','') == 0"
+        - "assert edit_distance('abc','') == 3"
+        - "assert edit_distance('','abc') == 3"
+        - "assert edit_distance('abc','abc') == 0"
+    max_tokens: 1024
+  - id: code-08-cycle-graph
     prompt: |
-      Implement a `Trie` class with `insert(word)` and `search_prefix(prefix)`
-      that returns the number of inserted words starting with that prefix.
-      Reply with just a Python code block.
+      Write `has_cycle(n: int, edges: list[tuple[int,int]]) -> bool`. Nodes 0..n-1. Undirected edges. Return True if graph has a cycle. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert has_cycle(3,[(0,1),(1,2),(0,2)]) == True"
+        - "assert has_cycle(3,[(0,1),(1,2)]) == False"
+        - "assert has_cycle(1,[]) == False"
+        - "assert has_cycle(5,[(0,1),(0,2),(3,4)]) == False"
+        - "assert has_cycle(5,[(0,1),(1,2),(2,3),(3,4),(4,1)]) == True"
+    max_tokens: 1024
+  - id: code-09-lca-bst
+    prompt: |
+      Write `lca_bst(root: TreeNode, p: int, q: int) -> TreeNode` returning the LCA node of nodes with values p and q in a BST. Assume p,q exist. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        class TreeNode:
+            __slots__ = ('val','left','right')
+            def __init__(self, v): self.val = v; self.left = None; self.right = None
+        def t(v,l=None,r=None): n=TreeNode(v); n.left=l; n.right=r; return n
+      tests:
+        - |
+          root = t(6,t(2,t(0),t(4,t(3),t(5))),t(8,t(7),t(9)))
+          assert lca_bst(root,2,8).val == 6
+        - "assert lca_bst(root,2,4).val == 2"
+        - "assert lca_bst(root,7,9).val == 8"
+        - "assert lca_bst(root,0,5).val == 2"
+        - "assert lca_bst(root,3,5).val == 4"
+    max_tokens: 1024
+  - id: code-10-knapsack
+    prompt: |
+      Write `knapsack(capacity: int, weights: list[int], values: list[int]) -> int` returning max total value for 0/1 knapsack. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert knapsack(50,[10,20,30],[60,100,120]) == 220"
+        - "assert knapsack(0,[1,2],[10,20]) == 0"
+        - "assert knapsack(10,[],[],[]) == 0"
+        - "assert knapsack(5,[3,4],[7,8]) == 8"
+    max_tokens: 1024
+  - id: code-11-bipartite
+    prompt: |
+      Write `is_bipartite(n: int, edges: list[tuple[int,int]]) -> bool`. Undirected graph. Return True if 2-colorable. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        from collections import deque
+      tests:
+        - "assert is_bipartite(4,[(0,1),(1,2),(2,3),(3,0)]) == True"
+        - "assert is_bipartite(3,[(0,1),(1,2),(0,2)]) == False"
+        - "assert is_bipartite(1,[]) == True"
+        - "assert is_bipartite(5,[(0,1),(1,2),(2,3),(3,4)]) == True"
+    max_tokens: 1024
+  - id: code-12-serialize-bt
+    prompt: |
+      Write `serialize(root: TreeNode) -> str` (level-order, "null" for missing) and `deserialize(s: str) -> TreeNode`. Return both functions. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        from collections import deque
+        class TreeNode:
+            __slots__ = ('val','left','right')
+            def __init__(self, v): self.val = v; self.left = None; self.right = None
+      tests:
+        - |
+          root = TreeNode(1)
+          root.left = TreeNode(2); root.right = TreeNode(3)
+          root.right.left = TreeNode(4); root.right.right = TreeNode(5)
+          s = serialize(root); r2 = deserialize(s)
+          assert serialize(r2) == s
+        - "assert serialize(None) == 'null'"
+        - "assert deserialize('1,null,null').val == 1"
+        - |
+          r = deserialize('1,2,3,null,null,4,5')
+          assert serialize(r) == '1,2,3,null,null,4,5'
+        - |
+          assert serialize(deserialize('5')) == '5'
+    max_tokens: 1536
+  - id: code-13-coin-change
+    prompt: |
+      Write `coin_change(coins: list[int], amount: int) -> int` returning minimum coins needed or -1 if impossible. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert coin_change([1,2,5],11) == 3"
+        - "assert coin_change([2],3) == -1"
+        - "assert coin_change([1],0) == 0"
+        - "assert coin_change([1,2,5,10],18) == 5"
+    max_tokens: 1024
+  - id: code-14-conn-components
+    prompt: |
+      Write `count_components(n: int, edges: list[tuple[int,int]]) -> int`. Nodes 0..n-1. Count connected components in undirected graph. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        from collections import deque
+      tests:
+        - "assert count_components(5,[(0,1),(1,2),(3,4)]) == 2"
+        - "assert count_components(4,[(0,1),(1,2),(2,3)]) == 1"
+        - "assert count_components(3,[]) == 3"
+        - "assert count_components(0,[]) == 0"
+    max_tokens: 768
+  - id: code-15-max-path-sum
+    prompt: |
+      Write `max_path_sum(root: TreeNode) -> int` returning max sum of any path between any two nodes in a binary tree. Values can be negative. Path may start/end anywhere. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        class TreeNode:
+            __slots__ = ('val','left','right')
+            def __init__(self, v): self.val = v; self.left = None; self.right = None
+        def t(v,l=None,r=None): n=TreeNode(v); n.left=l; n.right=r; return n
+      tests:
+        - |
+          root = t(1,t(2),t(3))
+          assert max_path_sum(root) == 6
+        - |
+          root = t(-10,t(9),t(20,t(15),t(7)))
+          assert max_path_sum(root) == 42
+        - "assert max_path_sum(t(-5)) == -5"
+        - |
+          root = t(-1,t(-2),t(-3))
+          assert max_path_sum(root) == -1
+        - "assert max_path_sum(None) == float('-inf')"
+    max_tokens: 1024
+  - id: code-16-longest-pal-substr
+    prompt: |
+      Write `longest_pal_substr(s: str) -> str` returning the longest palindromic substring. If multiple, return the first. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert longest_pal_substr('babad') in ('bab','aba')"
+        - "assert longest_pal_substr('cbbd') == 'bb'"
+        - "assert longest_pal_substr('') == ''"
+        - "assert longest_pal_substr('a') == 'a'"
+        - "assert longest_pal_substr('ac') in ('a','c')"
+    max_tokens: 1024
+  - id: code-17-valid-bst
+    prompt: |
+      Write `is_valid_bst(root: TreeNode) -> bool` checking if a binary tree is a valid BST. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        class TreeNode:
+            __slots__ = ('val','left','right')
+            def __init__(self, v): self.val = v; self.left = None; self.right = None
+        def t(v,l=None,r=None): n=TreeNode(v); n.left=l; n.right=r; return n
+      tests:
+        - "assert is_valid_bst(t(2,t(1),t(3))) == True"
+        - |
+          root = t(5,t(1),t(4,t(3),t(6)))
+          assert is_valid_bst(root) == False
+        - "assert is_valid_bst(None) == True"
+        - "assert is_valid_bst(t(1)) == True"
+    max_tokens: 1024
+  - id: code-18-house-robber
+    prompt: |
+      Write `rob(nums: list[int]) -> int` returning max sum robbing non-adjacent houses in a line. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert rob([1,2,3,1]) == 4"
+        - "assert rob([2,7,9,3,1]) == 12"
+        - "assert rob([]) == 0"
+        - "assert rob([5]) == 5"
+    max_tokens: 768
+  - id: code-19-all-paths-dag
+    prompt: |
+      Write `all_paths(graph: list[list[int]], start: int, end: int) -> list[list[int]]` where graph[i] = [outgoing neighbors]. Return all paths from start to end (DAG). Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert all_paths([[1,2],[3],[3],[]],0,3) == [[0,1,3],[0,2,3]]"
+        - "assert all_paths([[1],[2],[],[]],0,3) == [[0,1,2,3]]"
+        - "assert all_paths([[1],[],[]],0,2) == []"
+        - "assert all_paths([[],[],[]],0,2) == []"
+    max_tokens: 1024
+  - id: code-20-unique-paths
+    prompt: |
+      Write `unique_paths_with_obstacles(grid: list[list[int]]) -> int`. 0=free, 1=obstacle. Start top-left, end bottom-right. Right/down only. Return number of paths. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert unique_paths_with_obstacles([[0,0,0],[0,1,0],[0,0,0]]) == 2"
+        - "assert unique_paths_with_obstacles([[0,1],[0,0]]) == 1"
+        - "assert unique_paths_with_obstacles([[1,0],[0,0]]) == 0"
+        - "assert unique_paths_with_obstacles([[0]]) == 1"
+    max_tokens: 1024
+  - id: code-21-a-star
+    prompt: |
+      Write `a_star(grid: list[list[int]], start: tuple[int,int], end: tuple[int,int]) -> list[tuple[int,int]]`. 0=free, 1=wall. Return shortest path from start to end using Manhattan heuristic. Return [] if no path. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import heapq
+      tests:
+        - |
+          g = [[0,0,0],[0,1,0],[0,0,0]]
+          p = a_star(g,(0,0),(2,2))
+          assert len(p) >= 4 and p[0]==(0,0) and p[-1]==(2,2)
+        - "assert a_star([[0,1],[1,0]],(0,0),(1,1)) == []"
+        - "assert a_star([[0]],(0,0),(0,0)) == [(0,0)]"
+        - |
+          g = [[0,0,0,0],[0,1,1,0],[0,1,1,0],[0,0,0,0]]
+          p = a_star(g,(0,0),(3,3))
+          assert len(p) == 7 and p[-1]==(3,3)
+    max_tokens: 1536
+  - id: code-22-dinic-max-flow
+    prompt: |
+      Write `dinic_max_flow(n: int, edges: list[tuple[int,int,int]], s: int, t: int) -> int`. Edges are (from, to, capacity). Return max flow using Dinic's algorithm (BFS level graph + DFS blocking flow). Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        from collections import deque
+      tests:
+        - "assert dinic_max_flow(4,[(0,1,10),(0,2,10),(1,2,5),(1,3,10),(2,3,10)],0,3) == 20"
+        - "assert dinic_max_flow(2,[(0,1,5)],0,1) == 5"
+        - "assert dinic_max_flow(3,[(0,1,10),(1,2,10),(0,2,10)],0,2) == 20"
+        - "assert dinic_max_flow(6,[(0,1,16),(0,2,13),(1,2,10),(1,3,12),(2,1,4),(2,4,14),(3,2,9),(3,5,20),(4,3,7),(4,5,4)],0,5) == 23"
+    max_tokens: 2048
+  - id: code-23-kmp-search
+    prompt: |
+      Write `kmp_search(text: str, pattern: str) -> list[int]` returning all start indices where pattern occurs in text using KMP O(n+m). Empty pattern returns []. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert kmp_search('abcabcabc','abc') == [0,3,6]"
+        - "assert kmp_search('aaaaa','aa') == [0,1,2,3]"
+        - "assert kmp_search('hello','world') == []"
+        - "assert kmp_search('','a') == []"
+        - "assert kmp_search('abc','') == []"
+        - "assert kmp_search('aabaaab','aab') == [0,4]"
+    max_tokens: 1536
+  - id: code-24-manacher
+    prompt: |
+      Write `manacher(s: str) -> list[str]` returning all distinct palindromic substrings (length >= 2) using Manacher's algorithm O(n). Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert sorted(manacher('ababa')) == sorted(['aba','bab','ababa'])"
+        - "assert manacher('abc') == []"
+        - "assert manacher('') == []"
+        - "assert sorted(manacher('aaa')) == sorted(['aa','aaa'])"
+        - "assert sorted(manacher('aabaa')) == sorted(['aa','aba','aabaa'])"
+    max_tokens: 1536
+  - id: code-25-suffix-array
+    prompt: |
+      Write `suffix_array(s: str) -> tuple[list[int], list[int]]` returning (suffix_array, lcp_array) using the O(n log n) prefix-doubling method. lcp[i] = lcp between sa[i] and sa[i-1]. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "sa, lcp = suffix_array('banana'); assert sa == [5,3,1,0,4,2]"
+        - "sa, lcp = suffix_array('aaa'); assert sa == [2,1,0]"
+        - "sa, lcp = suffix_array('a'); assert sa == [0]"
+        - "sa, _ = suffix_array('cabbage'); assert len(sa) == 7"
+    max_tokens: 2048
+  - id: code-26-convex-hull
+    prompt: |
+      Write `convex_hull(points: list[tuple[int,int]]) -> list[tuple[int,int]]` returning the convex hull in CCW order using Graham scan. Points may have duplicates. Return at least 3 points for non-degenerate hull. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          hull = convex_hull([(0,0),(1,1),(2,0),(1,-1)])
+          assert len(hull) == 4
+        - "assert convex_hull([(0,0),(1,0),(2,0)]) == [(0,0),(2,0)] or convex_hull([(0,0),(1,0),(2,0)]) == [(2,0),(0,0)]"
+        - "assert len(convex_hull([(0,0),(1,1)])) == 2"
+        - |
+          pts = [(0,0),(4,0),(4,4),(0,4),(1,1)]
+          hull = set(convex_hull(pts))
+          assert all(p in hull for p in [(0,0),(4,0),(4,4),(0,4)])
+    max_tokens: 1536
+  - id: code-27-hungarian
+    prompt: |
+      Write `hungarian(cost: list[list[int]]) -> tuple[int, list[int]]` solving the assignment problem. cost[i][j] is cost of assigning worker i to job j. Return (min_cost, assignment) where assignment[i]=j. n up to 100. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          c = [[4,1,3],[2,0,5],[3,2,2]]
+          cost, assign = hungarian(c)
+          assert cost == 5
+        - "assert hungarian([[1,2],[2,1]])[0] == 2"
+        - "assert hungarian([[5]])[0] == 5"
+        - |
+          c = [[10,19,8,15],[10,18,7,17],[13,16,9,14],[12,19,8,18]]
+          assert hungarian(c)[0] == 42
+    max_tokens: 2048
+  - id: code-28-bellman-ford
+    prompt: |
+      Write `bellman_ford(n: int, edges: list[tuple[int,int,int]], start: int) -> tuple[list[int|float], bool]` returning (distances, has_negative_cycle). Edges (u,v,w). Nodes 0..n-1. Distance INF for unreachable. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          dist, neg = bellman_ford(3,[(0,1,4),(1,2,3),(0,2,7)],0)
+          assert dist[2] == 7 and not neg
+        - |
+          dist, neg = bellman_ford(3,[(0,1,-1),(1,2,-1),(2,0,-1)],0)
+          assert neg
+        - |
+          dist, neg = bellman_ford(2,[],0)
+          assert dist[1] == float('inf')
+        - |
+          dist, neg = bellman_ford(3,[(0,1,10),(1,2,-5)],0)
+          assert dist[2] == 5 and not neg
+    max_tokens: 1536
+  - id: code-29-floyd-warshall
+    prompt: |
+      Write `floyd_warshall(n: int, edges: list[tuple[int,int,int]]) -> list[list[int]]` returning all-pairs shortest distances. Edges (u,v,w). Use INF for no path. If negative cycle detected, return None. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          d = floyd_warshall(3,[(0,1,1),(1,2,2)])
+          assert d[0][2] == 3
+        - "assert floyd_warshall(2,[(0,1,-1),(1,0,-1)]) is None"
+        - |
+          d = floyd_warshall(4,[(0,1,3),(1,2,1),(2,3,7)])
+          assert d[0][3] == 11
+        - "assert floyd_warshall(1,[])[0][0] == 0"
+    max_tokens: 1536
+  - id: code-30-kruskal-mst
+    prompt: |
+      Write `kruskal(n: int, edges: list[tuple[int,int,int]]) -> list[tuple[int,int,int]]` returning the MST edges (u,v,w) sorted by weight. n nodes 0..n-1. Return empty list if graph disconnected. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          mst = kruskal(4,[(0,1,1),(1,2,2),(2,3,3),(0,3,4)])
+          assert sum(w for _,_,w in mst) == 6
+        - "assert kruskal(3,[(0,1,1)]) == []"
+        - "assert kruskal(1,[]) == []"
+        - |
+          mst = kruskal(5,[(0,1,10),(0,2,6),(0,3,5),(1,3,15),(2,3,4)])
+          assert sum(w for _,_,w in mst) == 19
+    max_tokens: 1536
+  - id: code-31-prim-mst
+    prompt: |
+      Write `prim_mst(n: int, edges: list[tuple[int,int,int]]) -> int` returning total weight of MST using Prim's algorithm. Nodes 0..n-1. Edges (u,v,w). Undirected. Return -1 if graph disconnected. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import heapq
+      tests:
+        - "assert prim_mst(4,[(0,1,1),(1,2,2),(2,3,3),(0,3,4)]) == 6"
+        - "assert prim_mst(3,[(0,1,1)]) == -1"
+        - "assert prim_mst(1,[]) == 0"
+        - "assert prim_mst(5,[(0,1,2),(0,3,6),(1,2,3),(1,3,8),(1,4,5),(2,4,7)]) == 16"
+    max_tokens: 1536
+  - id: code-32-kosaraju-scc
+    prompt: |
+      Write `kosaraju_scc(n: int, edges: list[tuple[int,int]]) -> list[list[int]]` returning strongly connected components. Nodes 0..n-1, directed edges (from,to). Each component sorted internally. Components sorted by min node. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        from collections import defaultdict
+      tests:
+        - |
+          scc = kosaraju_scc(5,[(0,1),(1,2),(2,0),(1,3),(3,4)])
+          sizes = sorted(len(c) for c in scc)
+          assert sizes == [1,1,3]
+        - "assert kosaraju_scc(3,[]) == [[0],[1],[2]]"
+        - |
+          scc = kosaraju_scc(2,[(0,1),(1,0)])
+          assert len(scc) == 1 and sorted(scc[0]) == [0,1]
+    max_tokens: 1536
+  - id: code-33-tarjan-scc
+    prompt: |
+      Write `tarjan_bridges(n: int, edges: list[tuple[int,int]]) -> list[tuple[int,int]]` returning all bridges in an undirected graph using Tarjan's DFS (tin, low). Nodes 0..n-1. Each bridge (u,v) with u < v. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          b = tarjan_bridges(5,[(0,1),(1,2),(2,0),(1,3),(3,4)])
+          assert set(b) == {(1,3),(3,4)}
+        - "assert tarjan_bridges(3,[(0,1),(0,2)]) == [(0,1),(0,2)]"
+        - "assert tarjan_bridges(2,[(0,1)]) == [(0,1)]"
+        - "assert tarjan_bridges(3,[(0,1),(1,2),(0,2)]) == []"
+    max_tokens: 1536
+  - id: code-34-rabin-karp
+    prompt: |
+      Write `rabin_karp(text: str, pattern: str) -> list[int]` returning all match positions using rolling hash (base 256, mod 10**9+7). Empty pattern returns []. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert rabin_karp('abcabc','abc') == [0,3]"
+        - "assert rabin_karp('hello','world') == []"
+        - "assert rabin_karp('aaaa','aa') == [0,1,2]"
+        - "assert rabin_karp('','a') == []"
+        - "assert rabin_karp('abc','') == []"
+    max_tokens: 1536
+  - id: code-35-quickselect
+    prompt: |
+      Write `quickselect(nums: list[int], k: int) -> int` returning the kth smallest element (1-indexed) using Hoare's selection algorithm O(n) average. Modifies input list. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert quickselect([3,2,1,5,4], 1) == 1"
+        - "assert quickselect([3,2,1,5,4], 5) == 5"
+        - "assert quickselect([1], 1) == 1"
+        - "assert quickselect([7,10,4,3,20,15], 3) == 7"
+        - "assert quickselect([5,5,5,5], 2) == 5"
+    max_tokens: 1024
+  - id: code-36-seg-tree-lazy
+    prompt: |
+      Write `SegTree` class. `__init__(n: int)` builds size-n array of zeros. `add(l: int, r: int, val: int)` range add. `sum(l: int, r: int) -> int` returns range sum. Both O(log n). 0-indexed, inclusive l, exclusive r. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          st = SegTree(5)
+          st.add(0,3,2); st.add(2,5,3)
+          assert st.sum(0,5) == 13
+        - "assert SegTree(1).sum(0,1) == 0"
+        - |
+          st = SegTree(3)
+          st.add(0,3,5); st.add(1,2,3)
+          assert st.sum(0,3) == 15 and st.sum(1,2) == 8
+        - |
+          st = SegTree(10)
+          st.add(0,10,1); st.add(0,5,2)
+          assert st.sum(0,10) == 20
+    max_tokens: 1536
+  - id: code-37-fenwick-range
+    prompt: |
+      Write `FenwickRange` class. `__init__(n: int)`. `add(l: int, r: int, val: int)` range add. `get(i: int) -> int` returns value at index i. Uses two Fenwick trees for range update + point query. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          f = FenwickRange(5)
+          f.add(0,3,2); f.add(2,5,3)
+          assert f.get(1) == 2 and f.get(2) == 5
+        - "assert FenwickRange(1).get(0) == 0"
+        - |
+          f = FenwickRange(4)
+          f.add(0,4,10); f.add(1,3,-5)
+          assert f.get(0) == 10 and f.get(2) == 5
+    max_tokens: 1536
+  - id: code-38-dsu-rollback
+    prompt: |
+      Write `DSUWithRollback` class. `__init__(n: int)`. `find(x: int) -> int` with path compression. `union(x: int, y: int) -> bool`. `snapshot()` returns checkpoint. `rollback(state)` restores. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          d = DSUWithRollback(4)
+          d.union(0,1); s = d.snapshot(); d.union(1,2)
+          assert d.find(0) == d.find(2)
+          d.rollback(s)
+          assert d.find(0) == d.find(1)
+          assert d.find(0) != d.find(2)
+        - |
+          d = DSUWithRollback(3)
+          d.union(0,1); d.union(1,2)
+          assert d.find(0) == d.find(2)
+    max_tokens: 1536
+  - id: code-39-treap
+    prompt: |
+      Write `Treap` class (randomized BST). `insert(key: int)` inserts if not present. `erase(key: int)` removes if present. `find(key: int) -> bool` checks existence. Uses random priorities with split/merge. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import random; random.seed(42)
+      tests:
+        - |
+          t = Treap()
+          for k in [3,1,4,1,5,9]: t.insert(k)
+          assert t.find(1) and t.find(5) and not t.find(2)
+        - |
+          t = Treap()
+          t.insert(1); t.erase(1)
+          assert not t.find(1)
+        - "assert not Treap().find(0)"
+        - |
+          t = Treap()
+          for k in range(100): t.insert(k)
+          for k in range(100): assert t.find(k)
+    max_tokens: 1536
+  - id: code-40-implicit-treap
+    prompt: |
+      Write `ImplicitTreap` class representing an array. `__init__(vals: list[int])`. `get(i: int) -> int`. `set(i: int, val: int)`. `reverse(l: int, r: int)` reverses subarray. `size() -> int`. Uses implicit treap with lazy reversal. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import random; random.seed(42)
+      tests:
+        - |
+          t = ImplicitTreap([1,2,3,4,5])
+          assert t.get(0) == 1 and t.get(4) == 5
+        - |
+          t = ImplicitTreap([1,2,3,4,5])
+          t.reverse(1,4); assert t.get(1) == 4
+        - "assert ImplicitTreap([]).size() == 0"
+        - |
+          t = ImplicitTreap([10])
+          assert t.get(0) == 10
+    max_tokens: 1536
+  - id: code-41-skip-list
+    prompt: |
+      Write `SkipList` class. `insert(key: int)`. `search(key: int) -> bool`. `delete(key: int)`. Uses random level (coin flip) up to max_level=16. Expected O(log n). Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import random; random.seed(42)
+      tests:
+        - |
+          sl = SkipList()
+          for v in [3,1,4,1,5,9]: sl.insert(v)
+          assert sl.search(4) and sl.search(9) and not sl.search(2)
+        - |
+          sl = SkipList()
+          sl.insert(1); sl.delete(1)
+          assert not sl.search(1)
+        - "assert not SkipList().search(0)"
+    max_tokens: 1536
+  - id: code-42-bloom-filter
+    prompt: |
+      Write `BloomFilter` class. `__init__(n: int, fp_rate: float)` where n is expected elements and fp_rate is desired false positive rate. Computes optimal m (bits) and k (hashes). `add(s: str)`. `__contains__(s: str) -> bool`. Uses mmh3 or builtin hash with seeds. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          bf = BloomFilter(1000, 0.01)
+          bf.add("hello"); bf.add("world")
+          assert "hello" in bf and "world" in bf
+        - |
+          bf = BloomFilter(100, 0.1)
+          fp = sum(1 for i in range(200) if str(i) in bf)
+          assert fp < 50
+    max_tokens: 1536
+  - id: code-43-trie
+    prompt: |
+      Write `Trie` class. `insert(word: str)`. `search(word: str) -> bool` for exact match. `starts_with(prefix: str) -> bool`. Case-sensitive. Reply with just Python code.
     scoring:
       type: code_exec_python
       tests:
         - |
           t = Trie()
-          for w in ['apple','app','apt','banana']: t.insert(w)
-          assert t.search_prefix('ap') == 3
-          assert t.search_prefix('app') == 2
-          assert t.search_prefix('ban') == 1
-          assert t.search_prefix('zzz') == 0
+          t.insert("apple"); t.insert("app")
+          assert t.search("apple") and t.search("app")
+          assert not t.search("appl")
+        - "assert t.starts_with('ap') == True"
+        - "assert t.starts_with('xyz') == False"
+        - "assert Trie().search('') == False"
     max_tokens: 1024
-
-  - id: code-18-knapsack
+  - id: code-44-sqrt-decomp
     prompt: |
-      Write `knapsack(weights: list[int], values: list[int], capacity: int) -> int`
-      that returns the maximum value achievable with the 0/1 knapsack problem.
-      Reply with just a Python code block.
+      Write `SqrtDecomp` class. `__init__(nums: list[int])`. `update(i: int, val: int)` sets nums[i]=val. `query(l: int, r: int) -> int` returns sum of nums[l:r+1]. Uses sqrt decomposition: O(sqrt(n)) per operation. Reply with just Python code.
     scoring:
       type: code_exec_python
       tests:
-        - "assert knapsack([1,3,4,5],[1,4,5,7],7) == 9"
-        - "assert knapsack([],[],10) == 0"
-        - "assert knapsack([10],[5],5) == 0"
-    max_tokens: 1024
-
-  - id: code-19-regex
+        - |
+          sd = SqrtDecomp([1,2,3,4,5])
+          assert sd.query(0,4) == 15
+        - |
+          sd = SqrtDecomp([1,2,3,4,5])
+          sd.update(2,10); assert sd.query(1,3) == 16
+        - "assert SqrtDecomp([5]).query(0,0) == 5"
+        - "assert SqrtDecomp([]) is not None"
+    max_tokens: 1536
+  - id: code-45-b-tree
     prompt: |
-      Write `match_glob(pattern: str, name: str) -> bool` supporting `*` (any
-      run of chars including none) and `?` (exactly one char). Reply with just
-      a Python code block. Do not use the `fnmatch` module.
+      Write `BTree` class with minimum degree t=2. `insert(key: int)` inserts key. `search(key: int) -> bool`. Standard B-tree insert with split on full child. Reply with just Python code.
     scoring:
       type: code_exec_python
       tests:
-        - "assert match_glob('a*c','abc') is True"
-        - "assert match_glob('a*c','ac') is True"
-        - "assert match_glob('a?c','abc') is True"
-        - "assert match_glob('a?c','ac') is False"
-        - "assert match_glob('*','anything') is True"
-        - "assert match_glob('','') is True"
-    max_tokens: 1024
-
-  - id: code-20-rotate
+        - |
+          bt = BTree()
+          for k in [10,20,5,6,12,30,7,17]:
+              bt.insert(k)
+          assert all(bt.search(k) for k in [5,6,7,10,12,17,20,30])
+          assert not bt.search(99)
+        - |
+          bt = BTree()
+          bt.insert(1); assert bt.search(1)
+        - "assert not BTree().search(0)"
+    max_tokens: 1536
+  - id: code-46-avl-tree
     prompt: |
-      Write `rotate_image(matrix: list[list[int]]) -> list[list[int]]` that
-      rotates an n×n matrix 90° clockwise. Return a new matrix (don't mutate
-      the input). Reply with just a Python code block.
+      Write `AVLTree` class. `insert(key: int)` inserts maintaining AVL balance property. `search(key: int) -> bool`. `delete(key: int)` removes key. All O(log n). Reply with just Python code.
     scoring:
       type: code_exec_python
       tests:
-        - "assert rotate_image([[1,2],[3,4]]) == [[3,1],[4,2]]"
-        - "assert rotate_image([[1]]) == [[1]]"
-        - "m=[[1,2,3],[4,5,6],[7,8,9]]; out=rotate_image(m); assert out==[[7,4,1],[8,5,2],[9,6,3]] and m==[[1,2,3],[4,5,6],[7,8,9]]"
+        - |
+          avl = AVLTree()
+          for k in [3,2,1,4,5,6,7]: avl.insert(k)
+          assert all(avl.search(k) for k in [1,2,3,4,5,6,7])
+        - |
+          avl = AVLTree()
+          avl.insert(1); avl.delete(1)
+          assert not avl.search(1)
+        - "assert not AVLTree().search(0)"
+    max_tokens: 1536
+  - id: code-47-binomial-heap
+    prompt: |
+      Write `BinomialHeap` class. `insert(val: int)`. `extract_min() -> int` removes and returns min. `merge(other)` merges two heaps. Implements binomial tree merge with consolidate. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          bh = BinomialHeap()
+          for v in [5,3,7,1,9]: bh.insert(v)
+          assert bh.extract_min() == 1
+          assert bh.extract_min() == 3
+        - |
+          bh1, bh2 = BinomialHeap(), BinomialHeap()
+          for v in [2,4]: bh1.insert(v)
+          for v in [1,3]: bh2.insert(v)
+          bh1.merge(bh2)
+          extracted = [bh1.extract_min() for _ in range(4)]
+          assert extracted == [1,2,3,4]
+    max_tokens: 1536
+  - id: code-48-sparse-table
+    prompt: |
+      Write `SparseTable` class. `__init__(nums: list[int])` builds for range min queries. `query(l: int, r: int) -> int` returns min in [l, r] inclusive O(1). Uses precomputed logs. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          st = SparseTable([4,2,3,1,5])
+          assert st.query(0,4) == 1 and st.query(0,1) == 2
+        - "assert SparseTable([1]).query(0,0) == 1"
+        - "assert SparseTable([5,4,3,2,1]).query(0,4) == 1"
+        - "assert SparseTable([1,3,2,4]).query(1,2) == 2"
+    max_tokens: 1536
+  - id: code-49-quad-tree
+    prompt: |
+      Write `QuadTree` class for 2D points. `__init__(points: list[tuple[float,float]])` builds tree. `query(x1, y1, x2, y2) -> list[tuple[float,float]]` returns points in rectangle. Capacity 4 per node. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          qt = QuadTree([(0,0),(1,1),(2,2),(10,10)])
+          res = qt.query(0,0,3,3)
+          assert len(res) == 3
+        - "assert QuadTree([]).query(0,0,1,1) == []"
+        - |
+          qt = QuadTree([(5,5)])
+          assert len(qt.query(4,4,6,6)) == 1
+    max_tokens: 1536
+  - id: code-50-cartesian-tree
+    prompt: |
+      Write `cartesian_tree(nums: list[int]) -> TreeNode` returning the root of a Cartesian tree (min-heap variant: inorder gives original array, parent < children). Use stack O(n). TreeNode: val, left, right. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        class TreeNode:
+            __slots__ = ('val','left','right')
+            def __init__(self, v): self.val = v; self.left = None; self.right = None
+        def inorder(n, out):
+            if not n: return
+            inorder(n.left, out); out.append(n.val); inorder(n.right, out)
+      tests:
+        - |
+          root = cartesian_tree([3,2,1,4])
+          vals = []; inorder(root, vals)
+          assert vals == [3,2,1,4]
+        - "assert cartesian_tree([]) is None"
+        - |
+          root = cartesian_tree([1])
+          assert root.val == 1
+        - |
+          root = cartesian_tree([5,3,7,2,8])
+          vals = []; inorder(root, vals)
+          assert vals == [5,3,7,2,8]
+    max_tokens: 1536
+  - id: code-51-concurrent-map
+    prompt: |
+      Write `ConcurrentMap` class with fine-grained locking. Uses a list of 16 dict buckets, each with its own Lock. `set(k: str, v: int)`. `get(k: str) -> int|None`. `delete(k: str)`. Thread-safe. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import threading
+      tests:
+        - |
+          cm = ConcurrentMap()
+          cm.set('a',1); cm.set('b',2)
+          assert cm.get('a') == 1 and cm.get('c') is None
+        - |
+          cm = ConcurrentMap()
+          cm.set('x',10); cm.delete('x')
+          assert cm.get('x') is None
+        - |
+          cm = ConcurrentMap()
+          def w(): cm.set('k', 42)
+          ts = [threading.Thread(target=w) for _ in range(10)]
+          for t in ts: t.start()
+          for t in ts: t.join()
+          assert cm.get('k') == 42
+    max_tokens: 1536
+  - id: code-52-lock-free-stack
+    prompt: |
+      Write a lock-free stack using `atomic` primitives. `LockFreeStack` class with `push(val: int)` and `pop() -> int|None`. Uses a `_Node` class with next pointer. Use `threading` for simulation (not atomic hardware). Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import threading
+      tests:
+        - |
+          s = LockFreeStack()
+          s.push(1); s.push(2); s.push(3)
+          assert s.pop() == 3 and s.pop() == 2 and s.pop() == 1
+        - "assert LockFreeStack().pop() is None"
+        - |
+          s = LockFreeStack()
+          s.push(42); assert s.pop() == 42
+          assert s.pop() is None
+    max_tokens: 1536
+  - id: code-53-ring-buffer
+    prompt: |
+      Write `RingBuffer` class. `__init__(capacity: int)`. `enqueue(val: int) -> bool` (False if full). `dequeue() -> int|None` (None if empty). `is_full()`, `is_empty()`. Uses list of fixed size with head/tail pointers. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          rb = RingBuffer(3)
+          assert rb.enqueue(1) and rb.enqueue(2) and rb.enqueue(3)
+          assert not rb.enqueue(4)
+        - |
+          rb = RingBuffer(3)
+          rb.enqueue(1); rb.enqueue(2)
+          assert rb.dequeue() == 1 and rb.dequeue() == 2
+          assert rb.dequeue() is None
+        - "assert RingBuffer(1).is_empty()"
+        - |
+          rb = RingBuffer(2)
+          rb.enqueue(1); rb.enqueue(2); rb.dequeue(); rb.enqueue(3)
+          assert rb.dequeue() == 2 and rb.dequeue() == 3
     max_tokens: 1024
+  - id: code-54-memory-pool
+    prompt: |
+      Write `MemoryPool` class — a slab allocator for fixed-size blocks. `__init__(block_size: int, capacity: int)`. `alloc() -> int` returns block index or -1 if full. `free(idx: int)` returns block. Pre-allocates capacity blocks in a list. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          mp = MemoryPool(64, 3)
+          a = mp.alloc(); b = mp.alloc(); c = mp.alloc()
+          assert a != -1 and b != -1 and c != -1
+          assert mp.alloc() == -1
+        - |
+          mp = MemoryPool(64, 3)
+          a = mp.alloc(); mp.free(a)
+          assert mp.alloc() != -1
+        - "assert MemoryPool(64, 0).alloc() == -1"
+    max_tokens: 1024
+  - id: code-55-work-steal
+    prompt: |
+      Write `WorkStealingScheduler` class. `__init__(num_workers: int)`. `submit(fn: callable, *args)`. `wait()` blocks until all tasks done. Each worker has a deque. Idle workers steal from others' tails. Uses threading. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import threading, collections
+      tests:
+        - |
+          sched = WorkStealingScheduler(2)
+          results = []
+          def f(x): results.append(x)
+          sched.submit(f, 1); sched.submit(f, 2); sched.wait()
+          assert sorted(results) == [1,2]
+        - |
+          sched = WorkStealingScheduler(4)
+          results = []
+          def f(): results.append(1)
+          for _ in range(10): sched.submit(f)
+          sched.wait()
+          assert len(results) == 10
+    max_tokens: 1536
+  - id: code-56-coroutine-sched
+    prompt: |
+      Write `CoroutineScheduler` class. `add(coro)` adds a generator-based coroutine. `run()` runs all cooperatively, round-robin, until all exhausted. Each coroutine yields to yield control. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          def gen():
+              for i in range(5): yield i
+          s = CoroutineScheduler()
+          s.add(gen()); s.add(gen())
+          results = s.run()
+          assert results[:5] == [0,0,1,1,2]
+          assert len(results) == 10
+        - |
+          s = CoroutineScheduler()
+          assert s.run() == []
+        - |
+          def single(): yield 42
+          s = CoroutineScheduler()
+          s.add(single())
+          assert s.run() == [42]
+    max_tokens: 1024
+  - id: code-57-thread-pool
+    prompt: |
+      Write `ThreadPool` class. `__init__(num_threads: int)`. `submit(fn, *args, **kwargs) -> Future` where Future has `result()` blocking. Workers pick tasks from queue. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import threading, queue
+      tests:
+        - |
+          pool = ThreadPool(2)
+          f1 = pool.submit(lambda x: x*2, 21)
+          f2 = pool.submit(lambda a,b: a+b, 10, 20)
+          assert f1.result() == 42 and f2.result() == 30
+        - |
+          pool = ThreadPool(1)
+          f = pool.submit(lambda: 99)
+          assert f.result() == 99
+    max_tokens: 1536
+  - id: code-58-rw-lock
+    prompt: |
+      Write `RWLock` class. `acquire_read()` / `release_read()` — multiple concurrent readers allowed. `acquire_write()` / `release_write()` — exclusive writer, blocks readers and other writers. Uses threading.Condition. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import threading
+      tests:
+        - |
+          rw = RWLock()
+          rw.acquire_read(); rw.acquire_read(); rw.release_read(); rw.release_read()
+        - |
+          rw = RWLock()
+          rw.acquire_write(); rw.release_write()
+    max_tokens: 1536
+  - id: code-59-cyclic-barrier
+    prompt: |
+      Write `CyclicBarrier` class. `__init__(n: int)`. `await_barrier()` blocks until n threads arrive, then all proceed. Can be reused. Uses threading.Condition. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import threading
+      tests:
+        - |
+          cb = CyclicBarrier(3)
+          results = []
+          def f():
+              cb.await_barrier()
+              results.append(1)
+          ts = [threading.Thread(target=f) for _ in range(3)]
+          for t in ts: t.start()
+          for t in ts: t.join()
+          assert len(results) == 3
+        - |
+          cb = CyclicBarrier(2)
+          cb.await_barrier()
+          cb.await_barrier()
+    max_tokens: 1536
+  - id: code-60-external-sort
+    prompt: |
+      Write `external_sort(nums: list[int], chunk_size: int) -> list[int]` simulating external merge sort. Split nums into chunks of chunk_size, sort each, then merge with heap. Return sorted list. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import heapq
+      tests:
+        - "assert external_sort([3,1,4,1,5,9,2,6], 3) == [1,1,2,3,4,5,6,9]"
+        - "assert external_sort([], 5) == []"
+        - "assert external_sort([1], 1) == [1]"
+        - "assert external_sort([5,4,3,2,1], 2) == [1,2,3,4,5]"
+    max_tokens: 1536
+  - id: code-61-json-parser
+    prompt: |
+      Write `parse_json(s: str) -> dict|list|str|int|float|bool|None` that tokenizes and recursively parses JSON. Supports objects, arrays, strings, numbers, booleans, null. Raise ValueError on invalid input. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert parse_json('{\"a\":1,\"b\":[2,3]}') == {'a':1,'b':[2,3]}"
+        - "assert parse_json('[1,2,3]') == [1,2,3]"
+        - "assert parse_json('true') == True and parse_json('null') is None"
+        - "assert parse_json('\"hello\"') == 'hello'"
+        - "assert parse_json('-42.5') == -42.5"
+        - |
+          try: parse_json('{invalid}'); assert False
+          except (ValueError, KeyError, IndexError, TypeError): pass
+    max_tokens: 1536
+  - id: code-62-toml-parser
+    prompt: |
+      Write `parse_toml(s: str) -> dict` parsing basic TOML. Supports [section], key = "value"|123|true|false, inline tables, dotted keys. No arrays-of-tables needed. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          res = parse_toml('title = \"TOML Example\"\n[owner]\nname = \"Tom\"')
+          assert res['title'] == 'TOML Example' and res['owner']['name'] == 'Tom'
+        - "assert parse_toml('') == {}"
+        - |
+          res = parse_toml('a.b = 1\nc = true')
+          assert res == {'a': {'b': 1}, 'c': True}
+        - |
+          res = parse_toml('[x]\ny = 2\n[z]\nw = 3')
+          assert res['x']['y'] == 2 and res['z']['w'] == 3
+    max_tokens: 1536
+  - id: code-63-md-parser
+    prompt: |
+      Write `parse_markdown(md: str) -> list[dict]` parsing headers (# H1, ## H2), bullet lists (- item), and code blocks (```...```). Each element: {"type": "h1"|"h2"|"li"|"code", "content": str}. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          res = parse_markdown('# Title\n## Section\n- item1\n- item2')
+          assert res[0] == {'type':'h1','content':'Title'}
+          assert res[2] == {'type':'li','content':'item1'}
+        - "assert parse_markdown('') == []"
+        - |
+          res = parse_markdown('```\ncode here\n```')
+          assert res[0]['type'] == 'code' and 'code here' in res[0]['content']
+        - |
+          res = parse_markdown('## A\n- x\n- y\n## B')
+          assert len(res) == 4
+    max_tokens: 1536
+  - id: code-64-math-parser
+    prompt: |
+      Write `eval_expr(expr: str) -> float` evaluating math expressions with + - * / ^ ( ) and functions sin, cos, sqrt, abs. Operator precedence: ^ > */ > +-. Use shunting-yard or recursive descent. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      setup: |
+        import math
+      tests:
+        - "assert abs(eval_expr('3+4*2') - 11) < 1e-9"
+        - "assert abs(eval_expr('(3+4)*2') - 14) < 1e-9"
+        - "assert abs(eval_expr('2^3^2') - 512) < 1e-9"
+        - "assert abs(eval_expr('sin(0)')) < 1e-9"
+        - "assert abs(eval_expr('sqrt(16)') - 4) < 1e-9"
+        - "assert abs(eval_expr('-5+3') - (-2)) < 1e-9"
+    max_tokens: 1536
+  - id: code-65-csv-parser
+    prompt: |
+      Write `parse_csv(text: str) -> list[list[str]]` parsing CSV with support for quoted fields (including embedded commas and newlines), escaped quotes (""). Return list of rows, each a list of strings. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert parse_csv('a,b,c\\n1,2,3') == [['a','b','c'],['1','2','3']]"
+        - "assert parse_csv('\"hello, world\",42') == [['hello, world','42']]"
+        - "assert parse_csv('a\\nb') == [['a'],['b']]"
+        - "assert parse_csv('\"\"\"hi\"\"\",x') == [['\"hi\"','x']]"
+        - "assert parse_csv('') == []"
+    max_tokens: 1536
+  - id: code-66-url-parser
+    prompt: |
+      Write `parse_url(url: str) -> dict` returning {"scheme": str, "host": str, "port": int|None, "path": str, "query": dict[str,str], "fragment": str}. Handle standard URL format. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          u = parse_url('https://example.com:8080/path?a=1&b=2#sec')
+          assert u['scheme']=='https' and u['host']=='example.com' and u['port']==8080
+        - |
+          u = parse_url('http://x.com')
+          assert u['scheme']=='http' and u['path']=='' and u['query']=={}
+        - "assert parse_url('/relative/path')['scheme'] == ''"
+        - "assert parse_url('ftp://a.b:21/file')['port'] == 21"
+    max_tokens: 1536
+  - id: code-67-glob-match
+    prompt: |
+      Write `glob_match(pattern: str, filename: str) -> bool` implementing glob matching. Supports * (any chars), ? (single char), [abc] (char class), [!abc] (negated class). No **. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "assert glob_match('*.txt','readme.txt')"
+        - "assert not glob_match('*.txt','readme.md')"
+        - "assert glob_match('??','ab') and not glob_match('??','a')"
+        - "assert glob_match('[!a-z]','A') and not glob_match('[!a-z]','a')"
+        - "assert glob_match('*','anything')"
+        - "assert glob_match('','') and not glob_match('','a')"
+    max_tokens: 1536
+  - id: code-68-xml-parse
+    prompt: |
+      Write `parse_xml(xml: str) -> dict` parsing minimal XML into {"tag": str, "attrs": dict, "children": list} format. Supports nested tags, attributes (key=\"val\"), and text content. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          r = parse_xml('<root><item id=\"1\">hello</item></root>')
+          assert r['tag']=='root' and r['children'][0]['tag']=='item'
+        - "assert parse_xml('<x/>')['tag'] == 'x'"
+        - |
+          r = parse_xml('<a b=\"2\"><c>text</c></a>')
+          assert r['attrs'] == {'b':'2'}
+    max_tokens: 1536
+  - id: code-69-semver-parse
+    prompt: |
+      Write `SemVer` class. Parse from "major.minor.patch" string. `__init__(s: str)`. `__str__` returns formatted. `__lt__(other)`, `__eq__(other)` for comparison. Handle pre-release labels like "1.0.0-alpha". Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - "v = SemVer('1.2.3'); assert str(v) == '1.2.3'"
+        - "assert SemVer('2.0.0') > SemVer('1.9.9')"
+        - "assert SemVer('1.0.0') == SemVer('1.0.0')"
+        - "assert SemVer('1.0.0-alpha') < SemVer('1.0.0')"
+        - "assert SemVer('1.0.0') >= SemVer('1.0.0')"
+    max_tokens: 1024
+  - id: code-70-ini-parser
+    prompt: |
+      Write `parse_ini(text: str) -> dict[str, dict[str, str]]` parsing INI format. [section] headers, key=value lines. Supports comments starting with ; or #. Leading/trailing whitespace trimmed. Reply with just Python code.
+    scoring:
+      type: code_exec_python
+      tests:
+        - |
+          res = parse_ini('[database]\nhost=localhost\nport=5432\n[debug]\nverbose=true')
+          assert res['database']['host'] == 'localhost'
+          assert res['debug']['verbose'] == 'true'
+        - "assert parse_ini('') == {}"
+        - |
+          res = parse_ini('; comment\n[sec]\nkey = val # inline')
+          assert res['sec']['key'] == 'val'
+        - |
+          res = parse_ini('[x]\na=1\n[y]\nb=2')
+          assert res['x']['a'] == '1' and res['y']['b'] == '2'
+    max_tokens: 1536
+

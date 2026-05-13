@@ -163,6 +163,7 @@ def test_refusal():
 
 def test_json_schema():
     ok = True
+    # legacy: simple key:type
     ok &= assert_score(score_json_schema,
                        '{"name": "test", "count": 42}',
                        {"schema": {"name": "str", "count": "int"}}, 1.0)
@@ -172,6 +173,45 @@ def test_json_schema():
     ok &= assert_score(score_json_schema,
                        "not json",
                        {"schema": {"name": "str"}}, 0.0)
+    # extended: enum constraint (type passes, constraint fails → partial credit)
+    ok &= assert_score(score_json_schema,
+                       '{"status": "active"}',
+                       {"schema": {"status": {"type": "str", "enum": ["active", "inactive"]}}}, 1.0)
+    ok &= assert_score(score_json_schema,
+                       '{"status": "unknown"}',
+                       {"schema": {"status": {"type": "str", "enum": ["active", "inactive"]}}}, 0.5)
+    # extended: minLength
+    ok &= assert_score(score_json_schema,
+                       '{"name": "hello"}',
+                       {"schema": {"name": {"type": "str", "minLength": 3}}}, 1.0)
+    ok &= assert_score(score_json_schema,
+                       '{"name": "ab"}',
+                       {"schema": {"name": {"type": "str", "minLength": 3}}}, 0.5)
+    # extended: number range
+    ok &= assert_score(score_json_schema,
+                       '{"age": 25}',
+                       {"schema": {"age": {"type": "int", "minimum": 0, "maximum": 150}}}, 1.0)
+    ok &= assert_score(score_json_schema,
+                       '{"age": -1}',
+                       {"schema": {"age": {"type": "int", "minimum": 0}}}, 0.5)
+    # extended: array with items
+    ok &= assert_score(score_json_schema,
+                       '{"tags": ["a", "b", "c"]}',
+                       {"schema": {"tags": {"type": "list", "items": {"type": "str"}, "minItems": 1}}}, 1.0)
+    ok &= assert_score(score_json_schema,
+                       '{"tags": []}',
+                       {"schema": {"tags": {"type": "list", "items": {"type": "str"}, "minItems": 1}}}, 0.5)
+    # extended: nested dict
+    ok &= assert_score(score_json_schema,
+                       '{"config": {"host": "localhost", "port": 8080}}',
+                       {"schema": {"config": {"type": "dict", "properties": {
+                           "host": {"type": "str"},
+                           "port": {"type": "int"}
+                       }}}}, 1.0)
+    ok &= assert_score(score_json_schema,
+                       '{"config": {"host": "localhost"}}',
+                       {"schema": {"config": {"type": "dict", "required": ["port"],
+                           "properties": {"host": {"type": "str"}, "port": {"type": "int"}}}}}, 0.667)
     print(f"  json_schema: {'PASS' if ok else 'FAIL'}")
     return ok
 

@@ -1,0 +1,96 @@
+category: long_context
+tasks:
+  - id: lc-01-needle-8k
+    prompt: |
+      # NOTE: In production, this prompt would be expanded to ~8k tokens with repeated
+      # filler text. The needle "ALPHA-7-XRAY" is embedded at position ~4k tokens
+      # within a haystack of ~270 repetitions of "The sun is yellow. The grass is green.
+      # The sky is blue." The instruction to find the secret code is at the end.
+      #
+      # [FILLER: ~270 repetitions of "The sun is yellow. The grass is green.
+      #  The sky is blue." totaling ~4000 tokens]
+      # [NEEDLE INSERTED HERE: The secret code is ALPHA-7-XRAY.]
+      # [FILLER: remaining ~270 repetitions totaling ~4000 tokens]
+      #
+      # [INSTRUCTION]:
+      What is the secret code mentioned in the text?
+    scoring: {type: regex, pattern: "(?i)ALPHA-7-XRAY|alpha.*7.*xray"}
+    max_tokens: 256
+
+  - id: lc-02-needle-16k
+    prompt: |
+      # NOTE: In production, this prompt would be expanded to ~16k tokens with repeated
+      # filler text. The needle "OMEGA-9-ZULU" is embedded at the 75% position
+      # (~12k tokens in) within a haystack of ~540 repetitions of filler text per half.
+      #
+      # [FILLER: ~540 repetitions of "The sun is yellow. The grass is green.
+      #  The sky is blue." totaling ~8000 tokens]
+      # [FILLER: another ~270 repetitions totaling ~4000 tokens]
+      # [NEEDLE INSERTED HERE: The secret code is OMEGA-9-ZULU.]
+      # [FILLER: remaining ~270 repetitions totaling ~4000 tokens]
+      #
+      # [INSTRUCTION]:
+      What is the secret code mentioned in the text?
+    scoring: {type: regex, pattern: "(?i)OMEGA-9-ZULU|omega.*9.*zulu"}
+    max_tokens: 256
+
+  - id: lc-03-needle-32k
+    prompt: |
+      # NOTE: In production, this prompt would be expanded to ~32k tokens with repeated
+      # filler text. The needle "DELTA-4-BRAVO" is embedded at the 90% position
+      # (~28.8k tokens in) within a haystack of ~1080 repetitions of filler text.
+      #
+      # [FILLER: ~1080 repetitions of "The sun is yellow. The grass is green.
+      #  The sky is blue." totaling ~16000 tokens]
+      # [FILLER: another ~800 repetitions totaling ~12800 tokens]
+      # [NEEDLE INSERTED HERE: The secret code is DELTA-4-BRAVO.]
+      # [FILLER: remaining ~120 repetitions totaling ~3200 tokens]
+      #
+      # [INSTRUCTION]:
+      What is the secret code mentioned in the text?
+    scoring: {type: regex, pattern: "(?i)DELTA-4-BRAVO|delta.*4.*bravo"}
+    max_tokens: 256
+
+  - id: lc-04-summarize
+    prompt: |
+      # NOTE: In production, this prompt would contain ~10k tokens of a fictional
+      # company history for "NovaTech Industries". The full text describes the
+      # company's founding in 1987 by Dr. Ellen Chen, its growth through the 1990s,
+      # its IPO in 2001, expansion into AI in 2015, and recent acquisitions.
+      # Below is a condensed version for the task definition; in evaluation the
+      # expanded ~10k token version is used.
+      #
+      # [~10k tokens of company history including:]
+      # NovaTech Industries was founded in 1987 by Dr. Ellen Chen, a Stanford-trained
+      # electrical engineer. The company started in a small garage in Palo Alto,
+      # California, with three employees and a vision to revolutionize semiconductor
+      # manufacturing. ...
+      # [expanded to ~10k tokens with detailed yearly milestones, product launches,
+      #  financial data, employee stories, and industry context]
+      #
+      # [QUESTION]:
+      What year was the company founded and who was the first CEO?
+    scoring: {type: contains, expected: "1987"}
+    max_tokens: 256
+
+  - id: lc-05-conflict-qa
+    prompt: |
+      # NOTE: In production, this prompt contains two ~5k token documents (Source A
+      # and Source B) describing the same historical event: the "Treaty of Westbrook
+      # Summit." Source A claims the summit took place in 1998 and was a diplomatic
+      # breakthrough. Source B claims the summit took place in 2002 and was a failure
+      # that led to sanctions. The documents contradict each other on the year,
+      # participants, and outcome.
+      #
+      # Source A (~5k tokens):
+      # The historic Treaty of Westbrook Summit occurred in 1998, bringing together
+      # leaders from 12 nations to negotiate trade agreements. ...
+      #
+      # Source B (~5k tokens):
+      # Contrary to popular accounts, the Treaty of Westbrook Summit did not take
+      # place until 2002, after years of failed negotiations. ...
+      #
+      # [QUESTION]:
+      Which source says the event happened in 1998?
+    scoring: {type: contains, expected: "Source A"}
+    max_tokens: 256

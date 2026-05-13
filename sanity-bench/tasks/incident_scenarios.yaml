@@ -1,0 +1,747 @@
+category: incident_scenarios
+tasks:
+  - id: isc-01-sev1-competing
+    prompt: |
+      Two SEV-1s just fired: (A) Payment API returning 500s on 40% of requests
+      (affecting paying customers). (B) User profile DB replica lag = 300s,
+      read-your-writes broken for all users. You are sole on-call. Choose
+      which to handle first with rationale. Then list ≥5 numbered steps to
+      resolve BOTH. Include escalation triggers at each step.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^5\\."}
+        - {type: contains_all, expected: ["payment", "replica", "lag"]}
+        - {type: contains_any, expected: ["escalat", "page", "notify", "incident commander"]}
+    max_tokens: 768
+    temperature: 0.4
+
+  - id: isc-02-oncall-zero-context
+    prompt: |
+      You pick up the on-call phone at 2 AM. No handover notes. Alerts:
+      p99 latency 200ms→6s (started 40min ago), error rate 15% (norm <1%).
+      Last deploy 50min ago by engineer now offline. List ≥6 numbered
+      investigation steps. Each step: what to check, which tool/command, and
+      what a normal result looks like. First step: check deploy dashboard.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_any, expected: ["deploy", "rollback", "revert", "dashboard"]}
+        - {type: contains_any, expected: ["grafana", "datadog", "prometheus", "metrics", "log"]}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-03-postmortem-structured
+    prompt: |
+      Write a post-mortem for an outage: A config change removed rate limits
+      from the auth service, causing cascading failures across 12 services
+      for 47 minutes. Required sections (1-2 sentences each):
+      Summary, Timeline, Root Cause, Impact, Detection, Resolution,
+      5 Whys, Action Items (with owners), Prevention. No blame language.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["Summary", "Timeline", "Root Cause", "Impact", "Detection", "Resolution", "5 Whys", "Action Items", "Prevention"]}
+        - {type: length_range, min: 10, max: 20, unit: lines}
+        - {type: regex, pattern: "^(?!(?:.*\\bblame\\b|.*\\bfault\\b|.*\\bsloppy\\b)).*$", flags: ["I", "S"]}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: isc-04-db-mass-delete
+    prompt: |
+      A developer ran DELETE FROM orders WHERE created_at < '2024-01-01' on
+      production. No backup. The query has been running for 6 minutes and
+      2M rows deleted so far (8M total). List ≥6 numbered chronological
+      response steps. Must include: kill query, disable app access, snapshot
+      current state, WAL-based PITR, verify data integrity, stakeholder
+      notification timing. Step 2 MUST be "Disable application access."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^2\\. Disable application access\\.", flags: ["M"]}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["kill", "PITR", "WAL", "snapshot", "integrity"]}
+        - {type: contains_any, expected: ["stakeholder", "notify", "incident commander"]}
+    max_tokens: 768
+    temperature: 0.4
+
+  - id: isc-05-secret-exfil
+    prompt: |
+      A PR from a fork with AWS keys in a config file was auto-merged to main
+      15 minutes ago. The keys have full S3 and EC2 access. List ≥7 numbered
+      response steps covering: key revocation, secret rotation, git history
+      cleanup (git filter-branch), fork audit, branch protection, notification
+      to security team, and post-mortem timeline. Step 1: "Revoke keys."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^1\\. Revoke keys\\.", flags: ["M"]}
+        - {type: regex, pattern: "(?m)^7\\."}
+        - {type: contains_all, expected: ["rotate", "git filter", "fork", "branch protection", "audit"]}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-06-three-pm-priorities
+    prompt: |
+      Three PMs each claim their feature blocks the release:
+      PM-A: "Realtime dashboard refresh" (2h, CSS/JS only)
+      PM-B: "Payment idempotency keys" (3d, data integrity)
+      PM-C: "Export to PDF" (6h, nice-to-have)
+      You have 5 days. Write ≥5 numbered negotiation steps for a meeting with
+      all three. Outcome: PM-C deferred. Include risk analysis for each step.
+      Begin: "1. Present data integrity risk analysis for PM-C deferral."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^1\\. Present data integrity risk analysis for PM-C deferral\\.", flags: ["M"]}
+        - {type: regex, pattern: "(?m)^5\\."}
+        - {type: contains_all, expected: ["risk", "idempotency", "defer", "data"]}
+        - {type: contains_any, expected: ["trade-off", "compromise", "MVP", "scope"]}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-07-arch-review
+    prompt: |
+      Engineering proposes: "Replace our Postgres DB with DynamoDB for all
+      customer data." Evaluate against 6 criteria: consistency model,
+      query flexibility, cost at 10TB, operational complexity, migration
+      risk, and team expertise. For each: score 1-5 and 1 sentence rationale.
+      End with your verdict (approve/reject/conditional) and conditions.
+    scoring:
+      type: composite
+      mode: mean
+      parts:
+        - {type: contains_all, expected: ["consistency", "query", "cost", "complexity", "migration", "expertise"]}
+        - {type: contains_any, expected: ["approve", "reject", "conditional"]}
+        - {type: regex, pattern: "\\b[1-5]\\b"}
+        - {type: length_range, min: 12, max: 30, unit: lines}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: isc-08-downstream-degraded
+    prompt: |
+      Your checkout service depends on AcmePay. p99 is 8s, 30% timeout rate.
+      AcmePay says "working as intended." CEO wants it fixed TODAY. List ≥5
+      numbered options ranked from least to most extreme. Each: option name,
+      1-sentence description, trade-off in parentheses. Include at least:
+      caching, circuit breaker, async fallback, vendor switch prep, and
+      contractual escalation.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^5\\."}
+        - {type: contains_all, expected: ["cache", "circuit breaker", "fallback", "escalation"]}
+        - {type: regex, pattern: "\\(.*\\).*\\(.*\\)"}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-09-migration-decision
+    prompt: |
+      Mid-migration from Mongo to Postgres: 40% done. Bug found: 5% of
+      migrated records have null email. Current DB still live with writes
+      dual-written. Options: rollback (lose 40%), forward-fix (update nulls
+      from source, complex), hotfix in destination (riskier). List ≥6
+      numbered decision criteria. State your choice and 2-sentence
+      justification based on data integrity and timeline.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["rollback", "forward", "hotfix", "null"]}
+        - {type: contains_any, expected: ["dual-write", "integrity", "timeline", "data loss"]}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-10-vendor-breach-response
+    prompt: |
+      AuthCorp (your SSO vendor) notifies you: their API keys, user email
+      hashes, and MFA seeds were exfiltrated. List ≥7 numbered response
+      steps covering: breach verification, key rotation, forced password
+      reset, MFA re-enrollment, user notification template, vendor SLA
+      enforcement, and regulatory reporting timeline. Step 3: "Force password
+      reset for all users."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^3\\. Force password reset for all users\\.", flags: ["M"]}
+        - {type: regex, pattern: "(?m)^7\\."}
+        - {type: contains_all, expected: ["rotate", "MFA", "notify", "SLA", "regulatory"]}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-11-cloud-cost-spike
+    prompt: |
+      Monthly cloud bill jumped from $15K to $62K. Finance needs answers
+      by EOD. List ≥6 numbered investigation steps. Each step: specific
+      tool or query AND what anomaly signature you're looking for. Examples:
+      "Cost Explorer → filter by service, look for datalake egress spike" or
+      "Trusted Advisor → check idle load balancers." Include at least 3 tools.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_any, expected: ["Cost Explorer", "budget", "anomaly", "Trusted Advisor", "spike"]}
+        - {type: contains_any, expected: ["rightsize", "reserved", "commitment", "downsize"]}
+    max_tokens: 768
+    temperature: 0.4
+
+  - id: isc-12-security-researcher-rce
+    prompt: |
+      A security researcher emails: they found RCE in your file upload
+      endpoint at POST /api/upload. Proof attached. They ask for $10K
+      bounty. Your company has no bug bounty program. List ≥6 numbered
+      response steps for: acknowledgment, reproduce in staging, triage
+      severity (CVSS), hotfix deploy, coordinated disclosure, and bounty
+      decision. Include CVE disclosure best practices.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["CVSS", "reproduce", "disclosure", "CVE", "hotfix"]}
+        - {type: contains_any, expected: ["acknowledge", "thank", "timeline", "coordinated"]}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-13-strangler-fig
+    prompt: |
+      Monolith "MonolithApp" crashes under any load spike. CTO approves
+      3-month strangler fig migration to microservices. List ≥6 numbered
+      migration steps: identify bounded contexts, API gateway setup, parallel
+      run, traffic shifting, cut-off criteria, and rollback plan. Each step:
+      action AND risk in [brackets]. Begin: "1. Map bounded contexts."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^1\\. Map bounded contexts\\.", flags: ["M"]}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["gateway", "parallel", "cut-off", "rollback"]}
+        - {type: regex, pattern: "\\[.*\\]"}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: isc-14-llm-prompt-leak
+    prompt: |
+      Your customer-facing AI chatbot leaked its system prompt to a user.
+      The user posted it on X (2K RTs, trending). The prompt contained
+      internal API endpoints and business rules. List ≥6 numbered response
+      steps covering: prompt fix, input/output guardrails, rate limiting,
+      PR response, legal hold, and post-mortem. Step 2: "Add output
+      guardrails to block system prompt leakage."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^2\\. Add output guardrails to block system prompt leakage\\.", flags: ["M"]}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["guardrail", "rate limit", "legal", "post-mortem"]}
+        - {type: contains_any, expected: ["X", "social", "statement", "PR", "communicat"]}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-15-capacity-100x
+    prompt: |
+      Your board asks: "Can we handle 100x traffic in 6 months?"
+      Current stack: 4 microservices on EKS (16 pods each, c5.large),
+      1 Postgres RDS db.r5.xlarge, Redis cluster 3 nodes, S3 + CloudFront.
+      List ≥6 numbered analysis steps: load testing plan, DB sharding/read
+      replicas, HPA config, cost projection for 100x, and a 2-sentence
+      verdict. Include a table with estimated nodes/DB size/cost per tier.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["load test", "shard", "read replica", "HPA", "cost"]}
+        - {type: regex, pattern: "\\d+.*nodes|\\d+.*pods|\\d+.*GB"}
+    max_tokens: 1024
+    temperature: 0.4
+
+  - id: isc-16-cache-stale-bug
+    prompt: |
+      Bug: "After updating email, old email still appears on mobile for
+      hours." Suspect CDN cache invalidation failure + async worker delay.
+      List ≥5 numbered diagnostic steps. Each: what to check, which tool
+      (curl, Redis CLI, CloudFront console, etc.), and expected signal.
+      End with a 1-sentence fix recommendation.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^5\\."}
+        - {type: contains_all, expected: ["CDN", "cache", "invalidation", "worker"]}
+        - {type: contains_any, expected: ["curl", "Redis", "CloudFront", "TTL", "origin"]}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-17-disk-full-fire
+    prompt: |
+      PagerDuty alert: Production Postgres disk 97% full, estimated 12 minutes
+      until inserts fail. DB is 2TB, growing 5GB/hour. List ≥6 numbered
+      steps in EXACT execution order. For each step: (option A / option B /
+      option C) with your choice in **bold**. Include monitoring after each.
+      End with a permanent fix for the root cause.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: regex, pattern: "\\*\\*.*\\*\\*"}
+        - {type: contains_all, expected: ["monitor", "vacuum", "archive", "permanent"]}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-18-chaos-design
+    prompt: |
+      Design a chaos experiment for the payment service. Required sections:
+      Hypothesis, Steady-state metric, Blast radius, Experiment design
+      (specific fault to inject), Duration and time window, Rollback
+      criteria, Success criteria, and Learning capture. Be specific about
+      what metric and what threshold defines success/failure.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["Hypothesis", "Steady-state", "Blast radius", "Experiment", "Rollback", "Success"]}
+        - {type: regex, pattern: "\\d+.*(?:ms|sec|min|%|rps)"}
+        - {type: contains_any, expected: ["inject", "latency", "kill", "failure", "fault"]}
+        - {type: length_range, min: 12, max: 30, unit: lines}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: isc-19-access-review
+    prompt: |
+      SOC 2 auditor requests your quarterly access review evidence. You have
+      500 employees, 200 repos, 50 GCP projects, 30 AWS accounts. List ≥7
+      numbered steps for the review cycle covering: tooling (define),
+      ownerless resource detection, dormant account cleanup, certification
+      workflow, evidence collection, exception process, and remediation
+      tracking. Include specific tool names.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^7\\."}
+        - {type: contains_all, expected: ["ownerless", "dormant", "evidence", "exception", "remediation"]}
+        - {type: contains_any, expected: ["Snyk", "CloudHealth", "AWS IAM", "GCP IAM", "automate"]}
+    max_tokens: 1024
+    temperature: 0.4
+
+  - id: isc-20-env-drift
+    prompt: |
+      Staging works. Production doesn't. Last change: "update config" by an
+      ex-employee. No IaC, no changelog. List ≥6 numbered steps to identify
+      drift. Each: specific method AND what aspect you'd compare. Include at
+      least: env vars, package versions, kernel params, TLS certs, DB schema,
+      and cron jobs. Begin: "1. Diff env vars between staging and production."
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "^1\\. Diff env vars between staging and production\\.", flags: ["M"]}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["package", "kernel", "TLS", "schema", "cron", "env"]}
+        - {type: contains_any, expected: ["diff", "compare", "version", "config"]}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-21-sla-violation
+    prompt: |
+      Your service guarantees 99.9% uptime SLA. Last month: 99.87%. One
+      customer is demanding a 10% refund ($50K). List ≥6 numbered steps:
+      verify uptime calculation, identify qualifying downtime, check SLA
+      exclusions (maintenance windows), craft response, negotiate credit,
+      implement preventive measures. Include legal review trigger points.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["exclusion", "maintenance", "credit", "legal", "prevent"]}
+        - {type: contains_any, expected: ["negotiate", "response", "customer", "goodwill"]}
+    max_tokens: 768
+    temperature: 0.4
+
+  - id: isc-22-dependency-supply-chain
+    prompt: |
+      A critical CVE (CVSS 9.8) was published for log4j-core 2.x. You use
+      it in 12 microservices. List ≥7 numbered steps covering: inventory
+      all affected services, assess exploitability, patch or mitigate,
+      verify deployment, monitor for exploitation, update SBOM, and
+      long-term supply chain security improvements. Include timeline estimates.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^7\\."}
+        - {type: contains_all, expected: ["SBOM", "mitigate", "patch", "inventory", "monitor"]}
+        - {type: contains_any, expected: ["WAF", "block", "firewall", "CVSS", "exploit"]}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-23-gdpr-deletion
+    prompt: |
+      A user requests "right to be forgotten" under GDPR. They have data in:
+      Postgres (users, orders), Elasticsearch (search logs), S3 (file uploads),
+      Kafka (event history), and Redis (session cache). List ≥7 numbered
+      steps to fully delete all user data across all systems. Include:
+      discovery, deletion strategy per system, verification, 30-day retention
+      hold, and certification to the user. Consider Kafka compaction.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^7\\."}
+        - {type: contains_all, expected: ["Kafka", "retention", "verification", "certification"]}
+        - {type: contains_any, expected: ["compact", "delete", "anonymize", "purge"]}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: isc-24-incident-commander
+    prompt: |
+      You are incident commander for a SEV-0: All 3 Kubernetes clusters in
+      us-east-1 are unreachable. 200+ microservices down. US pay traffic
+      affected. List ≥8 numbered actions you take in the first 15 minutes.
+      Include: declare incident, assemble strike team, establish comms
+      channel, assign roles (scribe, comms, eng lead), assess blast radius,
+      engage cloud provider support, begin failover to us-west-2, and
+      customer-facing status updates cadence.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^8\\."}
+        - {type: contains_all, expected: ["incident commander", "scribe", "blast radius", "failover", "status"]}
+        - {type: contains_any, expected: ["comms", "Slack", "channel", "bridge", "strike team"]}
+    max_tokens: 1024
+    temperature: 0.4
+
+  - id: isc-25-error-budget
+    prompt: |
+      Your SLO is 99.95% uptime (26m monthly error budget). 20 minutes
+      already consumed by a minor incident. The mobile team wants to deploy
+      a risky refactor (estimated 15m budget burn). List ≥6 numbered steps:
+      calculate remaining budget, assess risk of deploy, define deployment
+      gates, set up progressive delivery, communicate trade-offs, and decide
+      (approve/reject/conditional). State your decision and rationale.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["budget", "risk", "progressive", "deploy"]}
+        - {type: contains_any, expected: ["approve", "reject", "conditional", "trade-off"]}
+    max_tokens: 768
+    temperature: 0.4
+
+  - id: isc-26-sprint-planning
+    prompt: |
+      You have one quarter (12 weeks) to migrate 50 MySQL tables to
+      Vitess (sharded MySQL). Tasks: schema conversion, proxy setup, data
+      backfill, cut-over scripts, rollback plan, load testing, and team
+      training (3 engineers, 1 new hire). Break into 4 sprints. For each
+      sprint: goals, deliverables, dependencies, risks, and success metrics.
+      Include a Gantt-style timeline with weeks.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["sprint", "schema", "backfill", "cut-over", "rollback", "load test"]}
+        - {type: regex, pattern: "(?i)week\\s*\\d+.*week\\s*\\d+"}
+        - {type: contains_any, expected: ["risk", "dependency", "training", "new hire"]}
+        - {type: length_range, min: 15, max: 40, unit: lines}
+    max_tokens: 1536
+    temperature: 0.3
+
+  - id: isc-27-vendor-security-review
+    prompt: |
+      DataDog competitor "LogViewPro" wants your business. Assess their
+      security posture across 8 criteria: SOC 2 Type II report, data
+      encryption (at rest/in transit), incident response SLA, penetration
+      test frequency, subprocessor list, region of data residency, SSO
+      support, and IP retention policy. For each: score Pass/Fail/Needs
+      evidence and 1-sentence rationale. End with hire/hold decision.
+    scoring:
+      type: composite
+      mode: mean
+      parts:
+        - {type: contains_all, expected: ["SOC 2", "encryption", "incident response", "pen test", "subprocessor", "residency", "SSO", "retention"]}
+        - {type: contains_any, expected: ["Pass", "Fail", "Needs evidence"]}
+        - {type: contains_any, expected: ["hire", "hold", "conditional"]}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: isc-28-runbook-automation
+    prompt: |
+      Your team handles 50+ alerts/week. Manual response time averages 12
+      minutes. Write a plan to automate ≥4 common runbooks. For each:
+      alert name, current manual steps (list), automation approach (tool +
+      workflow), expected MTTR reduction, and failure mode (what if
+      automation fails). Include a priority ranking based on frequency ×
+      impact.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^4\\."}
+        - {type: contains_all, expected: ["MTTR", "automation", "runbook"]}
+        - {type: contains_any, expected: ["PagerDuty", "Lambda", "webhook", "incident"]}
+    max_tokens: 1024
+    temperature: 0.4
+
+  - id: isc-29-deployment-freeze
+    prompt: |
+      Black Friday is 2 weeks away. The sales team wants a last-minute
+      discount engine feature (estimated risk: moderate). Your normal
+      deploy freeze starts Monday. List ≥6 numbered steps: evaluate the
+      change risk, define exception criteria, set up additional monitoring,
+      create rollback playbook, schedule deploy window, get sign-offs, and
+      communicate to stakeholders. Each step: decision and rationale.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["freeze", "rollback", "sign-off", "monitor"]}
+        - {type: contains_any, expected: ["exception", "risk", "window", "stakeholder"]}
+    max_tokens: 768
+    temperature: 0.4
+
+  - id: isc-30-observe-gap
+    prompt: |
+      Your VP asks: "Can you confidently deploys at 4 PM on Friday?" Current
+      observability: CPU/memory dashboards, basic pager for 5xx errors,
+      and no distributed tracing. List ≥6 numbered steps to close the
+      observability gap. Cover: structured logging, distributed tracing,
+      RED metrics (Rate/Errors/Duration), SLO-based alerting, dashboard
+      standardization, and on-call readiness. Include specific tools.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["tracing", "RED", "SLO", "alerting", "dashboard"]}
+        - {type: contains_any, expected: ["OpenTelemetry", "Datadog", "Grafana", "Honeycomb", "Jaeger"]}
+    max_tokens: 1024
+    temperature: 0.4
+
+  - id: isc-31-disaster-recovery-test
+    prompt: |
+      Design a DR test for your primary Postgres database (2TB, cross-region
+      replication to us-west-2 with 30s lag). Required sections: Test
+      objectives, Pre-conditions, Step-by-step failover procedure, Data
+      integrity verification, Rollback procedure, Success criteria, and
+      Timeline. Include a specific RTO and RPO target. What could go wrong?
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["RTO", "RPO", "failover", "verification", "rollback"]}
+        - {type: contains_any, expected: ["lag", "replication", "consistency", "checksum"]}
+        - {type: contains_any, expected: ["go wrong", "risk", "blast radius", "failure mode"]}
+        - {type: length_range, min: 12, max: 35, unit: lines}
+    max_tokens: 1024
+    temperature: 0.4
+
+  - id: isc-32-api-deprecation
+    prompt: |
+      You need to deprecate Payments API v1 (10K active integrations, 30%
+      of traffic). v2 has been stable for 6 months. Plan the deprecation
+      across ≥6 phases: announce (with migration guide timing), head
+      monitoring (measure adoption), set sunset date, enforce migration
+      (return 406 for non-migrated), verify shutdown, and retrospective.
+      For each: timeline, success metric, and contingency.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["announce", "migration guide", "sunset", "406", "contingency"]}
+        - {type: contains_any, expected: ["header", "monitor", "adoption", "partner", "communicat"]}
+    max_tokens: 1024
+    temperature: 0.4
+
+  - id: isc-33-new-hire-ramp
+    prompt: |
+      Three new SREs start Monday. Your platform: 200 microservices across
+      6 K8s clusters, 50 databases, custom CI/CD, and 400+ alerts/week.
+      Design a 30/60/90 day ramp plan. For each phase: goals, specific
+      deliverables, mentorship pairing, incident shadowing schedule, and
+      success criteria. Include how you measure when they can take on-call
+      independently.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["30", "60", "90", "mentor", "on-call"]}
+        - {type: contains_any, expected: ["shadow", "pair", "rotation", "incident"]}
+        - {type: contains_any, expected: ["deliverable", "goal", "milestone", "success"]}
+        - {type: length_range, min: 12, max: 35, unit: lines}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: isc-34-tech-debt-budget
+    prompt: |
+      Engineering velocity dropped 40% over 2 quarters. Root cause: tech
+      debt (untested code, no CI, monolith). Propose a tech debt reduction
+      program. List ≥6 numbered elements: debt inventory method, measurement
+      framework (use a specific metric), allocation model (% of sprint
+      capacity), prioritization matrix, review cadence, and success
+      criteria. Include a worked example of the prioritization matrix.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^6\\."}
+        - {type: contains_all, expected: ["inventory", "metric", "capacity", "prioritization"]}
+        - {type: contains_any, expected: ["interest", "principal", "quadrant", "ICE", "RICE"]}
+    max_tokens: 1024
+    temperature: 0.4
+
+  - id: isc-35-database-version-upgrade
+    prompt: |
+      Postgres 14 reaches EOL next quarter. You run 20 Postgres 14 instances
+      (largest 8TB). Write a numbered upgrade plan (≥8 steps) covering:
+      pre-upgrade compatibility checks, logical replication setup for
+      zero-downtime, canary instance first, performance regression testing,
+      rollback plan (stay on 14 if issues), application connection string
+      updates, and post-upgrade vacuum/analyze. Include timeline per step.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^8\\."}
+        - {type: contains_all, expected: ["logical replication", "canary", "performance", "rollback", "connection string"]}
+        - {type: contains_any, expected: ["vacuum", "analyze", "EOL", "compat"]}
+    max_tokens: 1024
+    temperature: 0.4
+
+  - id: isc-36-zero-trust-migration
+    prompt: |
+      Your CISO mandates zero-trust network architecture in 6 months.
+      Current: VPC-based, all services can talk, VPN access for engineers.
+      List ≥7 numbered workstreams: micro-segmentation, service mesh
+      (mTLS), identity-aware proxy, certificate management, VPN replacement,
+      policy-as-code, and monitoring. For each: approach, tool, timeline
+      (in months), and risk. End with a dependency graph between workstreams.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^7\\."}
+        - {type: contains_all, expected: ["micro-segmentation", "mTLS", "identity-aware", "policy-as-code"]}
+        - {type: contains_any, expected: ["dependency", "critical path", "block", "gate"]}
+    max_tokens: 1024
+    temperature: 0.5
+
+  - id: isc-37-soc2-evidence-collection
+    prompt: |
+      SOC 2 Type II audit in 4 weeks. Missing evidence for 5 controls:
+      Change management (code review + approval), Access reviews (quarterly),
+      Incident response (tested), Data retention (documented), Vendor
+      management (assessments). For each: current state, gap, action plan
+      to produce evidence within 4 weeks, and evidence artifact format.
+      Prioritize by auditor risk.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["Change management", "Access reviews", "Incident response", "Data retention", "Vendor management"]}
+        - {type: contains_any, expected: ["artifact", "screenshot", "log", "report", "evidence"]}
+        - {type: regex, pattern: "(?i)gap.*action|action.*gap"}
+        - {type: length_range, min: 15, max: 40, unit: lines}
+    max_tokens: 1024
+    temperature: 0.3
+
+  - id: isc-38-oncall-handoff
+    prompt: |
+      Previous on-call left these notes: "Something weird with the DB.
+      Maybe a connection pool issue? Check the dashboards. Also some users
+      report slowness. Didn't have time to investigate. Good luck!" Write a
+      proper on-call handoff document for the next shift. Required sections:
+      Summary of active issues, Detailed investigation notes (≥3), Runbook
+      links, Escalation contacts, Pending decisions, and Recommendations.
+      Fill in specific missing details the previous engineer omitted.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: contains_all, expected: ["Summary", "Investigation", "Runbook", "Escalation", "Pending", "Recommendations"]}
+        - {type: contains_any, expected: ["connection pool", "slow query", "database", "dashboard"]}
+        - {type: length_range, min: 10, max: 25, unit: lines}
+    max_tokens: 768
+    temperature: 0.4
+
+  - id: isc-39-performance-regression
+    prompt: |
+      Your CI pipeline runs a performance benchmark every night. For 3
+      straight days, p50 latency is up 15% and p99 is up 40%. No obvious
+      code changes (the diffs are docs and configs). List ≥7 numbered
+      investigation steps: profile production traffic, compare DB query
+      plans, check external dependency latency, review GC/logging changes,
+      examine deployment history, A/B test with rollback, and correlation
+      analysis. Include tool names for each step.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?m)^1\\."}
+        - {type: regex, pattern: "(?m)^7\\."}
+        - {type: contains_all, expected: ["profile", "query plan", "A/B test", "correlation"]}
+        - {type: contains_any, expected: ["flame graph", "EXPLAIN", "stats", "pprof", "datadog"]}
+    max_tokens: 768
+    temperature: 0.5
+
+  - id: isc-40-incident-postmortem-review
+    prompt: |
+      Review this post-mortem excerpt and identify ≥5 gaps:
+      "An engineer made a manual config change that caused an outage. We
+      fixed it by reverting. Action items: be more careful, review changes."
+      Criticize each gap using incident analysis best practices (blameless
+      culture, systemic root cause, specific action items, measurement).
+      Then rewrite the post-mortem properly: Summary, Root Causes (≥2),
+      Timeline, Action Items (≥3 with owners and due dates), Prevention.
+    scoring:
+      type: composite
+      mode: all
+      parts:
+        - {type: regex, pattern: "(?i)gap"}
+        - {type: contains_all, expected: ["blameless", "systemic", "owner", "due date"]}
+        - {type: contains_all, expected: ["Summary", "Root Causes", "Timeline", "Action Items", "Prevention"]}
+        - {type: length_range, min: 15, max: 35, unit: lines}
+    max_tokens: 1024
+    temperature: 0.3
