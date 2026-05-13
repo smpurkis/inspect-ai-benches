@@ -209,9 +209,28 @@ def test_json_schema():
                            "port": {"type": "int"}
                        }}}}, 1.0)
     ok &= assert_score(score_json_schema,
-                       '{"config": {"host": "localhost"}}',
-                       {"schema": {"config": {"type": "dict", "required": ["port"],
-                           "properties": {"host": {"type": "str"}, "port": {"type": "int"}}}}}, 0.667)
+                        '{"config": {"host": "localhost"}}',
+                        {"schema": {"config": {"type": "dict", "required": ["port"],
+                            "properties": {"host": {"type": "str"}, "port": {"type": "int"}}}}}, 0.667)
+    # standard JSON Schema format (properties/required at root)
+    ok &= assert_score(score_json_schema,
+                        '{"angle_degrees": 0.9, "shadow_cm": 28}',
+                        {"schema": {"type": "object", "properties": {
+                            "angle_degrees": {"type": "number"},
+                            "shadow_cm": {"type": "integer"}
+                        }, "required": ["angle_degrees", "shadow_cm"]}}, 1.0)
+    ok &= assert_score(score_json_schema,
+                        '{"angle_degrees": 0.9}',
+                        {"schema": {"type": "object", "properties": {
+                            "angle_degrees": {"type": "number"},
+                            "shadow_cm": {"type": "integer"}
+                        }, "required": ["angle_degrees", "shadow_cm"]}}, 0.5)
+    ok &= assert_score(score_json_schema,
+                        '{"angle_degrees": "0.9", "shadow_cm": 28}',
+                        {"schema": {"type": "object", "properties": {
+                            "angle_degrees": {"type": "number"},
+                            "shadow_cm": {"type": "integer"}
+                        }, "required": ["angle_degrees", "shadow_cm"]}}, 0.75)
     print(f"  json_schema: {'PASS' if ok else 'FAIL'}")
     return ok
 

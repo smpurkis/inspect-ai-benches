@@ -146,7 +146,7 @@ def _check_value(value: Any, schema_entry: dict) -> list[tuple[str, bool]]:
     """Recursively check a value against a JSON-Schema-like entry."""
     checks: list[tuple[str, bool]] = []
     expected_type = schema_entry.get("type", "")
-    type_map = {"str": str, "int": int, "float": (int, float),
+    type_map = {"str": str, "int": int, "integer": int, "float": (int, float),
                 "bool": bool, "list": list, "dict": dict, "number": (int, float)}
     py_type = type_map.get(expected_type)
     if py_type is not None:
@@ -210,27 +210,36 @@ def score_json_schema(response: str, cfg: dict) -> tuple[float, str]:
         return (0.0, f"invalid JSON: {e}")
 
     schema = cfg.get("schema") or {}
-    is_extended = any(isinstance(v, dict) and "type" in v for v in schema.values())
-    required_keys = cfg.get("required_keys") or (list(schema.keys()) if not is_extended else [])
     checks: list[tuple[str, bool]] = []
+
+    # Detect standard JSON Schema format: {"type": "object", "properties": {...}, "required": [...]}
+    if "properties" in schema and isinstance(schema.get("properties"), dict):
+        properties = schema["properties"]
+        is_extended = True
+        required_keys = schema.get("required", list(properties.keys()))
+        effective_schema = properties
+    else:
+        is_extended = any(isinstance(v, dict) and "type" in v for v in schema.values())
+        required_keys = cfg.get("required_keys") or (list(schema.keys()) if not is_extended else [])
+        effective_schema = schema
 
     # Legacy: required_keys is a list of key names
     for k in required_keys:
         checks.append((f"has-{k}", k in obj))
 
     # Legacy: simple type mapping
-    for k, expected_type in schema.items():
+    for k, expected_type in effective_schema.items():
         if isinstance(expected_type, str):
             if k not in obj:
                 continue
-            type_map = {"str": str, "int": int, "float": (int, float),
+            type_map = {"str": str, "int": int, "integer": int, "float": (int, float),
                         "bool": bool, "list": list, "dict": dict, "number": (int, float)}
             t = type_map.get(expected_type)
             if t is not None:
                 checks.append((f"type-{k}", isinstance(obj[k], t)))
 
     # Extended schema: each value is a dict with "type" and optional constraints
-    for k, entry in schema.items():
+    for k, entry in effective_schema.items():
         if isinstance(entry, dict) and "type" in entry:
             if k not in obj:
                 if is_extended:
