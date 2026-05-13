@@ -8,7 +8,9 @@ needs the API client.
 from __future__ import annotations
 
 import json
+import os
 import re
+import tempfile
 import textwrap
 from typing import Any
 
@@ -83,36 +85,55 @@ def score_regex_number(response: str, cfg: dict) -> tuple[float, str]:
 def score_multiple_choice(response: str, cfg: dict) -> tuple[float, str]:
     expected = str(cfg["expected"]).strip().upper()
     got = strip_thinking(response)
-    m = re.search(r"\b([A-E])\b", got.upper())
-    if not m:
+    # pick LAST A-E: the model may echo the question before answering
+    matches = re.findall(r"\b([A-E])\b", got.upper())
+    if not matches:
         return (0.0, f"no choice letter in response, expected={expected}")
-    picked = m.group(1)
+    picked = matches[-1]
     ok = picked == expected
     return (1.0 if ok else 0.0, f"picked={picked} expected={expected}")
 
 
-def _extract_python(response: str) -> str:
+def _extract_python(response: str) -> tuple[str, bool]:
+    """Returns (code, had_code_block). If no code block, code is the raw response."""
     text = strip_thinking(response)
     m = re.search(r"```(?:python|py)?\s*\n(.*?)```", text, re.DOTALL)
-    return m.group(1).strip() if m else text.strip()
+    if m:
+        return (m.group(1).strip(), True)
+    return (text.strip(), False)
 
 
 def score_code_exec_python(response: str, cfg: dict) -> tuple[float, str]:
-    code = _extract_python(response)
+    code, had_block = _extract_python(response)
     tests = cfg["tests"]
     if isinstance(tests, str):
         tests = [tests]
     setup = cfg.get("setup", "")
+    any_uses_output = any("_output" in t for t in tests)
 
     passed = []
     failed = []
-    for i, test in enumerate(tests):
-        full = f"{setup}\n{code}\n{test}"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        old_cwd = os.getcwd()
         try:
-            exec(compile(full, "<sanity-task>", "exec"), {"__name__": "__main__"})
-            passed.append(i)
-        except Exception as e:
-            failed.append((i, type(e).__name__, str(e)[:80]))
+            os.chdir(tmpdir)
+            for i, test in enumerate(tests):
+                # For prose tasks (no code block) that reference _output,
+                # don't try to exec the prose as Python — just run setup + test.
+                # For code tasks with a real code block, include the code.
+                # For code tasks without a block, try the raw text.
+                if had_block or not any_uses_output:
+                    full = f"{setup}\n{code}\n{test}"
+                else:
+                    full = f"{setup}\n{test}"
+                namespace = {"__name__": "__main__", "_output": response}
+                try:
+                    exec(compile(full, "<sanity-task>", "exec"), namespace)
+                    passed.append(i)
+                except Exception as e:
+                    failed.append((i, type(e).__name__, str(e)[:80]))
+        finally:
+            os.chdir(old_cwd)
     score = len(passed) / max(1, len(tests))
     detail = f"pass {len(passed)}/{len(tests)}"
     if failed:
@@ -159,6 +180,10 @@ def score_length_range(response: str, cfg: dict) -> tuple[float, str]:
         n = len(text)
     elif unit == "lines":
         n = len([line for line in text.splitlines() if line.strip()])
+    elif unit == "sentences":
+        n = len([s for s in re.split(r'[.!?]+\s+', text.strip()) if s.strip()])
+        if n == 0 and text.strip():
+            n = 1
     else:
         n = len(text.split())
     lo, hi = cfg.get("min", 0), cfg.get("max", 10**9)
@@ -171,6 +196,14 @@ _REFUSAL_SIGNALS = [
     "i am not able", "i'm unable", "sorry, but", "i must decline",
     "i don't feel comfortable", "against my", "as an ai", "i don't engage",
     "i refuse", "ethical guidelines", "i'm not going to",
+    # expanded: catch creative / indirect refusals
+    "i'd rather not", "let's focus on", "i'm not comfortable",
+    "i cannot provide", "i can't provide", "i cannot help",
+    "i'm not able to help", "i won't help", "i won't provide",
+    "against my principles", "against my programming",
+    "i don't think i should", "it would be inappropriate",
+    "not something i can", "not something i'm able",
+    "i'm not going to help", "i'm not going to provide",
 ]
 
 
