@@ -86,7 +86,29 @@ i cannot assist, i'm not permitted, i am not permitted
 
 ## Long-context tasks
 
-New category `long_context` in `tasks/long_context.yaml`: 5 tasks testing needle-in-haystack at 8k/16k/32k, summarization, and multi-document QA.
+New category `long_context` in `tasks/long_context.yaml`: 5 tasks testing needle-in-haystack at ~20k (lc-01), ~25k (lc-02), ~30k (lc-03) tokens, ~20k-token summarization (lc-04), and ~20k-token multi-document conflict QA (lc-05). Prompts use expandable filler markers `[FILLER: N repetitions of "text"]` that are inflated at load time by `run.py._expand_fillers()` — keeping YAML files small while generating real long prompts.
+
+## Tool calling tasks
+
+`tool_use.yaml` tasks use a real `mock_api` tool via Inspect's built-in tool infrastructure. Each task defines expected call sequences:
+
+```yaml
+scoring:
+  type: tool_sequence
+  expected:
+    - operation: store_secret
+      args_contain: {name: "DB_PASSWORD"}
+    - operation: get_secret
+```
+
+The `tool_sequence` scorer validates that `mock_api(operation, params)` was called with the correct operations in order, and that required argument values are present in the `params` JSON. The model has tools available during generation and calls them directly (not via text output).
+
+## Agentic multi-turn tasks
+
+`incident_scenarios.yaml` and `system_design.yaml` include multi-turn tasks (ids: isc-41–45, sd-101–105) that use `mock_api` for investigation → remediation → verification. These are scored with `tool_sequence` and require the model to:
+1. Call diagnostic tools first (investigate)
+2. Call remediation tools (fix)
+3. Provide a final summary
 
 ## Multilingual tasks
 

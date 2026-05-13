@@ -1,38 +1,36 @@
 category: long_context
 tasks:
-  - id: lc-01-needle-8k
+  - id: lc-01-needle-20k
     prompt: |
-      [FILLER: 270 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
+      [FILLER: 800 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
       The secret code is ALPHA-7-XRAY.
-      [FILLER: 270 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
+      [FILLER: 800 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
       What is the secret code mentioned in the text?
     scoring: {type: regex, pattern: "(?i)ALPHA-7-XRAY|alpha.*7.*xray"}
     max_tokens: 256
 
-  - id: lc-02-needle-16k
+  - id: lc-02-needle-25k
     prompt: |
-      [FILLER: 540 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
-      [FILLER: 270 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
+      [FILLER: 1000 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
       The secret code is OMEGA-9-ZULU.
-      [FILLER: 270 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
+      [FILLER: 600 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
       What is the secret code mentioned in the text?
     scoring: {type: regex, pattern: "(?i)OMEGA-9-ZULU|omega.*9.*zulu"}
     max_tokens: 256
 
-  - id: lc-03-needle-32k
+  - id: lc-03-needle-30k
     prompt: |
-      [FILLER: 800 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
-      [FILLER: 280 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
+      [FILLER: 1200 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
       The secret code is DELTA-4-BRAVO.
-      [FILLER: 120 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
+      [FILLER: 800 repetitions of "The sun is yellow. The grass is green. The sky is blue. "]
       What is the secret code mentioned in the text?
     scoring: {type: regex, pattern: "(?i)DELTA-4-BRAVO|delta.*4.*bravo"}
     max_tokens: 256
 
-  - id: lc-04-summarize
+  - id: lc-04-summarize-20k
     prompt: |
-      [FILLER: 700 repetitions of "NovaTech Industries was founded in 1987 by Dr. Ellen Chen. "]
-      [FILLER: 700 repetitions of "NovaTech Industries was founded in 1987 by Dr. Ellen Chen. "]
+      [FILLER: 800 repetitions of "NovaTech Industries was founded in 1987 by Dr. Ellen Chen. "]
+      [FILLER: 800 repetitions of "NovaTech Industries was founded in 1987 by Dr. Ellen Chen. "]
       What year was the company founded and who was the first CEO?
     scoring:
       type: composite
@@ -42,12 +40,12 @@ tasks:
         - {type: contains, expected: "Chen"}
     max_tokens: 256
 
-  - id: lc-05-conflict-qa
+  - id: lc-05-conflict-qa-20k
     prompt: |
       Source A: The Treaty of Westbrook Summit occurred in 1998.
-      [FILLER: 350 repetitions of "Source A describes trade negotiations and diplomatic breakthroughs. "]
+      [FILLER: 500 repetitions of "Source A describes trade negotiations and diplomatic breakthroughs leading to the 1998 summit. "]
       Source B: The Treaty of Westbrook Summit occurred in 2002.
-      [FILLER: 350 repetitions of "Source B describes failed negotiations and subsequent sanctions. "]
+      [FILLER: 500 repetitions of "Source B describes failed negotiation attempts and subsequent economic sanctions. "]
       Which source says the event happened in 1998?
     scoring: {type: contains, expected: "Source A"}
     max_tokens: 256

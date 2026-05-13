@@ -745,3 +745,133 @@ tasks:
         - {type: length_range, min: 15, max: 35, unit: lines}
     max_tokens: 1024
     temperature: 0.3
+
+  # --- Multi-turn agentic tasks (use mock_api for investigation + remediation) ---
+
+  - id: isc-41-db-pool-exhaustion
+    prompt: |
+      ON-CALL ALERT: p99 latency 200ms -> 6s, error rate 15% (norm <1%).
+      Use mock_api(operation, params) to investigate and fix.
+
+      Available operations:
+      - check_alerts() - view active alerts
+      - check_logs() - view recent error logs
+      - check_health() - check service health
+      - increase_pool(size) - increase DB connection pool
+      - restart_service(service) - restart a service
+      - verify_fix() - confirm the fix worked
+
+      Step 1: Investigate (check_alerts, check_logs, check_health).
+      Step 2: Fix (increase_pool + restart_service).
+      Step 3: Verify (verify_fix).
+      Step 4: Write a brief summary.
+    scoring:
+      type: tool_sequence
+      expected:
+        - operation: check_alerts
+        - operation: check_logs
+        - operation: check_health
+        - operation: increase_pool
+        - operation: restart_service
+        - operation: verify_fix
+    max_tokens: 2048
+    temperature: 0.3
+
+  - id: isc-42-replica-lag
+    prompt: |
+      ON-CALL ALERT: DB replica lag = 300s, read-your-writes broken.
+      Use mock_api(operation, params) to investigate and fix.
+
+      Available operations:
+      - check_replica_lag() - check current replica lag
+      - check_logs() - view error logs
+      - promote_replica() - promote replica to primary
+      - verify_fix() - confirm fix
+      - check_health() - check overall health
+
+      Investigate, promote the replica if needed, verify, summarize.
+      Call mock_api for each step.
+    scoring:
+      type: tool_sequence
+      expected:
+        - operation: check_replica_lag
+        - operation: check_logs
+        - operation: promote_replica
+        - operation: verify_fix
+    max_tokens: 2048
+    temperature: 0.3
+
+  - id: isc-43-disk-full
+    prompt: |
+      ON-CALL ALERT: Disk usage 97% on /data volume. Services degraded.
+      Use mock_api(operation, params) to investigate and fix.
+
+      Available operations:
+      - check_disk() - check disk usage
+      - check_health() - check service health
+      - check_logs() - view error logs
+      - cleanup_disk() - clean up old WAL files
+      - restart_service(service) - restart services
+      - verify_fix() - confirm fix
+
+      Investigate, clean up disk, restart affected services, verify.
+      Call mock_api for each step then summarize.
+    scoring:
+      type: tool_sequence
+      expected:
+        - operation: check_disk
+        - operation: check_health
+        - operation: cleanup_disk
+        - operation: restart_service
+        - operation: verify_fix
+    max_tokens: 2048
+    temperature: 0.3
+
+  - id: isc-44-cert-expiry
+    prompt: |
+      ON-CALL ALERT: TLS certificate for api.app.com expires in 14 days.
+      Use mock_api(operation, params) to handle this proactively.
+
+      Available operations:
+      - check_cert() - check certificate status
+      - renew_cert() - renew the certificate
+      - check_health() - check service health
+      - test_endpoint() - test HTTPS endpoint
+      - check_logs() - view recent logs
+
+      Investigate cert status, renew, verify endpoint still works.
+      Call mock_api for each step then summarize.
+    scoring:
+      type: tool_sequence
+      expected:
+        - operation: check_cert
+        - operation: renew_cert
+        - operation: test_endpoint
+        - operation: check_health
+    max_tokens: 2048
+    temperature: 0.3
+
+  - id: isc-45-config-drift
+    prompt: |
+      ON-CALL ALERT: payment-api feature flag 'use_v2_payment' silently
+      enabled in production. Customers seeing incorrect totals.
+      Use mock_api(operation, params) to investigate and fix.
+
+      Available operations:
+      - check_config() - view current config
+      - check_alerts() - view active alerts
+      - check_logs() - view error logs
+      - set_config(key, value) - change a config value
+      - verify_fix() - confirm fix
+
+      Investigate the config, disable the flag, verify. Then summarize.
+      Call mock_api for each step.
+    scoring:
+      type: tool_sequence
+      expected:
+        - operation: check_config
+        - operation: check_alerts
+        - operation: set_config
+        - operation: verify_fix
+    max_tokens: 2048
+    temperature: 0.3

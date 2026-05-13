@@ -1385,3 +1385,132 @@ tasks:
         - "assert FeatureStore().compute('x', ['missing']) == {}"
     max_tokens: 1536
     temperature: 0.3
+
+  # --- Multi-turn design review tasks (use mock_api to investigate + recommend) ---
+
+  - id: sd-101-performance-audit
+    prompt: |
+      You are reviewing the payment-api service. It's been having latency
+      issues. Use mock_api(operation, params) to investigate the system
+      and make design recommendations.
+
+      Available operations:
+      - trace_request(id) - trace a sample request
+      - check_metrics() - view latency/error metrics
+      - check_config() - view current configuration
+      - check_logs() - view recent logs
+      - check_health() - check service health
+
+      Step 1: Investigate (trace_request, check_metrics, check_config).
+      Step 2: Review findings and check logs.
+      Step 3: Write a brief summary with your design recommendations.
+      Call mock_api for each investigation step.
+    scoring:
+      type: tool_sequence
+      expected:
+        - operation: trace_request
+        - operation: check_metrics
+        - operation: check_config
+        - operation: check_logs
+    max_tokens: 2048
+    temperature: 0.3
+
+  - id: sd-102-db-migration-review
+    prompt: |
+      You are reviewing a database migration plan. The team wants to migrate
+      from PostgreSQL to Aurora. Use mock_api to investigate the current
+      system and make recommendations.
+
+      Available operations:
+      - check_health() - check current DB health
+      - check_config() - view current DB config
+      - check_logs() - view recent DB logs
+      - run_diagnostics() - run DB diagnostics
+      - db_migrate() - run a test migration
+
+      Step 1: Investigate current system.
+      Step 2: Run diagnostics.
+      Step 3: Summarize your migration recommendations.
+      Call mock_api for each step.
+    scoring:
+      type: tool_sequence
+      expected:
+        - operation: check_health
+        - operation: check_config
+        - operation: run_diagnostics
+    max_tokens: 2048
+    temperature: 0.3
+
+  - id: sd-103-deployment-pipeline
+    prompt: |
+      You are auditing the deployment pipeline. There have been recent
+      rollbacks. Use mock_api to investigate and recommend improvements.
+
+      Available operations:
+      - check_deploy() - check last deployment
+      - check_logs() - view deploy logs
+      - check_health() - check service health
+      - check_alerts() - view deploy-related alerts
+      - check_config() - view pipeline config
+
+      Investigate the deployment pipeline, identify issues, summarize
+      recommendations. Call mock_api for each step.
+    scoring:
+      type: tool_sequence
+      expected:
+        - operation: check_deploy
+        - operation: check_logs
+        - operation: check_alerts
+        - operation: check_config
+    max_tokens: 2048
+    temperature: 0.3
+
+  - id: sd-104-architecture-review
+    prompt: |
+      You are reviewing the microservices architecture. The team reports
+      that the checkout flow is slow and sometimes fails.
+
+      Available operations:
+      - trace_request(id) - trace a checkout request
+      - check_metrics() - view service metrics
+      - check_config() - view service config
+      - check_health() - check all services health
+      - check_logs() - view error logs
+
+      Trace a request, check metrics and health, review logs.
+      Summarize your architecture recommendations.
+      Call mock_api for each step.
+    scoring:
+      type: tool_sequence
+      expected:
+        - operation: trace_request
+        - operation: check_metrics
+        - operation: check_health
+        - operation: check_logs
+    max_tokens: 2048
+    temperature: 0.3
+
+  - id: sd-105-security-review
+    prompt: |
+      You are reviewing the API security posture. Investigate and recommend
+      improvements.
+
+      Available operations:
+      - check_config() - view security config
+      - check_cert() - check TLS cert status
+      - check_health() - check auth service health
+      - check_logs() - view auth logs
+      - run_diagnostics() - run security diagnostics
+
+      Investigate security config, certs, auth health, and logs.
+      Summarize your security recommendations.
+      Call mock_api for each step.
+    scoring:
+      type: tool_sequence
+      expected:
+        - operation: check_config
+        - operation: check_cert
+        - operation: check_health
+        - operation: check_logs
+    max_tokens: 2048
+    temperature: 0.3
