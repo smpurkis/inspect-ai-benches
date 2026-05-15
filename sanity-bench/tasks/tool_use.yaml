@@ -1,693 +1,643 @@
 category: tool_use
 tasks:
-  # Each task: call mock_api(operation, params) for each step.
-  # The model must call operations in the expected order with required args.
-  - id: tu-11-secrets-mgmt
-    prompt: |
-      Available operations:
-      - store_secret(name, value, rotation)
-      - get_secret(arn)
-      - create_policy(name, actions, resource)
-      - attach_to_role(policy_arn, role)
-      - rotate_now(secret_arn)
+- id: tu-11-secrets-mgmt
+  prompt: 'Available operations:
 
-      Task: Store secret 'DB_PASSWORD' with value 's3cre+!' and rotation '30d'.
-      Retrieve it to verify. Create policy allowing secretsmanager:GetSecretValue
-      on it. Attach to role 'app-server'. Trigger immediate rotation.
-      Call mock_api(operation, params) for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: store_secret
-          args_contain: {"name": "DB_PASSWORD"}
-        - operation: get_secret
-        - operation: create_policy
-        - operation: attach_to_role
-        - operation: rotate_now
-    max_tokens: 1024
+    - store_secret(name, value, rotation)
 
-  - id: tu-12-auto-scale
-    prompt: |
-      Available operations:
-      - create_launch_template(name, image, instance_type)
-      - create_asg(name, template, min, max, desired)
-      - attach_lb(asg_name, tg_arn)
-      - create_scaling_policy(asg, metric, target)
-      - simulate_load(asg, duration_sec)
+    - get_secret(arn)
 
-      Task: Create launch template 'web-template' with ami-1234, t3.medium.
-      Create ASG 'web-asg' min=2 max=10 desired=2. Attach target group 'web-tg'.
-      Create CPU-based scaling policy targeting 60%. Simulate 5 min load.
-      Call mock_api(operation, params) for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_launch_template
-        - operation: create_asg
-        - operation: attach_lb
-        - operation: create_scaling_policy
-        - operation: simulate_load
-    max_tokens: 1024
+    - create_policy(name, actions, resource)
 
-  - id: tu-13-search-index
-    prompt: |
-      Available operations:
-      - create_index(name, mapping)
-      - bulk_index(index, docs)
-      - search(index, query, fields)
-      - update_alias(alias, index)
-      - refresh_index(index)
+    - attach_to_role(policy_arn, role)
 
-      Task: Create Elasticsearch index 'products' with mapping
-      title(text), price(float), in_stock(boolean). Bulk index 3 sample docs.
-      Search for 'laptop' in title and description fields. Point alias
-      'prod-search' to it. Refresh. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_index
-        - operation: bulk_index
-        - operation: search
-        - operation: update_alias
-        - operation: refresh_index
-    max_tokens: 1024
+    - rotate_now(secret_arn)
 
-  - id: tu-14-message-queue
-    prompt: |
-      Available operations:
-      - create_queue(name, dlq, timeout)
-      - create_subscription(topic, proto, endpoint)
-      - send_msg(queue_url, body, attrs)
-      - receive_msg(queue_url, max)
-      - delete_msg(queue_url, receipt)
 
-      Task: Create SQS queue 'order-queue' with DLQ 'order-dlq' and 30s timeout.
-      Subscribe 'order-topic' SNS -> 'order-queue' with raw delivery.
-      Send a test order. Receive and read messages. Delete the processed message.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_queue
-        - operation: create_subscription
-        - operation: send_msg
-        - operation: receive_msg
-        - operation: delete_msg
-    max_tokens: 1024
+    Task: Store secret ''DB_PASSWORD'' with value ''s3cre+!'' and rotation ''30d''.
 
-  - id: tu-15-json-warehouse
-    prompt: |
-      Available operations:
-      - http_get(url)
-      - validate_json(data, schema)
-      - flatten(nested, sep)
-      - copy_to_redshift(table, data, cols)
-      - query_redshift(sql)
+    Retrieve it to verify. Create policy allowing secretsmanager:GetSecretValue
 
-      Task: GET https://api.example.com/orders. Validate result against JSON
-      schema. Flatten nested field 'line_items' with '_' separator. COPY to
-      'dw.orders' columns id,amount,status. Run SELECT COUNT(*) to verify.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: http_get
-        - operation: validate_json
-        - operation: flatten
-        - operation: copy_to_redshift
-        - operation: query_redshift
-    max_tokens: 1024
+    on it. Attach to role ''app-server''. Trigger immediate rotation.
 
-  - id: tu-16-ab-test
-    prompt: |
-      Available operations:
-      - create_experiment(name, metric, variants)
-      - assign_variant(exp_id, user)
-      - record_event(exp_id, variant, value)
-      - analyze(exp_id)
-      - promote(exp_id, winner)
+    Call mock_api(operation, params) for each step.
 
-      Task: Create experiment 'pricing-v2' tracking 'conversion_rate' with
-      variants control and treatment. Assign user 'u_42'. Record conversion
-      event with value 1.0. Analyze results. Promote the winning variant.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_experiment
-        - operation: assign_variant
-        - operation: record_event
-        - operation: analyze
-        - operation: promote
-    max_tokens: 1024
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: store_secret
+      args_contain:
+        name: DB_PASSWORD
+    - operation: get_secret
+    - operation: create_policy
+    - operation: attach_to_role
+    - operation: rotate_now
+  max_tokens: 1024
+- id: tu-12-auto-scale
+  prompt: 'Available operations:
 
-  - id: tu-17-canary-deploy
-    prompt: |
-      Available operations:
-      - deploy_version(service, version, replicas)
-      - shift_traffic(service, from_ver, to_ver, pct)
-      - monitor_errors(service, window_min)
-      - full_cutover(service, version)
-      - rollback(service, version)
+    - create_launch_template(name, image, instance_type)
 
-      Task: Deploy v2.1.0 of 'payment-svc' with 1 replica. Shift 5% traffic
-      from v2.0.0. Monitor errors for 10 minutes. If error_rate < 0.01, cut
-      over fully. If not, rollback. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: deploy_version
-        - operation: shift_traffic
-        - operation: monitor_errors
-        - operation: full_cutover
-    max_tokens: 1024
+    - create_asg(name, template, min, max, desired)
 
-  - id: tu-18-db-migrate
-    prompt: |
-      Available operations:
-      - dump_db(conn_str, schema)
-      - transform_schema(sql, rules)
-      - snapshot(conn_str)
-      - apply_migration(conn_str, migration)
-      - validate_data(conn_str, checks)
-      - rollback_migration(conn_str)
+    - attach_lb(asg_name, tg_arn)
 
-      Task: Dump 'public' schema from postgres://old:5432/prod. Transform:
-      rename username to email, add created_at DEFAULT NOW(). Snapshot before
-      migration. Apply migration to postgres://new:5432/prod. Validate row
-      counts match. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: dump_db
-        - operation: transform_schema
-        - operation: snapshot
-        - operation: apply_migration
-        - operation: validate_data
-    max_tokens: 1024
+    - create_scaling_policy(asg, metric, target)
 
-  - id: tu-19-rate-limit
-    prompt: |
-      Available operations:
-      - create_usage_plan(name, quota, burst, rate)
-      - create_api_key(name, plan_id)
-      - set_throttle(method, path, rate, burst)
-      - add_waf_rule(name, action, limit, window)
-      - test_endpoint(url, key, calls)
+    - simulate_load(asg, duration_sec)
 
-      Task: Create usage plan 'basic' with quota=1000 burst=50 rate=10/s.
-      Create API key 'client-1' under that plan. Set throttle on POST /orders
-      rate=5/s burst=10. Add WAF rate limit rule (block, 2000req, 5min).
-      Test with 10 rapid calls. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_usage_plan
-        - operation: create_api_key
-        - operation: set_throttle
-        - operation: add_waf_rule
-        - operation: test_endpoint
-    max_tokens: 1024
 
-  - id: tu-20-compliance-scan
-    prompt: |
-      Available operations:
-      - run_scanner(profile, rules)
-      - list_findings(scan_id, severity)
-      - suppress_finding(finding_id, reason)
-      - generate_report(scan_id, format)
-      - email_report(to, attachment)
+    Task: Create launch template ''web-template'' with ami-1234, t3.medium.
 
-      Task: Run CIS benchmark scan on 'prod-account' with rules
-      cis_1.1, cis_1.2, cis_2.1. List CRITICAL findings. Suppress finding
-      F-001 as 'false positive'. Generate PDF report. Email to security@co.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: run_scanner
-        - operation: list_findings
-        - operation: suppress_finding
-        - operation: generate_report
-        - operation: email_report
-    max_tokens: 1024
+    Create ASG ''web-asg'' min=2 max=10 desired=2. Attach target group ''web-tg''.
 
-  - id: tu-21-img-pipeline
-    prompt: |
-      Available operations:
-      - read_file(path)
-      - resize(img, w, h)
-      - compress(img, quality)
-      - store(bucket, key, data)
-      - generate_thumbnail(src, size)
+    Create CPU-based scaling policy targeting 60%. Simulate 5 min load.
 
-      Task: Read 'photo.png'. Resize to 1920x1080. Compress at quality 80.
-      Store in 'assets' bucket as 'photo.jpg'. Generate a 256px thumbnail.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: read_file
-        - operation: resize
-        - operation: compress
-        - operation: store
-        - operation: generate_thumbnail
-    max_tokens: 1024
+    Call mock_api(operation, params) for each step.
 
-  - id: tu-22-notification-system
-    prompt: |
-      Available operations:
-      - create_template(name, body, vars)
-      - send_email(to, template, data)
-      - send_sms(phone, msg)
-      - send_slack(channel, msg)
-      - log_delivery(msg_id, status)
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: create_launch_template
+    - operation: create_asg
+    - operation: attach_lb
+    - operation: create_scaling_policy
+    - operation: simulate_load
+  max_tokens: 1024
+- id: tu-13-search-index
+  prompt: 'Available operations:
 
-      Task: Create template 'welcome' with body 'Hi {{name}}, welcome!' and
-      vars name. Send email to 'alice@co'. Send SMS to '+1555123'. Send Slack
-      to '#general' with msg 'New user!'. Log delivery as 'sent'.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_template
-        - operation: send_email
-        - operation: send_sms
-        - operation: send_slack
-        - operation: log_delivery
-    max_tokens: 1024
+    - create_index(name, mapping)
 
-  - id: tu-23-payment-flow
-    prompt: |
-      Available operations:
-      - create_customer(email, name)
-      - add_payment_method(customer_id, token)
-      - create_invoice(customer_id, amount, currency)
-      - charge(customer_id, amount, currency)
-      - refund(charge_id, amount)
+    - bulk_index(index, docs)
 
-      Task: Create customer 'bob@co' name 'Bob'. Add payment method
-      token 'pm_abc'. Create invoice for 2999 USD. Charge the customer.
-      If charge succeeds, issue full refund. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_customer
-        - operation: add_payment_method
-        - operation: create_invoice
-        - operation: charge
-        - operation: refund
-    max_tokens: 1024
+    - search(index, query, fields)
 
-  - id: tu-24-websocket-server
-    prompt: |
-      Available operations:
-      - create_ws_api(name, route)
-      - deploy_ws(api_id, stage)
-      - set_integration(api_id, route, target)
-      - connect_client(api_id, conn_str)
-      - broadcast(api_id, msg)
+    - update_alias(alias, index)
 
-      Task: Create WebSocket API 'chat-app' with route '$connect'. Deploy to
-      stage 'dev'. Set integration for $connect -> 'connect-function'. Connect
-      a test client at ws://example.com/ws. Broadcast 'Hello all'.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_ws_api
-        - operation: deploy_ws
-        - operation: set_integration
-        - operation: connect_client
-        - operation: broadcast
-    max_tokens: 1024
+    - refresh_index(index)
 
-  - id: tu-25-cron-cleanup
-    prompt: |
-      Available operations:
-      - create_schedule(name, expr, cmd)
-      - list_schedules()
-      - test_run(schedule_id)
-      - set_timeout(schedule_id, sec)
-      - delete_schedule(schedule_id)
 
-      Task: Create schedule 'cleanup-logs' with cron '0 3 * * *' running
-      'rm -rf /var/log/old/*'. List all schedules. Test run — if it fails,
-      set timeout to 300s. If still failing, delete the schedule.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_schedule
-        - operation: list_schedules
-        - operation: test_run
-        - operation: set_timeout
-        - operation: delete_schedule
-    max_tokens: 1024
+    Task: Create Elasticsearch index ''products'' with mapping
 
-  - id: tu-26-service-mesh
-    prompt: |
-      Available operations:
-      - create_virtual_service(name, hosts)
-      - add_route(vs_name, match, dest, weight)
-      - set_circuit_breaker(dest, max_conns, timeout)
-      - add_retry_policy(dest, attempts, per_try_timeout)
-      - enable_mtls(namespace, mode)
+    title(text), price(float), in_stock(boolean). Bulk index 3 sample docs.
 
-      Task: Create virtual service 'checkout-svc' hosts ['checkout.app.com'].
-      Add route matching prefix /api to checkout-v1:8080 weight 100. Set circuit
-      breaker: max_connections=100 timeout=5s. Add retry: 3 attempts, 2s per
-      try. Enable STRICT mTLS in 'prod' namespace. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_virtual_service
-        - operation: add_route
-        - operation: set_circuit_breaker
-        - operation: add_retry_policy
-        - operation: enable_mtls
-    max_tokens: 1024
+    Search for ''laptop'' in title and description fields. Point alias
 
-  - id: tu-27-audit-pipeline
-    prompt: |
-      Available operations:
-      - enable_audit(service, region)
-      - trail_create(name, bucket, events)
-      - stream_to_lambda(trail_arn, fn_arn)
-      - query_athena(database, query)
-      - visualize(data, chart_type, title)
+    ''prod-search'' to it. Refresh. Call mock_api for each step.
 
-      Task: Enable CloudTrail in 'us-east-1'. Create trail 'org-trail' to
-      'audit-logs' bucket capturing Write and Read events. Stream trail to
-      'audit-processor' Lambda. Query Athena: SELECT event_name, count(*)
-      FROM audit GROUP BY event_name. Visualize as bar chart.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: enable_audit
-        - operation: trail_create
-        - operation: stream_to_lambda
-        - operation: query_athena
-        - operation: visualize
-    max_tokens: 1024
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: create_index
+    - operation: bulk_index
+    - operation: search
+    - operation: update_alias
+    - operation: refresh_index
+  max_tokens: 1024
+- id: tu-14-message-queue
+  prompt: 'Available operations:
 
-  - id: tu-28-feature-flag
-    prompt: |
-      Available operations:
-      - create_flag(name, desc, default)
-      - set_rule(flag, condition, value)
-      - evaluate(flag, context)
-      - enable_for(flag, user_ids)
-      - delete_flag(flag)
+    - create_queue(name, dlq, timeout)
 
-      Task: Create flag 'dark-mode' default false. Set rule: country == US
-      -> true. Evaluate for user with country US. Enable for users
-      ['u_1', 'u_2']. Then delete flag. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_flag
-        - operation: set_rule
-        - operation: evaluate
-        - operation: enable_for
-        - operation: delete_flag
-    max_tokens: 1024
+    - create_subscription(topic, proto, endpoint)
 
-  - id: tu-29-dns-migration
-    prompt: |
-      Available operations:
-      - list_zones()
-      - create_zone(name)
-      - export_records(zone_id)
-      - import_records(zone_id, records)
-      - set_ttl(zone_id, record, ttl)
-      - test_resolve(domain)
+    - send_msg(queue_url, body, attrs)
 
-      Task: List all hosted zones. Create zone 'new-app.com'. Export records
-      from old zone 'app.com'. Import into new zone. Set TTL on A record 'www'
-      to 60. Test resolve 'www.new-app.com'. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: list_zones
-        - operation: create_zone
-        - operation: export_records
-        - operation: import_records
-        - operation: set_ttl
-        - operation: test_resolve
-    max_tokens: 1024
+    - receive_msg(queue_url, max)
 
-  - id: tu-30-cost-anomaly
-    prompt: |
-      Available operations:
-      - get_cost(service, period)
-      - create_budget(name, amount, threshold)
-      - set_anomaly_detection(service, sensitivity)
-      - get_recommendations(service)
-      - apply_rightsizing(resource, action)
-      - export_report(period, format)
+    - delete_msg(queue_url, receipt)
 
-      Task: Get EC2 cost for last month. Create budget 'ec2-budget' at $5000
-      with thresholds 50,80,100. Enable anomaly detection with 'medium'
-      sensitivity. Get savings recommendations. Apply 'downsize' to
-      'i-overprovisioned'. Export PDF report. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: get_cost
-        - operation: create_budget
-        - operation: set_anomaly_detection
-        - operation: get_recommendations
-        - operation: apply_rightsizing
-        - operation: export_report
-    max_tokens: 1024
 
-  - id: tu-31-serverless-deploy
-    prompt: |
-      Available operations:
-      - create_function(name, runtime, handler, code)
-      - add_trigger(fn, source, event)
-      - set_env(fn, vars)
-      - set_memory(fn, mb)
-      - invoke(fn, payload)
-      - view_logs(fn, hours)
+    Task: Create SQS queue ''order-queue'' with DLQ ''order-dlq'' and 30s timeout.
 
-      Task: Create Lambda 'order-processor' Python 3.12, handler
-      'index.handler', code from 'order.zip'. Add S3 trigger on
-      'incoming-orders' bucket for s3:ObjectCreated:*. Set env vars DB_URL
-      and API_KEY. Set memory 512MB. Invoke with test payload. View last 1h
-      logs. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_function
-        - operation: add_trigger
-        - operation: set_env
-        - operation: set_memory
-        - operation: invoke
-        - operation: view_logs
-    max_tokens: 1024
+    Subscribe ''order-topic'' SNS -> ''order-queue'' with raw delivery.
 
-  - id: tu-32-ml-pipeline
-    prompt: |
-      Available operations:
-      - load_dataset(path)
-      - preprocess(data, steps)
-      - train_model(data, algo, params)
-      - evaluate(model_id, test_data)
-      - deploy_model(model_id, endpoint)
+    Send a test order. Receive and read messages. Delete the processed message.
 
-      Task: Load dataset from 's3://ml-data/train.csv'. Preprocess with
-      normalize, encode, split. Train XGBoost with n_estimators=100,
-      max_depth=6. Evaluate on test split. Deploy model to 'prod-endpoint'.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: load_dataset
-        - operation: preprocess
-        - operation: train_model
-        - operation: evaluate
-        - operation: deploy_model
-    max_tokens: 1024
+    Call mock_api for each step.
 
-  - id: tu-33-cross-region
-    prompt: |
-      Available operations:
-      - replicate_bucket(src_region, dst_region, bucket)
-      - create_read_replica(db_id, region, instance_class)
-      - promote_replica(replica_id)
-      - failover_test(db_id)
-      - verify_sync(src_table, dst_table)
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: create_queue
+    - operation: create_subscription
+    - operation: send_msg
+    - operation: receive_msg
+    - operation: delete_msg
+  max_tokens: 1024
+- id: tu-15-json-warehouse
+  prompt: 'Available operations:
 
-      Task: Replicate 'app-data' bucket from us-east-1 to eu-west-1. Create
-      read replica of 'prod-db' in eu-west-1, db.r5.large. Promote replica
-      to standalone. Run failover test. Verify table 'users' is in sync.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: replicate_bucket
-        - operation: create_read_replica
-        - operation: promote_replica
-        - operation: failover_test
-        - operation: verify_sync
-    max_tokens: 1024
+    - http_get(url)
 
-  - id: tu-34-db-read-replica
-    prompt: |
-      Available operations:
-      - create_replica(source, instance, multi_az)
-      - configure_read_pool(replica_id, min, max)
-      - set_weight(replica_id, weight)
-      - monitor_replica_lag(replica_id)
-      - promote(replica_id)
+    - validate_json(data, schema)
 
-      Task: Create read replica of 'prod-pg' with instance 'db.r6g.large',
-      multi-AZ. Configure connection pool min=5 max=50. Set replica weight 50.
-      Monitor replica lag. If lag > 10s, promote. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_replica
-        - operation: configure_read_pool
-        - operation: set_weight
-        - operation: monitor_replica_lag
-        - operation: promote
-    max_tokens: 1024
+    - flatten(nested, sep)
 
-  - id: tu-35-tls-renewal
-    prompt: |
-      Available operations:
-      - list_certs(expiring_days)
-      - renew_cert(cert_arn)
-      - validate_dns(cert_arn, domain)
-      - update_listener(lb_arn, cert_arn, port)
-      - test_tls(domain, port)
+    - copy_to_redshift(table, data, cols)
 
-      Task: List certs expiring within 30 days. Renew cert
-      'arn:aws:acm:...'. Validate DNS for 'api.app.com'. Update ALB listener
-      'arn:aws:elasticloadbalancing:...' on port 443 with new cert. Test TLS
-      to api.app.com:443. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: list_certs
-        - operation: renew_cert
-        - operation: validate_dns
-        - operation: update_listener
-        - operation: test_tls
-    max_tokens: 1024
+    - query_redshift(sql)
 
-  - id: tu-36-error-recovery
-    prompt: |
-      Available operations:
-      - create_snapshot(vol)
-      - start_migration(src, dst)
-      - check_status(task_id)
-      - rollback_migration(task_id)
-      - alert(msg)
 
-      Task: Snapshot volume 'vol-src'. Start migration from vol-src to
-      vol-dst. Check status — result will show FAILED. Rollback the migration.
-      Alert 'Migration failed: rolled back'. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_snapshot
-        - operation: start_migration
-        - operation: check_status
-        - operation: rollback_migration
-        - operation: alert
-    max_tokens: 1024
+    Task: GET https://api.example.com/orders. Validate result against JSON
 
-  - id: tu-37-ambiguous-request
-    prompt: |
-      Available operations:
-      - list_clusters(env)
-      - describe_nodegroup(cluster, name)
-      - scale_nodegroup(cluster, ng, desired)
-      - cordon(cluster, node)
-      - drain(cluster, node)
+    schema. Flatten nested field ''line_items'' with ''_'' separator. COPY to
 
-      Task: Fix the slow node group in production. You need to:
-      1. List clusters in production
-      2. Describe the nodegroup to find the issue
-      3. Scale it up to desired=5
-      4. Cordon the problematic node
-      5. Drain it for maintenance
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: list_clusters
-        - operation: describe_nodegroup
-        - operation: scale_nodegroup
-        - operation: cordon
-        - operation: drain
-    max_tokens: 1024
+    ''dw.orders'' columns id,amount,status. Run SELECT COUNT(*) to verify.
 
-  - id: tu-38-rate-limited
-    prompt: |
-      Available operations:
-      - check_rate_limit(endpoint)
-      - get_quota(endpoint)
-      - api_call(endpoint, data)
-      - wait(ms)
+    Call mock_api for each step.
 
-      Task: Call POST /orders with item=widget, qty=5. But first check rate
-      limit. If remaining quota < 10, wait 1000ms before calling. Then make
-      the API call. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: check_rate_limit
-        - operation: api_call
-    max_tokens: 1024
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: http_get
+    - operation: validate_json
+    - operation: flatten
+    - operation: copy_to_redshift
+    - operation: query_redshift
+  max_tokens: 1024
+- id: tu-16-ab-test
+  prompt: 'Available operations:
 
-  - id: tu-39-permissions-check
-    prompt: |
-      Available operations:
-      - whoami()
-      - list_permissions(resource)
-      - request_access(permission, reason, duration_h)
-      - approve_access(request_id)
-      - execute(action, resource)
+    - create_experiment(name, metric, variants)
 
-      Task: Check your identity. Check if you have 's3:PutObject' on
-      'backup-bucket'. If not (you don't), request access for 24h with reason
-      'backup task'. Once approved (auto-approved), upload 'data.zip'.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: whoami
-        - operation: list_permissions
-        - operation: request_access
-        - operation: approve_access
-        - operation: execute
-    max_tokens: 1024
+    - assign_variant(exp_id, user)
 
-  - id: tu-40-blue-green
-    prompt: |
-      Available operations:
-      - create_env(name, config)
-      - deploy_build(env, build_id)
-      - switch_traffic(blue_env, green_env, pct)
-      - smoke_test(env, test_suite)
-      - terminate_env(env)
+    - record_event(exp_id, variant, value)
 
-      Task: Create 'green' environment for 'api-svc' with config
-      instances=4, memory=2GB. Deploy build 'b-42' to it. Switch 100% traffic
-      from 'blue' to 'green'. Run smoke tests. Terminate the old blue
-      environment. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: create_env
-        - operation: deploy_build
-        - operation: switch_traffic
-        - operation: smoke_test
-        - operation: terminate_env
-    max_tokens: 1024
+    - analyze(exp_id)
+
+    - promote(exp_id, winner)
+
+
+    Task: Create experiment ''pricing-v2'' tracking ''conversion_rate'' with
+
+    variants control and treatment. Assign user ''u_42''. Record conversion
+
+    event with value 1.0. Analyze results. Promote the winning variant.
+
+    Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: create_experiment
+    - operation: assign_variant
+    - operation: record_event
+    - operation: analyze
+    - operation: promote
+  max_tokens: 1024
+- id: tu-17-canary-deploy
+  prompt: 'Available operations:
+
+    - deploy_version(service, version, replicas)
+
+    - shift_traffic(service, from_ver, to_ver, pct)
+
+    - monitor_errors(service, window_min)
+
+    - full_cutover(service, version)
+
+    - rollback(service, version)
+
+
+    Task: Deploy v2.1.0 of ''payment-svc'' with 1 replica. Shift 5% traffic
+
+    from v2.0.0. Monitor errors for 10 minutes. If error_rate < 0.01, cut
+
+    over fully. If not, rollback. Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: deploy_version
+    - operation: shift_traffic
+    - operation: monitor_errors
+    - operation: full_cutover
+  max_tokens: 1024
+- id: tu-18-db-migrate
+  prompt: 'Available operations:
+
+    - dump_db(conn_str, schema)
+
+    - transform_schema(sql, rules)
+
+    - snapshot(conn_str)
+
+    - apply_migration(conn_str, migration)
+
+    - validate_data(conn_str, checks)
+
+    - rollback_migration(conn_str)
+
+
+    Task: Dump ''public'' schema from postgres://old:5432/prod. Transform:
+
+    rename username to email, add created_at DEFAULT NOW(). Snapshot before
+
+    migration. Apply migration to postgres://new:5432/prod. Validate row
+
+    counts match. Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: dump_db
+    - operation: transform_schema
+    - operation: snapshot
+    - operation: apply_migration
+    - operation: validate_data
+  max_tokens: 1024
+- id: tu-19-rate-limit
+  prompt: 'Available operations:
+
+    - create_usage_plan(name, quota, burst, rate)
+
+    - create_api_key(name, plan_id)
+
+    - set_throttle(method, path, rate, burst)
+
+    - add_waf_rule(name, action, limit, window)
+
+    - test_endpoint(url, key, calls)
+
+
+    Task: Create usage plan ''basic'' with quota=1000 burst=50 rate=10/s.
+
+    Create API key ''client-1'' under that plan. Set throttle on POST /orders
+
+    rate=5/s burst=10. Add WAF rate limit rule (block, 2000req, 5min).
+
+    Test with 10 rapid calls. Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: create_usage_plan
+    - operation: create_api_key
+    - operation: set_throttle
+    - operation: add_waf_rule
+    - operation: test_endpoint
+  max_tokens: 1024
+- id: tu-20-compliance-scan
+  prompt: 'Available operations:
+
+    - run_scanner(profile, rules)
+
+    - list_findings(scan_id, severity)
+
+    - suppress_finding(finding_id, reason)
+
+    - generate_report(scan_id, format)
+
+    - email_report(to, attachment)
+
+
+    Task: Run CIS benchmark scan on ''prod-account'' with rules
+
+    cis_1.1, cis_1.2, cis_2.1. List CRITICAL findings. Suppress finding
+
+    F-001 as ''false positive''. Generate PDF report. Email to security@co.
+
+    Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: run_scanner
+    - operation: list_findings
+    - operation: suppress_finding
+    - operation: generate_report
+    - operation: email_report
+  max_tokens: 1024
+- id: tu-21-img-pipeline
+  prompt: 'Available operations:
+
+    - read_file(path)
+
+    - resize(img, w, h)
+
+    - compress(img, quality)
+
+    - store(bucket, key, data)
+
+    - generate_thumbnail(src, size)
+
+
+    Task: Read ''photo.png''. Resize to 1920x1080. Compress at quality 80.
+
+    Store in ''assets'' bucket as ''photo.jpg''. Generate a 256px thumbnail.
+
+    Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: read_file
+    - operation: resize
+    - operation: compress
+    - operation: store
+    - operation: generate_thumbnail
+  max_tokens: 1024
+- id: tu-22-notification-system
+  prompt: 'Available operations:
+
+    - create_template(name, body, vars)
+
+    - send_email(to, template, data)
+
+    - send_sms(phone, msg)
+
+    - send_slack(channel, msg)
+
+    - log_delivery(msg_id, status)
+
+
+    Task: Create template ''welcome'' with body ''Hi {{name}}, welcome!'' and
+
+    vars name. Send email to ''alice@co''. Send SMS to ''+1555123''. Send Slack
+
+    to ''#general'' with msg ''New user!''. Log delivery as ''sent''.
+
+    Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: create_template
+    - operation: send_email
+    - operation: send_sms
+    - operation: send_slack
+    - operation: log_delivery
+  max_tokens: 1024
+- id: tu-23-payment-flow
+  prompt: 'Available operations:
+
+    - create_customer(email, name)
+
+    - add_payment_method(customer_id, token)
+
+    - create_invoice(customer_id, amount, currency)
+
+    - charge(customer_id, amount, currency)
+
+    - refund(charge_id, amount)
+
+
+    Task: Create customer ''bob@co'' name ''Bob''. Add payment method
+
+    token ''pm_abc''. Create invoice for 2999 USD. Charge the customer.
+
+    If charge succeeds, issue full refund. Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: create_customer
+    - operation: add_payment_method
+    - operation: create_invoice
+    - operation: charge
+    - operation: refund
+  max_tokens: 1024
+- id: tu-24-websocket-server
+  prompt: 'Available operations:
+
+    - create_ws_api(name, route)
+
+    - deploy_ws(api_id, stage)
+
+    - set_integration(api_id, route, target)
+
+    - connect_client(api_id, conn_str)
+
+    - broadcast(api_id, msg)
+
+
+    Task: Create WebSocket API ''chat-app'' with route ''$connect''. Deploy to
+
+    stage ''dev''. Set integration for $connect -> ''connect-function''. Connect
+
+    a test client at ws://example.com/ws. Broadcast ''Hello all''.
+
+    Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: create_ws_api
+    - operation: deploy_ws
+    - operation: set_integration
+    - operation: connect_client
+    - operation: broadcast
+  max_tokens: 1024
+- id: tu-25-cron-cleanup
+  prompt: 'Available operations:
+
+    - create_schedule(name, expr, cmd)
+
+    - list_schedules()
+
+    - test_run(schedule_id)
+
+    - set_timeout(schedule_id, sec)
+
+    - delete_schedule(schedule_id)
+
+
+    Task: Create schedule ''cleanup-logs'' with cron ''0 3 * * *'' running
+
+    ''rm -rf /var/log/old/*''. List all schedules. Test run — if it fails,
+
+    set timeout to 300s. If still failing, delete the schedule.
+
+    Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: create_schedule
+    - operation: list_schedules
+    - operation: test_run
+    - operation: set_timeout
+    - operation: delete_schedule
+  max_tokens: 1024
+- id: tu-26-service-mesh
+  prompt: 'Available operations:
+
+    - create_virtual_service(name, hosts)
+
+    - add_route(vs_name, match, dest, weight)
+
+    - set_circuit_breaker(dest, max_conns, timeout)
+
+    - add_retry_policy(dest, attempts, per_try_timeout)
+
+    - enable_mtls(namespace, mode)
+
+
+    Task: Create virtual service ''checkout-svc'' hosts [''checkout.app.com''].
+
+    Add route matching prefix /api to checkout-v1:8080 weight 100. Set circuit
+
+    breaker: max_connections=100 timeout=5s. Add retry: 3 attempts, 2s per
+
+    try. Enable STRICT mTLS in ''prod'' namespace. Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: create_virtual_service
+    - operation: add_route
+    - operation: set_circuit_breaker
+    - operation: add_retry_policy
+    - operation: enable_mtls
+  max_tokens: 1024
+- id: tu-27-audit-pipeline
+  prompt: 'Available operations:
+
+    - enable_audit(service, region)
+
+    - trail_create(name, bucket, events)
+
+    - stream_to_lambda(trail_arn, fn_arn)
+
+    - query_athena(database, query)
+
+    - visualize(data, chart_type, title)
+
+
+    Task: Enable CloudTrail in ''us-east-1''. Create trail ''org-trail'' to
+
+    ''audit-logs'' bucket capturing Write and Read events. Stream trail to
+
+    ''audit-processor'' Lambda. Query Athena: SELECT event_name, count(*)
+
+    FROM audit GROUP BY event_name. Visualize as bar chart.
+
+    Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: enable_audit
+    - operation: trail_create
+    - operation: stream_to_lambda
+    - operation: query_athena
+    - operation: visualize
+  max_tokens: 1024
+- id: tu-28-feature-flag
+  prompt: 'Available operations:
+
+    - create_flag(name, desc, default)
+
+    - set_rule(flag, condition, value)
+
+    - evaluate(flag, context)
+
+    - enable_for(flag, user_ids)
+
+    - delete_flag(flag)
+
+
+    Task: Create flag ''dark-mode'' default false. Set rule: country == US
+
+    -> true. Evaluate for user with country US. Enable for users
+
+    [''u_1'', ''u_2'']. Then delete flag. Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: create_flag
+    - operation: set_rule
+    - operation: evaluate
+    - operation: enable_for
+    - operation: delete_flag
+  max_tokens: 1024
+- id: tu-29-dns-migration
+  prompt: 'Available operations:
+
+    - list_zones()
+
+    - create_zone(name)
+
+    - export_records(zone_id)
+
+    - import_records(zone_id, records)
+
+    - set_ttl(zone_id, record, ttl)
+
+    - test_resolve(domain)
+
+
+    Task: List all hosted zones. Create zone ''new-app.com''. Export records
+
+    from old zone ''app.com''. Import into new zone. Set TTL on A record ''www''
+
+    to 60. Test resolve ''www.new-app.com''. Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: list_zones
+    - operation: create_zone
+    - operation: export_records
+    - operation: import_records
+    - operation: set_ttl
+    - operation: test_resolve
+  max_tokens: 1024
+- id: tu-30-cost-anomaly
+  prompt: 'Available operations:
+
+    - get_cost(service, period)
+
+    - create_budget(name, amount, threshold)
+
+    - set_anomaly_detection(service, sensitivity)
+
+    - get_recommendations(service)
+
+    - apply_rightsizing(resource, action)
+
+    - export_report(period, format)
+
+
+    Task: Get EC2 cost for last month. Create budget ''ec2-budget'' at $5000
+
+    with thresholds 50,80,100. Enable anomaly detection with ''medium''
+
+    sensitivity. Get savings recommendations. Apply ''downsize'' to
+
+    ''i-overprovisioned''. Export PDF report. Call mock_api for each step.
+
+    '
+  scoring:
+    type: tool_sequence
+    expected:
+    - operation: get_cost
+    - operation: create_budget
+    - operation: set_anomaly_detection
+    - operation: get_recommendations
+    - operation: apply_rightsizing
+    - operation: export_report
+  max_tokens: 1024

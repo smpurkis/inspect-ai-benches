@@ -1,842 +1,303 @@
 category: coding_debug
 tasks:
-  - id: debug-21-mutable-default
-    prompt: |
-      `add_task` should add a task to a list and return it. The buggy version shares state across calls. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def add_task(task: str, tasks: list = []) -> list:
-          tasks.append(task)
-          return tasks
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert add_task('a') == ['a']"
-        - "assert add_task('b') == ['b']"
-        - "assert add_task('c', []) == ['c']"
-        - "assert add_task('x', ['y']) == ['y', 'x']"
-    max_tokens: 768
-
-  - id: debug-22-remove-while-iter
-    prompt: |
-      `remove_negatives` should return a list with all negative numbers removed. The buggy version skips elements. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def remove_negatives(xs: list[int]) -> list[int]:
-          for x in xs:
-              if x < 0:
-                  xs.remove(x)
-          return xs
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert remove_negatives([1,-1,2,-2,3]) == [1,2,3]"
-        - "assert remove_negatives([-1,-2,-3]) == []"
-        - "assert remove_negatives([]) == []"
-        - "assert remove_negatives([1,2,3]) == [1,2,3]"
-    max_tokens: 768
-
-  - id: debug-23-binary-search-ob1
-    prompt: |
-      `binary_search` should return the index of target in sorted xs, or -1 if not found. The buggy version misses the last element. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def binary_search(xs: list[int], target: int) -> int:
-          lo, hi = 0, len(xs) - 1
-          while lo < hi:
-              mid = (lo + hi) // 2
-              if xs[mid] == target:
-                  return mid
-              if xs[mid] < target:
-                  lo = mid + 1
-              else:
-                  hi = mid - 1
-          return -1
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert binary_search([1,2,3,4,5], 5) == 4"
-        - "assert binary_search([1,2,3,4,5], 1) == 0"
-        - "assert binary_search([1,2,3,4,5], 6) == -1"
-        - "assert binary_search([], 1) == -1"
-        - "assert binary_search([5], 5) == 0"
-    max_tokens: 1024
-
-  - id: debug-24-float-compare
-    prompt: |
-      `approx_equal` should return True if a and b are within 0.001 of each other. The buggy version fails for near-equal floats. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def approx_equal(a: float, b: float) -> bool:
-          return a == b
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert approx_equal(0.1 + 0.2, 0.3) is True"
-        - "assert approx_equal(1.0, 1.0) is True"
-        - "assert approx_equal(1.0, 1.002) is False"
-        - "assert approx_equal(1.0, 1.0005) is True"
-    max_tokens: 768
-
-  - id: debug-25-closure-loop
-    prompt: |
-      `make_multipliers` should return a list where [0](x)=0*x, [1](x)=1*x, ..., [4](x)=4*x. The buggy version all return the same value. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def make_multipliers() -> list:
-          return [lambda x: x * i for i in range(5)]
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "ms = make_multipliers(); assert ms[0](2) == 0"
-        - "ms = make_multipliers(); assert ms[1](3) == 3"
-        - "ms = make_multipliers(); assert ms[2](5) == 10"
-        - "ms = make_multipliers(); assert ms[3](2) == 6"
-        - "ms = make_multipliers(); assert ms[4](2) == 8"
-    max_tokens: 768
-
-  - id: debug-26-list-mult-ref
-    prompt: |
-      `make_grid` should create an rows × cols grid filled with val. The buggy version shares rows. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def make_grid(rows: int, cols: int, val: int = 0) -> list[list[int]]:
-          return [[val] * cols] * rows
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          g = make_grid(2, 3, 0)
-          g[0][0] = 1
-          assert g[1][0] == 0
-        - "assert make_grid(0, 5) == []"
-        - "assert make_grid(2, 2, 1) == [[1,1],[1,1]]"
-        - |
-          g = make_grid(3, 1, 0)
-          g[0][0] = 5
-          assert g[1][0] == 0
-          assert g[2][0] == 0
-    max_tokens: 768
-
-  - id: debug-27-premature-return
-    prompt: |
-      `all_positive` should return True if all numbers are > 0. The buggy version returns True after the first positive. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def all_positive(xs: list[int]) -> bool:
-          for x in xs:
-              if x <= 0:
-                  return False
-              else:
-                  return True
-          return True
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert all_positive([1,2,3]) is True"
-        - "assert all_positive([1,0,3]) is False"
-        - "assert all_positive([-1,2]) is False"
-        - "assert all_positive([]) is True"
-    max_tokens: 768
-
-  - id: debug-28-string-immutable
-    prompt: |
-      `swap_ends` should return a new string with first and last characters swapped. The buggy version tries to mutate in place. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def swap_ends(s: str) -> str:
-          if len(s) < 2:
-              return s
-          s[0], s[-1] = s[-1], s[0]
-          return s
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert swap_ends('hello') == 'oellh'"
-        - "assert swap_ends('ab') == 'ba'"
-        - "assert swap_ends('a') == 'a'"
-        - "assert swap_ends('') == ''"
-    max_tokens: 768
-
-  - id: debug-29-rounding-trunc
-    prompt: |
-      `to_percent` should return the percentage as a whole integer, rounding properly. The buggy version always truncates. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def to_percent(score: float, total: float) -> int:
-          return int(score / total * 100)
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert to_percent(2, 3) == 67"
-        - "assert to_percent(1, 4) == 25"
-        - "assert to_percent(75, 100) == 75"
-        - "assert to_percent(1, 6) == 17"
-    max_tokens: 768
-
-  - id: debug-30-is-vs-eq
-    prompt: |
-      `last_equals_first` should return True if the first and last elements have the same value. The buggy version fails for equal values beyond the small integer cache. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def last_equals_first(xs: list) -> bool:
-          if not xs:
-              return True
-          return xs[0] is xs[-1]
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert last_equals_first([1000, 999, 1000]) is True"
-        - "assert last_equals_first([1, 2, 3]) is False"
-        - "assert last_equals_first([]) is True"
-        - "assert last_equals_first(['a', 'b', 'a']) is True"
-    max_tokens: 768
-
-  - id: debug-31-bool-logic
-    prompt: |
-      `is_valid_user` should return True if name is non-empty AND age ≥ 18. The buggy version accepts empty names. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def is_valid_user(name: str, age: int) -> bool:
-          return name != "" or age >= 18
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert is_valid_user('Alice', 25) is True"
-        - "assert is_valid_user('', 30) is False"
-        - "assert is_valid_user('Bob', 16) is False"
-        - "assert is_valid_user('', 15) is False"
-    max_tokens: 768
-
-  - id: debug-32-wrong-comparator
-    prompt: |
-      `top_k` should return the k largest elements in descending order. The buggy version returns them in ascending order. Fix it. Do NOT use reverse=True. Reply with corrected Python code block.
-
-      ```python
-      def top_k(xs: list[int], k: int) -> list[int]:
-          return sorted(xs, key=lambda x: -x)[:k]
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert top_k([3,1,4,1,5,9,2], 3) == [9,5,4]"
-        - "assert top_k([1,2,3], 2) == [3,2]"
-        - "assert top_k([], 0) == []"
-        - "assert top_k([5], 1) == [5]"
-    max_tokens: 768
-
-  - id: debug-33-shallow-copy
-    prompt: |
-      `copy_grid` should return a deep copy of a 2D list. The buggy version only copies the outer list, so mutations to nested lists affect the original. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def copy_grid(grid: list[list[int]]) -> list[list[int]]:
-          return list(grid)
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          orig = [[1,2],[3,4]]
-          cp = copy_grid(orig)
-          cp[0][0] = 99
-          assert orig[0][0] == 1
-        - "assert copy_grid([]) == []"
-        - "assert copy_grid([[1]]) == [[1]]"
-        - |
-          orig = [[1,2,3],[4,5,6]]
-          cp = copy_grid(orig)
-          cp[1][1] = 99
-          assert orig[1][1] == 5
-    max_tokens: 768
-
-  - id: debug-34-int-div
-    prompt: |
-      `avg_score` should return the mean of a list of integers as a float. The buggy version performs integer division. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def avg_score(scores: list[int]) -> float:
-          return sum(scores) // len(scores)
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert avg_score([1, 2, 3, 4]) == 2.5"
-        - "assert avg_score([5, 10]) == 7.5"
-        - "assert avg_score([0, 0, 1]) == 1/3"
-        - "assert avg_score([1]) == 1.0"
-    max_tokens: 768
-
-  - id: debug-35-wrong-except
-    prompt: |
-      `safe_divide` should return a/b for ints or floats. If b is 0, return "inf". The buggy version crashes on string inputs. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def safe_divide(a, b):
-          try:
-              return a / b
-          except ZeroDivisionError:
-              return "inf"
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert safe_divide(10, 2) == 5.0"
-        - "assert safe_divide(10, 0) == 'inf'"
-        - "assert safe_divide('10', 2) == 5.0"
-        - "assert safe_divide(10, '2') == 5.0"
-    max_tokens: 768
-
-  - id: debug-36-rec-mut-default
-    prompt: |
-      `tree_depth` should return the depth of a nested list (e.g. [1,[2,[3]]] → 3). The buggy version accumulates depth across independent calls. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def tree_depth(nested: list, depth: int = 0) -> int:
-          if not nested:
-              return depth
-          return max(tree_depth(x, depth + 1) for x in nested if isinstance(x, list))
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert tree_depth([1,[2,[3]]]) == 3"
-        - "assert tree_depth([1,2,3]) == 0"
-        - "assert tree_depth([]) == 0"
-        - "assert tree_depth([1,[2,[3,[4]]]]) == 4"
-    max_tokens: 768
-
-  - id: debug-37-generator-exhaust
-    prompt: |
-      `first_two` should return the first two items from a generator. The buggy version exhausts the generator before reading. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def first_two(gen):
-          items = list(gen)
-          return [next(gen), next(gen)]
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert first_two(iter([1,2,3,4])) == [1,2]"
-        - "assert first_two(iter([10])) == [10]"
-        - "assert first_two(iter([])) == []"
-        - "assert first_two(iter([1,2,3,4,5])) == [1,2]"
-    max_tokens: 768
-
-  - id: debug-38-for-else-bug
-    prompt: |
-      `has_even` should return True if any number is even. The buggy version returns False if the last number checked is odd, even if an earlier number was even. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def has_even(xs: list[int]) -> bool:
-          for x in xs:
-              if x % 2 == 0:
-                  return True
-              else:
-                  return False
-          return False
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert has_even([1,2,3]) is True"
-        - "assert has_even([1,3,5]) is False"
-        - "assert has_even([]) is False"
-        - "assert has_even([4]) is True"
-    max_tokens: 768
-
-  - id: debug-39-typo-shadow
-    prompt: |
-      `count_positives` should return how many numbers are > 0. The buggy version assigns to the wrong variable. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def count_positives(xs: list[int]) -> int:
-          count = 0
-          for x in xs:
-              if x > 0:
-                  count = x
-          return count
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert count_positives([1, -2, 3, -4, 5]) == 3"
-        - "assert count_positives([-1, -2]) == 0"
-        - "assert count_positives([]) == 0"
-        - "assert count_positives([0, 0, 1]) == 1"
-    max_tokens: 768
-
-  - id: debug-40-remove-forward
-    prompt: |
-      `dedup_adjacent` should remove consecutive duplicates in-place, returning the list. The buggy version skips elements after a removal. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def dedup_adjacent(xs: list[int]) -> list[int]:
-          i = 0
-          while i < len(xs) - 1:
-              if xs[i] == xs[i+1]:
-                  xs.pop(i)
-              i += 1
-          return xs
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert dedup_adjacent([1,1,2,2,3]) == [1,2,3]"
-        - "assert dedup_adjacent([1,1,1,1]) == [1]"
-        - "assert dedup_adjacent([]) == []"
-        - "assert dedup_adjacent([1,2,3]) == [1,2,3]"
-    max_tokens: 768
-
-  - id: debug-41-race-condition
-    prompt: |
-      `Counter` class should safely increment. The buggy version has a race condition when accessed from multiple threads. Fix it. Reply with corrected Python code block.
-
-      ```python
-      class Counter:
-          def __init__(self):
-              self.value = 0
-          def increment(self):
-              self.value += 1
-      ```
-    scoring:
-      type: code_exec_python
-      setup: |
-        import threading
-      tests:
-        - |
-          c = Counter()
-          threads = [threading.Thread(target=c.increment) for _ in range(100)]
-          for t in threads: t.start()
-          for t in threads: t.join()
-          assert c.value == 100
-        - "assert Counter().value == 0"
-    max_tokens: 768
-
-  - id: debug-42-int-overflow
-    prompt: |
-      `add_balance` should add amount to balance without overflow. The buggy version silently wraps around on large values. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def add_balance(balance: int, amount: int) -> int:
-          return balance + amount
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert add_balance(100, 50) == 150"
-        - "assert add_balance(10**18, 10**18) == 2 * 10**18"
-        - "assert add_balance(-10**18, -10**18) == -2 * 10**18"
-        - "assert add_balance(0, 0) == 0"
-    max_tokens: 768
-
-  - id: debug-43-float-sum-tol
-    prompt: |
-      `sum_is_close` should return True if the sum of nums is within 1e-6 of target. The buggy version uses exact equality. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def sum_is_close(nums: list[float], target: float) -> bool:
-          return sum(nums) == target
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert sum_is_close([0.1, 0.2], 0.3) is True"
-        - "assert sum_is_close([1.0, 2.0], 3.0) is True"
-        - "assert sum_is_close([0.0], 1e-7) is True"
-        - "assert sum_is_close([1.0], 2.0) is False"
-    max_tokens: 768
-
-  - id: debug-44-memory-leak
-    prompt: |
-      `Cache` class should store key-value pairs. The buggy version holds references to all past values even after deletion (memory leak). Fix it. Reply with corrected Python code block.
-
-      ```python
-      class Cache:
-          def __init__(self):
-              self._store = {}
-              self._all_values = []
-          def set(self, k: str, v: object):
-              self._store[k] = v
-              self._all_values.append(v)
-          def get(self, k: str):
-              return self._store.get(k)
-          def delete(self, k: str):
-              self._store.pop(k, None)
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          c = Cache()
-          c.set('a', [1,2,3]); c.set('b', [4,5,6])
-          c.delete('a')
-          assert c.get('a') is None
-          assert c.get('b') == [4,5,6]
-        - "assert Cache().get('missing') is None"
-    max_tokens: 1024
-
-  - id: debug-45-auth-bypass
-    prompt: |
-      `check_password` should return True only if the stored hash matches the hash of the provided password. The buggy version is vulnerable to timing attacks and naive comparison. Fix it. Reply with corrected Python code block.
-
-      ```python
-      import hashlib
-      def check_password(stored_hash: str, password: str) -> bool:
-          return hashlib.sha256(password.encode()).hexdigest() == stored_hash
-      ```
-    scoring:
-      type: code_exec_python
-      setup: |
-        import hashlib
-      tests:
-        - |
-          h = hashlib.sha256(b'correct').hexdigest()
-          assert check_password(h, 'correct') is True
-        - "assert check_password(h, 'wrong') is False"
-        - "assert check_password('', '') is False"
-    max_tokens: 1024
-
-  - id: debug-46-sql-injection
-    prompt: |
-      `get_user` should return user data by id. The buggy version concatenates user input directly into the query, enabling SQL injection. Fix it with parameterized query style (simulated). Reply with corrected Python code block.
-
-      ```python
-      def get_user(conn: dict, user_id: str) -> dict:
-          query = f"SELECT * FROM users WHERE id = '{user_id}'"
-          return conn.get(query)
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          conn = {"SELECT * FROM users WHERE id = '1'": {'id': 1, 'name': 'Alice'}}
-          assert get_user(conn, '1') == {'id': 1, 'name': 'Alice'}
-        - |
-          conn = {}
-          assert get_user(conn, "1' OR '1'='1") is None
-        - "assert get_user({}, '2') is None"
-    max_tokens: 1024
-
-  - id: debug-47-csv-injection
-    prompt: |
-      `to_csv_cell` should safely format a value for CSV. The buggy version writes cells starting with =, +, -, @ directly, enabling formula injection. Fix it by prefixing with a tab. Reply with corrected Python code block.
-
-      ```python
-      def to_csv_cell(value: str) -> str:
-          if ',' in value or '\n' in value or '"' in value:
-              return '"' + value.replace('"', '""') + '"'
-          return value
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert to_csv_cell('hello') == 'hello'"
-        - "assert to_csv_cell('=SUM(A1:A10)').startswith('\\t') or not to_csv_cell('=SUM(A1:A10)').startswith('=')"
-        - "assert to_csv_cell('+cmd') not in ('+cmd', '=cmd')"
-        - "assert to_csv_cell('normal') == 'normal'"
-    max_tokens: 1024
-
-  - id: debug-48-path-traversal
-    prompt: |
-      `read_safe` should only allow reading files within the base_dir. The buggy version using os.path.join allows path traversal with absolute paths. Fix it. Reply with corrected Python code block.
-
-      ```python
-      import os
-      def read_safe(base_dir: str, filename: str) -> str:
-          path = os.path.join(base_dir, filename)
-          with open(path) as f:
-              return f.read()
-      ```
-    scoring:
-      type: code_exec_python
-      setup: |
-        import os, tempfile
-      tests:
-        - |
-          with tempfile.TemporaryDirectory() as d:
-              safe = os.path.join(d, 'safe.txt')
-              with open(safe, 'w') as f: f.write('ok')
-              assert read_safe(d, 'safe.txt') == 'ok'
-        - |
-          with tempfile.TemporaryDirectory() as d:
-              try:
-                  read_safe(d, '/etc/passwd')
-                  assert False
-              except (ValueError, PermissionError):
-                  pass
-    max_tokens: 1024
-
-  - id: debug-49-toctou
-    prompt: |
-      `check_and_delete` should remove a file only if it exists. The buggy version has a TOCTOU race: the file could be deleted or recreated between check and use. Fix it with EAFP (try/except OSError). Reply with corrected Python code block.
-
-      ```python
-      import os
-      def check_and_delete(path: str) -> bool:
-          if os.path.exists(path):
-              os.remove(path)
-              return True
-          return False
-      ```
-    scoring:
-      type: code_exec_python
-      setup: |
-        import os, tempfile
-      tests:
-        - |
-          with tempfile.NamedTemporaryFile(delete=False) as f:
-              p = f.name
-          assert check_and_delete(p) == True
-          assert not os.path.exists(p)
-        - "assert check_and_delete('/nonexistent/path') == False"
-    max_tokens: 1024
-
-  - id: debug-50-stale-cache
-    prompt: |
-      `TimestampCache` should return the cached value only within ttl_seconds. The buggy version does not check staleness correctly and returns stale data. Fix it. Reply with corrected Python code block.
-
-      ```python
-      import time
-      class TimestampCache:
-          def __init__(self):
-              self._data = {}
-          def set(self, k: str, v: any):
-              self._data[k] = (v, time.monotonic())
-          def get(self, k: str, ttl: float = 10.0):
-              if k in self._data:
-                  return self._data[k][0]
-              return None
-      ```
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time, unittest.mock
-      tests:
-        - |
-          with unittest.mock.patch('time.monotonic') as mt:
-              mt.side_effect = [0.0, 0.0]
-              c = TimestampCache()
-              c.set('a', 1)
-              assert c.get('a', 10.0) == 1
-              mt.side_effect = [15.0]
-              assert c.get('a', 10.0) is None
-        - "assert TimestampCache().get('missing') is None"
-    max_tokens: 1024
-
-  - id: debug-51-deadlock
-    prompt: |
-      `transfer` should move amount from account a to b without deadlock. The buggy version acquires locks in different order depending on arguments, causing potential deadlock. Fix it by ordering locks consistently. Reply with corrected Python code block.
-
-      ```python
-      import threading
-      def transfer(a_lock, b_lock, a_bal, b_bal, amount):
-          with a_lock:
-              with b_lock:
-                  a_bal[0] -= amount
-                  b_bal[0] += amount
-      ```
-    scoring:
-      type: code_exec_python
-      setup: |
-        import threading
-      tests:
-        - |
-          la, lb = threading.Lock(), threading.Lock()
-          ba, bb = [100], [100]
-          transfer(la, lb, ba, bb, 50)
-          assert ba[0] == 50 and bb[0] == 150
-        - |
-          la, lb = threading.Lock(), threading.Lock()
-          ba, bb = [100], [100]
-          # Reverse order should also work (avoiding deadlock)
-          transfer(lb, la, bb, ba, 30)
-          assert ba[0] == 130 and bb[0] == 70
-    max_tokens: 1024
-
-  - id: debug-52-binary-search-ub
-    prompt: |
-      `first_occurrence` should return the index of the first occurrence of target in sorted xs, or -1 if not found. The buggy version may return a later occurrence instead of the first. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def first_occurrence(xs: list[int], target: int) -> int:
-          lo, hi = 0, len(xs) - 1
-          while lo <= hi:
-              mid = (lo + hi) // 2
-              if xs[mid] >= target:
-                  hi = mid - 1
-              else:
-                  lo = mid + 1
-          return lo if lo < len(xs) and xs[lo] == target else -1
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert first_occurrence([1,2,2,2,3], 2) == 1"
-        - "assert first_occurrence([1,1,1], 1) == 0"
-        - "assert first_occurrence([1,2,3], 4) == -1"
-        - "assert first_occurrence([], 1) == -1"
-        - "assert first_occurrence([5,5,5,5], 5) == 0"
-    max_tokens: 1024
-
-  - id: debug-53-dict-iter-mod
-    prompt: |
-      `remove_keys` should remove all keys whose value is None from a dict. The buggy version modifies the dict while iterating, causing RuntimeError. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def remove_keys(d: dict) -> dict:
-          for k, v in d.items():
-              if v is None:
-                  del d[k]
-          return d
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert remove_keys({'a':1,'b':None,'c':3}) == {'a':1,'c':3}"
-        - "assert remove_keys({'x':None}) == {}"
-        - "assert remove_keys({}) == {}"
-        - "assert remove_keys({'a':1,'b':2}) == {'a':1,'b':2}"
-    max_tokens: 768
-
-  - id: debug-54-bare-except
-    prompt: |
-      `safe_int` should convert a value to int, returning None only for ValueError. The buggy version swallows ALL exceptions (including KeyboardInterrupt). Fix it. Reply with corrected Python code block.
-
-      ```python
-      def safe_int(x):
-          try:
-              return int(x)
-          except:
-              return None
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert safe_int('42') == 42"
-        - "assert safe_int('abc') is None"
-        - "assert safe_int('') is None"
-        - "assert safe_int(3.14) == 3"
-    max_tokens: 768
-
-  - id: debug-55-unicode-norm
-    prompt: |
-      `check_password` should return True if the two passwords match. The buggy version fails for Unicode strings that are canonically equivalent but have different byte representations (e.g., composed vs decomposed forms). Fix it. Reply with corrected Python code block.
-
-      ```python
-      def check_password(a: str, b: str) -> bool:
-          return a == b
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert check_password('café', 'caf\\u00e9') is True"
-        - "assert check_password('hello', 'hello') is True"
-        - "assert check_password('abc', 'ABC') is False"
-        - "assert check_password('\\u00e9', 'e\\u0301') is True"
-    max_tokens: 1024
-
-  - id: debug-56-tz-naive
-    prompt: |
-      `is_business_hours` should return True if the current UTC time is between 9:00 and 17:00. The buggy version uses naive datetime and fails across DST transitions. Fix it to use timezone-aware UTC. Reply with corrected Python code block.
-
-      ```python
-      from datetime import datetime
-      def is_business_hours() -> bool:
-          now = datetime.now()
-          return 9 <= now.hour < 17
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "import datetime; assert isinstance(is_business_hours(), bool)"
-    max_tokens: 1024
-
-  - id: debug-57-regex-redos
-    prompt: |
-      `has_repeated_words` should check if a string has a word repeated consecutively. The buggy regex has catastrophic backtracking on long strings of spaces. Fix it with a non-backtracking pattern. Reply with corrected Python code block.
-
-      ```python
-      import re
-      def has_repeated_words(s: str) -> bool:
-          return bool(re.search(r'(\\w+)\\s+\\1', s))
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert has_repeated_words('hello hello world') is True"
-        - "assert has_repeated_words('hello world') is False"
-        - "assert has_repeated_words('') is False"
-        - "# Should not timeout on long input"
-    max_tokens: 1024
-
-  - id: debug-58-type-confuse
-    prompt: |
-      `safe_add` should add two numbers. The buggy version does not check types, causing cryptic errors when string arguments are passed. Fix it to raise TypeError for non-numeric types. Reply with corrected Python code block.
-
-      ```python
-      def safe_add(a, b):
-          return a + b
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert safe_add(3, 4) == 7"
-        - "assert safe_add(3.5, 2.5) == 6.0"
-        - |
-          try: safe_add('3', 4); assert False
-          except TypeError: pass
-        - |
-          try: safe_add(None, 1); assert False
-          except TypeError: pass
-    max_tokens: 768
-
-  - id: debug-59-scope-leak
-    prompt: |
-      `create_actions` should return a list of functions, each printing its own index. The buggy version captures a loop variable by reference that leaks/changes. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def create_actions():
-          actions = []
-          for i in range(5):
-              def action():
-                  return i
-              actions.append(action)
-          return actions
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "actions = create_actions(); assert [a() for a in actions] == [0,1,2,3,4]"
-        - "assert create_actions()[0]() == 0"
-        - "assert create_actions()[4]() == 4"
-    max_tokens: 768
-
-  - id: debug-60-chained-cmp
-    prompt: |
-      `in_range` should return True if x is between low and high (inclusive). The buggy version misuses Python's chained comparison operator. Fix it. Reply with corrected Python code block.
-
-      ```python
-      def in_range(x: int, low: int, high: int) -> bool:
-          return low <= x <= high
-      ```
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert in_range(5, 1, 10) is True"
-        - "assert in_range(0, 1, 10) is False"
-        - "assert in_range(10, 1, 10) is True"
-        - "assert in_range(11, 1, 10) is False"
-    max_tokens: 768
+- id: debug-21-mutable-default
+  prompt: "`add_task` should add a task to a list and return it. The buggy version\
+    \ shares state across calls. Fix it. Reply with corrected Python code block.\n\
+    \n```python\ndef add_task(task: str, tasks: list = []) -> list:\n    tasks.append(task)\n\
+    \    return tasks\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert add_task('a') == ['a']
+    - assert add_task('b') == ['b']
+    - assert add_task('c', []) == ['c']
+    - assert add_task('x', ['y']) == ['y', 'x']
+  max_tokens: 768
+- id: debug-22-remove-while-iter
+  prompt: "`remove_negatives` should return a list with all negative numbers removed.\
+    \ The buggy version skips elements. Fix it. Reply with corrected Python code block.\n\
+    \n```python\ndef remove_negatives(xs: list[int]) -> list[int]:\n    for x in xs:\n\
+    \        if x < 0:\n            xs.remove(x)\n    return xs\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert remove_negatives([1,-1,2,-2,3]) == [1,2,3]
+    - assert remove_negatives([-1,-2,-3]) == []
+    - assert remove_negatives([]) == []
+    - assert remove_negatives([1,2,3]) == [1,2,3]
+  max_tokens: 768
+- id: debug-23-binary-search-ob1
+  prompt: "`binary_search` should return the index of target in sorted xs, or -1 if\
+    \ not found. The buggy version misses the last element. Fix it. Reply with corrected\
+    \ Python code block.\n\n```python\ndef binary_search(xs: list[int], target: int)\
+    \ -> int:\n    lo, hi = 0, len(xs) - 1\n    while lo < hi:\n        mid = (lo\
+    \ + hi) // 2\n        if xs[mid] == target:\n            return mid\n        if\
+    \ xs[mid] < target:\n            lo = mid + 1\n        else:\n            hi =\
+    \ mid - 1\n    return -1\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert binary_search([1,2,3,4,5], 5) == 4
+    - assert binary_search([1,2,3,4,5], 1) == 0
+    - assert binary_search([1,2,3,4,5], 6) == -1
+    - assert binary_search([], 1) == -1
+    - assert binary_search([5], 5) == 0
+  max_tokens: 1024
+- id: debug-24-float-compare
+  prompt: "`approx_equal` should return True if a and b are within 0.001 of each other.\
+    \ The buggy version fails for near-equal floats. Fix it. Reply with corrected\
+    \ Python code block.\n\n```python\ndef approx_equal(a: float, b: float) -> bool:\n\
+    \    return a == b\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert approx_equal(0.1 + 0.2, 0.3) is True
+    - assert approx_equal(1.0, 1.0) is True
+    - assert approx_equal(1.0, 1.002) is False
+    - assert approx_equal(1.0, 1.0005) is True
+  max_tokens: 768
+- id: debug-25-closure-loop
+  prompt: "`make_multipliers` should return a list where [0](x)=0*x, [1](x)=1*x, ...,\
+    \ [4](x)=4*x. The buggy version all return the same value. Fix it. Reply with\
+    \ corrected Python code block.\n\n```python\ndef make_multipliers() -> list:\n\
+    \    return [lambda x: x * i for i in range(5)]\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - ms = make_multipliers(); assert ms[0](2) == 0
+    - ms = make_multipliers(); assert ms[1](3) == 3
+    - ms = make_multipliers(); assert ms[2](5) == 10
+    - ms = make_multipliers(); assert ms[3](2) == 6
+    - ms = make_multipliers(); assert ms[4](2) == 8
+  max_tokens: 768
+- id: debug-26-list-mult-ref
+  prompt: "`make_grid` should create an rows × cols grid filled with val. The buggy\
+    \ version shares rows. Fix it. Reply with corrected Python code block.\n\n```python\n\
+    def make_grid(rows: int, cols: int, val: int = 0) -> list[list[int]]:\n    return\
+    \ [[val] * cols] * rows\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'g = make_grid(2, 3, 0)
+
+      g[0][0] = 1
+
+      assert g[1][0] == 0
+
+      '
+    - assert make_grid(0, 5) == []
+    - assert make_grid(2, 2, 1) == [[1,1],[1,1]]
+    - 'g = make_grid(3, 1, 0)
+
+      g[0][0] = 5
+
+      assert g[1][0] == 0
+
+      assert g[2][0] == 0
+
+      '
+  max_tokens: 768
+- id: debug-27-premature-return
+  prompt: "`all_positive` should return True if all numbers are > 0. The buggy version\
+    \ returns True after the first positive. Fix it. Reply with corrected Python code\
+    \ block.\n\n```python\ndef all_positive(xs: list[int]) -> bool:\n    for x in\
+    \ xs:\n        if x <= 0:\n            return False\n        else:\n         \
+    \   return True\n    return True\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert all_positive([1,2,3]) is True
+    - assert all_positive([1,0,3]) is False
+    - assert all_positive([-1,2]) is False
+    - assert all_positive([]) is True
+  max_tokens: 768
+- id: debug-28-string-immutable
+  prompt: "`swap_ends` should return a new string with first and last characters swapped.\
+    \ The buggy version tries to mutate in place. Fix it. Reply with corrected Python\
+    \ code block.\n\n```python\ndef swap_ends(s: str) -> str:\n    if len(s) < 2:\n\
+    \        return s\n    s[0], s[-1] = s[-1], s[0]\n    return s\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert swap_ends('hello') == 'oellh'
+    - assert swap_ends('ab') == 'ba'
+    - assert swap_ends('a') == 'a'
+    - assert swap_ends('') == ''
+  max_tokens: 768
+- id: debug-29-rounding-trunc
+  prompt: "`to_percent` should return the percentage as a whole integer, rounding\
+    \ properly. The buggy version always truncates. Fix it. Reply with corrected Python\
+    \ code block.\n\n```python\ndef to_percent(score: float, total: float) -> int:\n\
+    \    return int(score / total * 100)\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert to_percent(2, 3) == 67
+    - assert to_percent(1, 4) == 25
+    - assert to_percent(75, 100) == 75
+    - assert to_percent(1, 6) == 17
+  max_tokens: 768
+- id: debug-30-is-vs-eq
+  prompt: "`last_equals_first` should return True if the first and last elements have\
+    \ the same value. The buggy version fails for equal values beyond the small integer\
+    \ cache. Fix it. Reply with corrected Python code block.\n\n```python\ndef last_equals_first(xs:\
+    \ list) -> bool:\n    if not xs:\n        return True\n    return xs[0] is xs[-1]\n\
+    ```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert last_equals_first([1000, 999, 1000]) is True
+    - assert last_equals_first([1, 2, 3]) is False
+    - assert last_equals_first([]) is True
+    - assert last_equals_first(['a', 'b', 'a']) is True
+  max_tokens: 768
+- id: debug-31-bool-logic
+  prompt: "`is_valid_user` should return True if name is non-empty AND age ≥ 18. The\
+    \ buggy version accepts empty names. Fix it. Reply with corrected Python code\
+    \ block.\n\n```python\ndef is_valid_user(name: str, age: int) -> bool:\n    return\
+    \ name != \"\" or age >= 18\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert is_valid_user('Alice', 25) is True
+    - assert is_valid_user('', 30) is False
+    - assert is_valid_user('Bob', 16) is False
+    - assert is_valid_user('', 15) is False
+  max_tokens: 768
+- id: debug-32-wrong-comparator
+  prompt: "`top_k` should return the k largest elements in descending order. The buggy\
+    \ version returns them in ascending order. Fix it. Do NOT use reverse=True. Reply\
+    \ with corrected Python code block.\n\n```python\ndef top_k(xs: list[int], k:\
+    \ int) -> list[int]:\n    return sorted(xs, key=lambda x: -x)[:k]\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert top_k([3,1,4,1,5,9,2], 3) == [9,5,4]
+    - assert top_k([1,2,3], 2) == [3,2]
+    - assert top_k([], 0) == []
+    - assert top_k([5], 1) == [5]
+  max_tokens: 768
+- id: debug-33-shallow-copy
+  prompt: "`copy_grid` should return a deep copy of a 2D list. The buggy version only\
+    \ copies the outer list, so mutations to nested lists affect the original. Fix\
+    \ it. Reply with corrected Python code block.\n\n```python\ndef copy_grid(grid:\
+    \ list[list[int]]) -> list[list[int]]:\n    return list(grid)\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'orig = [[1,2],[3,4]]
+
+      cp = copy_grid(orig)
+
+      cp[0][0] = 99
+
+      assert orig[0][0] == 1
+
+      '
+    - assert copy_grid([]) == []
+    - assert copy_grid([[1]]) == [[1]]
+    - 'orig = [[1,2,3],[4,5,6]]
+
+      cp = copy_grid(orig)
+
+      cp[1][1] = 99
+
+      assert orig[1][1] == 5
+
+      '
+  max_tokens: 768
+- id: debug-34-int-div
+  prompt: "`avg_score` should return the mean of a list of integers as a float. The\
+    \ buggy version performs integer division. Fix it. Reply with corrected Python\
+    \ code block.\n\n```python\ndef avg_score(scores: list[int]) -> float:\n    return\
+    \ sum(scores) // len(scores)\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert avg_score([1, 2, 3, 4]) == 2.5
+    - assert avg_score([5, 10]) == 7.5
+    - assert avg_score([0, 0, 1]) == 1/3
+    - assert avg_score([1]) == 1.0
+  max_tokens: 768
+- id: debug-35-wrong-except
+  prompt: "`safe_divide` should return a/b for ints or floats. If b is 0, return \"\
+    inf\". The buggy version crashes on string inputs. Fix it. Reply with corrected\
+    \ Python code block.\n\n```python\ndef safe_divide(a, b):\n    try:\n        return\
+    \ a / b\n    except ZeroDivisionError:\n        return \"inf\"\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert safe_divide(10, 2) == 5.0
+    - assert safe_divide(10, 0) == 'inf'
+    - assert safe_divide('10', 2) == 5.0
+    - assert safe_divide(10, '2') == 5.0
+  max_tokens: 768
+- id: debug-36-rec-mut-default
+  prompt: "`tree_depth` should return the depth of a nested list (e.g. [1,[2,[3]]]\
+    \ → 3). The buggy version accumulates depth across independent calls. Fix it.\
+    \ Reply with corrected Python code block.\n\n```python\ndef tree_depth(nested:\
+    \ list, depth: int = 0) -> int:\n    if not nested:\n        return depth\n  \
+    \  return max(tree_depth(x, depth + 1) for x in nested if isinstance(x, list))\n\
+    ```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert tree_depth([1,[2,[3]]]) == 3
+    - assert tree_depth([1,2,3]) == 0
+    - assert tree_depth([]) == 0
+    - assert tree_depth([1,[2,[3,[4]]]]) == 4
+  max_tokens: 768
+- id: debug-37-generator-exhaust
+  prompt: "`first_two` should return the first two items from a generator. The buggy\
+    \ version exhausts the generator before reading. Fix it. Reply with corrected\
+    \ Python code block.\n\n```python\ndef first_two(gen):\n    items = list(gen)\n\
+    \    return [next(gen), next(gen)]\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert first_two(iter([1,2,3,4])) == [1,2]
+    - assert first_two(iter([10])) == [10]
+    - assert first_two(iter([])) == []
+    - assert first_two(iter([1,2,3,4,5])) == [1,2]
+  max_tokens: 768
+- id: debug-38-for-else-bug
+  prompt: "`has_even` should return True if any number is even. The buggy version\
+    \ returns False if the last number checked is odd, even if an earlier number was\
+    \ even. Fix it. Reply with corrected Python code block.\n\n```python\ndef has_even(xs:\
+    \ list[int]) -> bool:\n    for x in xs:\n        if x % 2 == 0:\n            return\
+    \ True\n        else:\n            return False\n    return False\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert has_even([1,2,3]) is True
+    - assert has_even([1,3,5]) is False
+    - assert has_even([]) is False
+    - assert has_even([4]) is True
+  max_tokens: 768
+- id: debug-39-typo-shadow
+  prompt: "`count_positives` should return how many numbers are > 0. The buggy version\
+    \ assigns to the wrong variable. Fix it. Reply with corrected Python code block.\n\
+    \n```python\ndef count_positives(xs: list[int]) -> int:\n    count = 0\n    for\
+    \ x in xs:\n        if x > 0:\n            count = x\n    return count\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert count_positives([1, -2, 3, -4, 5]) == 3
+    - assert count_positives([-1, -2]) == 0
+    - assert count_positives([]) == 0
+    - assert count_positives([0, 0, 1]) == 1
+  max_tokens: 768
+- id: debug-40-remove-forward
+  prompt: "`dedup_adjacent` should remove consecutive duplicates in-place, returning\
+    \ the list. The buggy version skips elements after a removal. Fix it. Reply with\
+    \ corrected Python code block.\n\n```python\ndef dedup_adjacent(xs: list[int])\
+    \ -> list[int]:\n    i = 0\n    while i < len(xs) - 1:\n        if xs[i] == xs[i+1]:\n\
+    \            xs.pop(i)\n        i += 1\n    return xs\n```\n"
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert dedup_adjacent([1,1,2,2,3]) == [1,2,3]
+    - assert dedup_adjacent([1,1,1,1]) == [1]
+    - assert dedup_adjacent([]) == []
+    - assert dedup_adjacent([1,2,3]) == [1,2,3]
+  max_tokens: 768

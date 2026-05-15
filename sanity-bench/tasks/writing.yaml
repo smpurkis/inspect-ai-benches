@@ -1,671 +1,515 @@
 category: writing
 tasks:
-  - id: wri-01-plain-english-1000
-    prompt: |
-      Rewrite this using only the 1000 most common English words (no jargon):
-      "The asynchronous microservice architecture exhibits quadratic complexity
-      degradation under sustained cache-miss conditions due to lock contention."
-      ≤25 words.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: length_range, max: 28, unit: words}
-        - {type: contains, expected: "slow"}
-        - {type: contains, expected: "service"}
-    max_tokens: 384
-    temperature: 0.4
+- id: wri-01-plain-english-1000
+  prompt: 'Rewrite this using only the 1000 most common English words (no jargon):
 
-  - id: wri-02-socratic-dialogue
-    prompt: |
-      Rewrite this argument as a Socratic dialogue (Socrates and Student, 4 exchanges):
-      "The high cost of pharmaceutical drugs is justified by R&D investment."
-      Each line: start with "Socrates:" or "Student:". No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "(?m)^Socrates:"}
-        - {type: regex, pattern: "(?m)^Student:"}
-        - {type: length_range, min: 8, max: 12, unit: lines}
-    max_tokens: 768
-    temperature: 0.5
+    "The asynchronous microservice architecture exhibits quadratic complexity
 
-  - id: wri-03-spec-haiku
-    prompt: |
-      Translate this spec into a haiku (5-7-5) that preserves all constraints:
-      "The system shall encrypt all data at rest using AES-256 and in transit
-      using TLS 1.3, with keys rotated every 90 days."
-      No title, no commentary.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: length_range, min: 3, max: 3, unit: lines}
-        - {type: contains_all, expected: ["encrypt", "key"]}
-        - {type: contains_any, expected: ["AES", "TLS", "rotate"]}
-    max_tokens: 384
-    temperature: 0.4
+    degradation under sustained cache-miss conditions due to lock contention."
 
-  - id: wri-04-email-to-exec
-    prompt: |
-      Condense this into a 1-sentence email to a CEO (≤20 words, no jargon):
-      "Our CDN provider had a cascading failure across three Points of Presence
-      that increased TTFB by 3400ms, affecting 68% of NA traffic from 14:02 to
-      14:47 UTC. Failover to the secondary provider reduced impact after 12 minutes."
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: length_range, max: 20, unit: words}
-        - {type: contains_any, expected: ["slow", "down", "issue", "delay", "problem"]}
-    max_tokens: 256
-    temperature: 0.4
+    ≤25 words.
 
-  - id: wri-05-correct-and-enhance
-    prompt: |
-      The following has exactly ONE factual error. Find it, correct it, then
-      rewrite the paragraph as a compelling 2-sentence marketing blurb.
-      "Mount Everest is 8,848 meters tall and sits on the border of Nepal and
-      India. It was first summited by Sir Edmund Hillary and Tenzing Norgay in
-      1953."
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains, expected: "China"}
-        - {type: contains_any, expected: ["summit", "peak", "Everest", "8,848", "8,849"]}
-        - {type: length_range, min: 2, max: 4, unit: sentences}
-    max_tokens: 384
-    temperature: 0.4
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: length_range
+      max: 28
+      unit: words
+    - type: contains
+      expected: slow
+    - type: contains
+      expected: service
+  max_tokens: 384
+  temperature: 0.4
+- id: wri-02-socratic-dialogue
+  prompt: 'Rewrite this argument as a Socratic dialogue (Socrates and Student, 4 exchanges):
 
-  - id: wri-06-multi-rewrite
-    prompt: |
-      Apply ALL three transformations to this sentence simultaneously:
-      "Our AI leverages NLP to optimize customer journey touchpoints."
-      1. Remove all tech buzzwords  2. Convert to active voice  3. Reduce to ≤12 words.
-      Output ONLY the rewritten sentence.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^(?!(?:.*\\bAI\\b|.*\\bleverage\\b|.*\\boptimize\\b|.*\\btouchpoint\\b)).*$", flags: ["I", "S"]}
-        - {type: length_range, max: 14, unit: words}
-    max_tokens: 256
-    temperature: 0.4
+    "The high cost of pharmaceutical drugs is justified by R&D investment."
 
-  - id: wri-07-two-audiences
-    prompt: |
-      Explain "why the database replication lag spiked" in two versions:
-      Version A (to a product manager, ≤20 words, no tech terms)
-      Version B (to a senior engineer, ≤20 words, must include: WAL, replica, sync)
-      Separate with "---". No headers.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_all, expected: ["WAL", "replica", "sync"]}
-        - {type: contains, expected: "---"}
-        - {type: length_range, max: 50, unit: words}
-    max_tokens: 512
-    temperature: 0.4
+    Each line: start with "Socrates:" or "Student:". No other text.
 
-  - id: wri-08-legal-to-plain
-    prompt: |
-      Rewrite this EULA clause so a 12-year-old can understand it. ≤50 words.
-      "The Licensor grants the Licensee a non-exclusive, non-transferable,
-      revocable license to use the Software solely for internal business
-      purposes, subject to the terms herein."
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: length_range, max: 55, unit: words}
-        - {type: regex, pattern: "^(?!(?:.*\\bLicensor\\b|.*\\bLicensee\\b|.*\\bnon-exclusive\\b)).*$", flags: ["I", "S"]}
-    max_tokens: 384
-    temperature: 0.4
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: '(?m)^Socrates:'
+    - type: regex
+      pattern: '(?m)^Student:'
+    - type: length_range
+      min: 8
+      max: 12
+      unit: lines
+  max_tokens: 768
+  temperature: 0.5
+- id: wri-03-spec-haiku
+  prompt: 'Translate this spec into a haiku (5-7-5) that preserves all constraints:
 
-  - id: wri-09-tweet-thread
-    prompt: |
-      Summarise the paper's core finding as a 3-tweet thread.
-      Tweet 1: The finding (≤140 chars)
-      Tweet 2: Why it matters (≤140 chars)
-      Tweet 3: One actionable takeaway (≤140 chars)
-      "Study: Sleep deprivation reduces cognitive performance by 30%, but
-      most subjects believed they performed normally."
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: length_range, min: 3, max: 6, unit: lines}
-        - {type: contains, expected: "sleep"}
-        - {type: contains, expected: "30%"}
-    max_tokens: 512
-    temperature: 0.4
+    "The system shall encrypt all data at rest using AES-256 and in transit
 
-  - id: wri-10-rhetorical-devices
-    prompt: |
-      Rewrite this claim using ALL THREE rhetorical devices: chiasmus, anaphora,
-      and epistrophe. ≤40 words total.
-      "Fast code is not always correct code."
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains, expected: "code"}
-        - {type: length_range, max: 45, unit: words}
-    max_tokens: 384
-    temperature: 0.5
+    using TLS 1.3, with keys rotated every 90 days."
 
-  - id: wri-11-xyz-spellout
-    prompt: |
-      Rewrite this sentence replacing every initialism/acronym with its full form.
-      "The QA team found the MVP had SQLi in the JWT auth. PM escalated to CTO."
-      Output only the rewritten sentence.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_all, expected: ["Quality Assurance", "Minimum Viable Product"]}
-        - {type: contains_all, expected: ["SQL injection", "JSON Web Token"]}
-        - {type: contains_all, expected: ["Product Manager", "Chief Technology Officer"]}
-    max_tokens: 384
-    temperature: 0.3
+    No title, no commentary.
 
-  - id: wri-12-persuade-skeptic
-    prompt: |
-      Write a 3-sentence rebuttal to: "Code comments are unnecessary if the code
-      is readable." Each sentence must start with "First,", "Second,", "Third,".
-      Be persuasive, not aggressive.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^First,.*\\nSecond,.*\\nThird,", flags: ["S"]}
-        - {type: length_range, min: 3, max: 5, unit: sentences}
-    max_tokens: 384
-    temperature: 0.5
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: length_range
+      min: 3
+      max: 3
+      unit: lines
+    - type: contains_all
+      expected:
+      - encrypt
+      - key
+    - type: contains_any
+      expected:
+      - AES
+      - TLS
+      - rotate
+  max_tokens: 384
+  temperature: 0.4
+- id: wri-04-email-to-exec
+  prompt: 'Condense this into a 1-sentence email to a CEO (≤20 words, no jargon):
 
-  - id: wri-13-complex-chart-caption
-    prompt: |
-      Write a figure caption for this chart (≤30 words). Include both a trend
-      summary AND a caveat. Use "although" in the sentence.
-      "Chart: Q1 revenue $12M, Q2 $14M, Q3 $11M, Q4 $18M."
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains, expected: "although"}
-        - {type: length_range, max: 32, unit: words}
-        - {type: contains_any, expected: ["revenue", "quarter", "trend", "growth"]}
-    max_tokens: 256
-    temperature: 0.4
+    "Our CDN provider had a cascading failure across three Points of Presence
 
-  - id: wri-14-context-collapse
-    prompt: |
-      You are handed a Slack thread mid-conversation. The first message is lost.
-      Reconstruct it from context: the rest is "That doesn't work with Kubernetes
-      1.28" and "So we should pin the version?". Write the most likely first
-      message (≤25 words) as a single sentence.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: length_range, max: 28, unit: words}
-        - {type: contains_any, expected: ["Kubernetes", "version", "upgrade", "update", "compat"]}
-        - {type: regex, pattern: "\\?"}
-    max_tokens: 256
-    temperature: 0.5
+    that increased TTFB by 3400ms, affecting 68% of NA traffic from 14:02 to
 
-  - id: wri-15-merge-three
-    prompt: |
-      Merge these three sentences into one fluent sentence (≤25 words, no semicolons):
-      A: The API rate limit was exceeded.
-      B: The client received a 429 status code.
-      C: Retry-after was set to 30 seconds.
-      Output only the merged sentence.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^[^;]*$", flags: ["S"]}
-        - {type: length_range, max: 27, unit: words}
-        - {type: contains_all, expected: ["rate limit", "429", "seconds"]}
-    max_tokens: 256
-    temperature: 0.3
+    14:47 UTC. Failover to the secondary provider reduced impact after 12 minutes."
 
-  - id: wri-16-speedrun-writeup
-    prompt: |
-      Write a 4-line changelog entry for a critical security patch.
-      Line 1: "## [1.3.2] - 2024-11-15"
-      Line 2: severity and CVE ID
-      Line 3: what was vulnerable
-      Line 4: what the fix does
-      Use realistic CVE format (CVE-YYYY-NNNNN). No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "## \\[1\\.3\\.2\\] - 2024-11-15"}
-        - {type: regex, pattern: "CVE-\\d{4}-\\d+"}
-        - {type: length_range, min: 4, max: 5, unit: lines}
-    max_tokens: 256
-    temperature: 0.4
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: length_range
+      max: 20
+      unit: words
+    - type: contains_any
+      expected:
+      - slow
+      - down
+      - issue
+      - delay
+      - problem
+  max_tokens: 256
+  temperature: 0.4
+- id: wri-05-correct-and-enhance
+  prompt: 'The following has exactly ONE factual error. Find it, correct it, then
 
-  - id: wri-17-parallel-structure
-    prompt: |
-      Rewrite this so every item in the list uses parallel grammatical structure:
-      "Our system offers: 1. fast deployment, 2. it scales easily, 3. monitoring."
-      Use exactly "1. [gerund phrase]" / "2. [gerund phrase]" / "3. [gerund phrase]".
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "(?im)1\\.\\s*\\w+ing\\s+"}
-        - {type: regex, pattern: "(?im)2\\.\\s*\\w+ing\\s+"}
-        - {type: regex, pattern: "(?im)3\\.\\s*\\w+ing\\s+"}
-    max_tokens: 256
-    temperature: 0.3
+    rewrite the paragraph as a compelling 2-sentence marketing blurb.
 
-  - id: wri-18-stakeholder-matrix
-    prompt: |
-      Convert this into a stakeholder communication matrix (exactly 3 rows):
-      Group | Message | Channel | Frequency
-      "Developers need to know about the API deprecation. Executives care about
-      revenue impact. Customers just want to know if their data is safe."
-      Use pipe-separated format. No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains, expected: "Group | Message | Channel | Frequency"}
-        - {type: regex, pattern: "\\n[^|]+\\|[^|]+\\|[^|]+\\|[^|]+\\n[^|]+\\|[^|]+\\|[^|]+\\|[^|]+\\n[^|]+\\|[^|]+\\|[^|]+\\|[^|]+"}
-    max_tokens: 384
-    temperature: 0.4
+    "Mount Everest is 8,848 meters tall and sits on the border of Nepal and
 
-  - id: wri-19-six-hats
-    prompt: |
-      Respond to "We should rewrite the frontend in Rust" using De Bono's Six
-      Thinking Hats. Output exactly 6 lines. Each: "White hat:" / "Red hat:" /
-      "Black hat:" / "Yellow hat:" / "Green hat:" / "Blue hat:". One sentence each.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_all, expected: ["White hat:", "Red hat:", "Black hat:", "Yellow hat:", "Green hat:", "Blue hat:"]}
-        - {type: length_range, min: 6, max: 8, unit: lines}
-    max_tokens: 512
-    temperature: 0.5
+    India. It was first summited by Sir Edmund Hillary and Tenzing Norgay in
 
-  - id: wri-20-minimal-repro
-    prompt: |
-      Write a minimal reproducible bug report from this description (4 sections, each
-      exactly one line):
-      "The app crashes when uploading PNG files larger than 5MB."
-      Sections: "## Environment" / "## Steps" / "## Expected" / "## Actual".
-      Steps must be numbered 1-3. No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_all, expected: ["## Environment", "## Steps", "## Expected", "## Actual"]}
-        - {type: regex, pattern: "## Steps[^#]*1\\.[^#]*2\\.[^#]*3\\.", flags: ["S"]}
-        - {type: length_range, min: 4, max: 8, unit: lines}
-    max_tokens: 384
-    temperature: 0.4
+    1953."
 
-  - id: wri-21-postmortem-timeline
-    prompt: |
-      Write a 6-line incident postmortem timeline from these facts:
-      "At 14:02 UTC pager alerts fired. Engineer John acknowledged at 14:05.
-      Rollback initiated at 14:12. Traffic restored at 14:22. Root cause:
-      a nil pointer dereference in the payment service deployed at 13:50."
-      Each line format: "HH:MM UTC - [action]". Exactly 6 lines, no other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "(?:[01]\\d|2[0-3]):[0-5]\\d UTC - .+", flags: ["M"]}
-        - {type: length_range, min: 6, max: 7, unit: lines}
-        - {type: contains_all, expected: ["14:02", "14:05", "14:12", "14:22"]}
-    max_tokens: 384
-    temperature: 0.3
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: contains
+      expected: China
+    - type: contains_any
+      expected:
+      - summit
+      - peak
+      - Everest
+      - 8,848
+      - 8,849
+    - type: length_range
+      min: 2
+      max: 4
+      unit: sentences
+  max_tokens: 384
+  temperature: 0.4
+- id: wri-06-multi-rewrite
+  prompt: 'Apply ALL three transformations to this sentence simultaneously:
 
-  - id: wri-22-multi-audience-memo
-    prompt: |
-      Write a 3-paragraph memo about migrating from PostgreSQL to DynamoDB.
-      Paragraph 1: to the CTO (strategic, ≤30 words)
-      Paragraph 2: to the team leads (tactical, ≤40 words, include: sharding, latency)
-      Paragraph 3: to the SRE team (operational, ≤50 words, include: rollback, monitoring)
-      Separate paragraphs with a blank line. No headers.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_all, expected: ["sharding", "latency", "rollback", "monitoring"]}
-        - {type: length_range, min: 3, max: 5, unit: paragraphs}
-        - {type: length_range, max: 130, unit: words}
-    max_tokens: 512
-    temperature: 0.4
+    "Our AI leverages NLP to optimize customer journey touchpoints."
 
-  - id: wri-23-contradictory-synthesis
-    prompt: |
-      Synthesize a coherent 3-sentence policy from these two contradictory
-      sources:
-      Source A: "All code must be reviewed by at least two senior engineers."
-      Source B: "Deploy to production within one hour of the commit."
-      Your policy must reconcile both requirements. Include "unless" in the
-      second sentence. No commentary.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: length_range, min: 3, max: 4, unit: sentences}
-        - {type: contains, expected: "unless"}
-        - {type: contains_any, expected: ["review", "approve", "senior"]}
-    max_tokens: 384
-    temperature: 0.5
+    1. Remove all tech buzzwords  2. Convert to active voice  3. Reduce to ≤12 words.
 
-  - id: wri-24-rogerian-argument
-    prompt: |
-      Write a Rogerian argument (4 paragraphs) on "Should we adopt microservices?"
-      Paragraph 1: restate the opposing view fairly ("Monoliths are simpler to deploy")
-      Paragraph 2: acknowledge contexts where the opposing view is valid
-      Paragraph 3: present your view ("Microservices enable independent scaling")
-      Paragraph 4: propose a compromise
-      Each paragraph: exactly 2 sentences, ≤25 words each sentence.
-      No headers. Separate with blank lines.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_all, expected: ["monolith", "microservice"]}
-        - {type: length_range, min: 8, max: 10, unit: sentences}
-        - {type: contains, expected: "compromise"}
-    max_tokens: 768
-    temperature: 0.5
+    Output ONLY the rewritten sentence.
 
-  - id: wri-25-rfc-diff
-    prompt: |
-      Write an RFC-style "Summary of Changes" section for a proposal to replace
-      the in-house auth system with OAuth 2.0 / OIDC. Exactly 5 sections, each
-      as a single sentence:
-      "## Current State" / "## Proposed Change" / "## Migration Impact" /
-      "## Rollout Plan" / "## Success Metrics"
-      Each section body: 10-20 words. No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_all, expected: ["## Current State", "## Proposed Change", "## Migration Impact", "## Rollout Plan", "## Success Metrics"]}
-        - {type: contains_any, expected: ["OAuth", "OIDC", "token", "SSO"]}
-        - {type: length_range, min: 5, max: 8, unit: lines}
-    max_tokens: 512
-    temperature: 0.4
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: ^(?!(?:.*\bAI\b|.*\bleverage\b|.*\boptimize\b|.*\btouchpoint\b)).*$
+      flags:
+      - I
+      - S
+    - type: length_range
+      max: 14
+      unit: words
+  max_tokens: 256
+  temperature: 0.4
+- id: wri-07-two-audiences
+  prompt: 'Explain "why the database replication lag spiked" in two versions:
 
-  - id: wri-26-rfc-proposal
-    prompt: |
-      Write an RFC-style proposal title and summary for adding WebSocket support
-      to an existing REST API. Title line: "# RFC-NNN: [title]" where NNN is a
-      three-digit number. Followed by a blank line, then the "## Summary" section
-      with exactly 3 sentences: problem, solution, benefit to users. ≤60 words.
-      No other sections.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^# RFC-\\d{3}:.*\\n\\n## Summary"}
-        - {type: contains_all, expected: ["WebSocket", "problem", "solution", "benefit"]}
-        - {type: length_range, max: 65, unit: words}
-    max_tokens: 384
-    temperature: 0.4
+    Version A (to a product manager, ≤20 words, no tech terms)
 
-  - id: wri-27-incident-report
-    prompt: |
-      Write a 5-line incident report summary. Each line format:
-      Line 1: "Severity: [SEV1|SEV2|SEV3]"
-      Line 2: "Duration: [X]h [Y]m"
-      Line 3: "Impact: [one sentence ≤15 words]"
-      Line 4: "Root Cause: [one sentence ≤15 words]"
-      Line 5: "Action: [one sentence ≤15 words]"
-      The incident: a misconfigured firewall took down the EU region for 47 minutes.
-      No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "Severity: SEV[12]"}
-        - {type: regex, pattern: "Duration: \\d+h \\d+m"}
-        - {type: contains_any, expected: ["firewall", "network", "misconfig"]}
-        - {type: length_range, min: 5, max: 6, unit: lines}
-    max_tokens: 256
-    temperature: 0.3
+    Version B (to a senior engineer, ≤20 words, must include: WAL, replica, sync)
 
-  - id: wri-28-changelog-api
-    prompt: |
-      Generate a changelog entry for version 2.4.0 of an API client library.
-      Include exactly 4 categories: "### Added" (2 items), "### Changed" (1 item),
-      "### Deprecated" (1 item), "### Fixed" (2 items). Each item is a bullet.
-      Use realistic feature names. No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_all, expected: ["### Added", "### Changed", "### Deprecated", "### Fixed"]}
-        - {type: regex, pattern: "### Added[^#]*\\* [^\\n]+\\n\\* [^\\n]+", flags: ["S"]}
-        - {type: regex, pattern: "### Fixed[^#]*\\* [^\\n]+\\n\\* [^\\n]+", flags: ["S"]}
-    max_tokens: 512
-    temperature: 0.3
+    Separate with "---". No headers.
 
-  - id: wri-29-executive-summary
-    prompt: |
-      Write a 3-sentence executive summary of this situation. Each sentence must
-      start with a different power verb (choose from: "Drove", "Resolved",
-      "Delivered", "Achieved", "Reduced", "Launched"). ≤50 words total.
-      "The team migrated 12TB of data from Cassandra to Spanner with zero
-      downtime and reduced read latency by 60%."
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^(Drove|Resolved|Delivered|Achieved|Reduced|Launched)", flags: ["M"]}
-        - {type: length_range, max: 52, unit: words}
-        - {type: contains_any, expected: ["latency", "migrat", "downtime", "Cassandra", "Spanner"]}
-    max_tokens: 256
-    temperature: 0.4
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: contains_all
+      expected:
+      - WAL
+      - replica
+      - sync
+    - type: contains
+      expected: '---'
+    - type: length_range
+      max: 50
+      unit: words
+  max_tokens: 512
+  temperature: 0.4
+- id: wri-08-legal-to-plain
+  prompt: 'Rewrite this EULA clause so a 12-year-old can understand it. ≤50 words.
 
-  - id: wri-30-pr-feedback
-    prompt: |
-      Write a code review comment (exactly 4 sentences) for a PR that introduces
-      a 500-line function. Sentence 1: praise something specific. Sentence 2:
-      state the concern about function length. Sentence 3: suggest a specific
-      refactor (e.g., "extract the validation logic"). Sentence 4: offer to pair.
-      Use "we" and "us" to sound collaborative. No labels, no headers.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_any, expected: ["refactor", "extract", "split", "break up"]}
-        - {type: contains_all, expected: ["we", "us"]}
-        - {type: length_range, min: 4, max: 5, unit: sentences}
-    max_tokens: 384
-    temperature: 0.4
+    "The Licensor grants the Licensee a non-exclusive, non-transferable,
 
-  - id: wri-31-negotiation-script
-    prompt: |
-      Write a 6-exchange negotiation script between an Eng lead and a PM over
-      adding a new feature mid-sprint. Each exchange: exactly 2 lines
-      ("Eng:" then "PM:"). Eng resists, PM pushes. End with a concrete
-      compromise in the last PM line. 12 lines total. No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: length_range, min: 12, max: 14, unit: lines}
-        - {type: regex, pattern: "(?m)^Eng:"}
-        - {type: regex, pattern: "(?m)^PM:"}
-        - {type: contains_any, expected: ["compromise", "trade-off", "half", "pivot", "park", "next sprint"]}
-    max_tokens: 512
-    temperature: 0.5
+    revocable license to use the Software solely for internal business
 
-  - id: wri-32-oncall-handoff
-    prompt: |
-      Write a 5-line on-call handoff note. Each line format:
-      "Active incidents: [X]" / "Paged for: [summary]" / "Ongoing: [status]" /
-      "Action needed: [next step]" / "Notes: [any context]"
-      The incident: a canary deployment of version 3.2.1 caused 5xx errors
-      affecting 2% of checkout traffic. Rollback is in progress.
-      No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_all, expected: ["Active incidents:", "Paged for:", "Ongoing:", "Action needed:", "Notes:"]}
-        - {type: contains_any, expected: ["canary", "rollback", "5xx", "checkout"]}
-        - {type: length_range, min: 5, max: 7, unit: lines}
-    max_tokens: 256
-    temperature: 0.3
+    purposes, subject to the terms herein."
 
-  - id: wri-33-tech-debt-proposal
-    prompt: |
-      Write a 4-paragraph tech debt reduction proposal for a monolith that needs
-      decomposing. Use the "2-3-2" paragraph structure:
-      Para 1 (2 sentences): cost of not acting
-      Para 2 (3 sentences): the proposed approach
-      Para 3 (2 sentences): expected benefits
-      Para 4 (2 sentences): success criteria
-      Each sentence: ≤20 words. No headers.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_all, expected: ["monolith", "decompos"]}
-        - {type: length_range, min: 9, max: 12, unit: sentences}
-        - {type: contains_any, expected: ["cost", "velocity", "debt", "interest"]}
-    max_tokens: 768
-    temperature: 0.4
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: length_range
+      max: 55
+      unit: words
+    - type: regex
+      pattern: ^(?!(?:.*\bLicensor\b|.*\bLicensee\b|.*\bnon-exclusive\b)).*$
+      flags:
+      - I
+      - S
+  max_tokens: 384
+  temperature: 0.4
+- id: wri-09-tweet-thread
+  prompt: 'Summarise the paper''s core finding as a 3-tweet thread.
 
-  - id: wri-34-api-changelog
-    prompt: |
-      Generate a changelog for a breaking API change. Format:
-      Line 1: "# Changelog"
-      Line 2: "## [3.0.0] - 2025-01-20"
-      Line 3: "### Breaking"
-      Lines 4-5: two bullet items describing breaking changes
-      Line 6: "### Migration"
-      Line 7: one bullet describing the migration path
-      Use realistic endpoint names. No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_all, expected: ["# Changelog", "### Breaking", "### Migration"]}
-        - {type: regex, pattern: "## \\[3\\.0\\.0\\] - 2025-01-20"}
-        - {type: length_range, min: 7, max: 9, unit: lines}
-    max_tokens: 384
-    temperature: 0.3
+    Tweet 1: The finding (≤140 chars)
 
-  - id: wri-35-data-breach-notice
-    prompt: |
-      Write a 4-sentence data breach notification. Sentence 1: what happened
-      and when (include date). Sentence 2: what data was affected (include
-      "email addresses" and "hashed passwords"). Sentence 3: what you've done
-      (include "reset" and "notified"). Sentence 4: apology and next step.
-      Use a professional, calm tone. No headers.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: length_range, min: 4, max: 5, unit: sentences}
-        - {type: contains_all, expected: ["email addresses", "hashed passwords", "reset", "notified"]}
-        - {type: regex, pattern: "apolog"}
-    max_tokens: 384
-    temperature: 0.4
+    Tweet 2: Why it matters (≤140 chars)
 
-  - id: wri-36-sre-runbook-step
-    prompt: |
-      Write a runbook procedure for "High CPU on database primary". Exactly
-      5 numbered steps. Each step: a single imperative sentence ≤15 words.
-      Step 1: "1. Check pg_stat_activity for long-running queries."
-      Steps 2-5: your own realistic PostgreSQL debugging steps, the last being
-      the resolution (terminate blocking query or failover). No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "1\\. Check pg_stat_activity"}
-        - {type: regex, pattern: "(?m)^\\d+\\.\\s"}
-        - {type: contains_all, expected: ["terminate", "pg_cancel_backend"]}
-    max_tokens: 384
-    temperature: 0.3
+    Tweet 3: One actionable takeaway (≤140 chars)
 
-  - id: wri-37-cross-team-sync
-    prompt: |
-      Write a 1-paragraph cross-team sync summary from these notes:
-      "Team A is blocked on the IAM refactor. Team B needs the API contract
-      by Friday. Team C completed the migration testing."
-      Format: a single paragraph, 3 sentences. Sentence 1: Team A status and
-      blocker. Sentence 2: Team B dependency. Sentence 3: Team C win.
-      Each sentence: start with the team name. No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^Team [ABC][^.]*\\.\\s*Team [ABC][^.]*\\.\\s*Team [ABC]", flags: ["S"]}
-        - {type: contains_all, expected: ["Team A", "Team B", "Team C"]}
-        - {type: contains_any, expected: ["blocked", "blocker", "dependency", "contract"]}
-    max_tokens: 256
-    temperature: 0.3
+    "Study: Sleep deprivation reduces cognitive performance by 30%, but
 
-  - id: wri-38-spec-to-test
-    prompt: |
-      Rewrite this spec as a Gherkin feature file (3 scenarios):
-      "When a user enters an invalid coupon code during checkout, the system
-      should show an error message and not apply the discount."
-      Format: "Feature: Coupon Validation" followed by 3 Scenario blocks,
-      each with Given/When/Then steps. Use realistic values.
-      No code fences, no other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains, expected: "Feature: Coupon Validation"}
-        - {type: regex, pattern: "Scenario[^:]*:", flags: ["M"]}
-        - {type: contains_all, expected: ["Given", "When", "Then"]}
-    max_tokens: 512
-    temperature: 0.3
+    most subjects believed they performed normally."
 
-  - id: wri-39-release-notes
-    prompt: |
-      Write release notes for version 2.1.0 of a CLI tool. Format:
-      "## 2.1.0 (2025-03-01)" then 4 subsections each with exactly 2 bullets:
-      "### New Features", "### Improvements", "### Bug Fixes", "### Deprecations"
-      Use realistic CLI command names (e.g., "config validate", "deploy status").
-      No other text.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_all, expected: ["### New Features", "### Improvements", "### Bug Fixes", "### Deprecations"]}
-        - {type: regex, pattern: "## 2\\.1\\.0 \\(2025-03-01\\)"}
-        - {type: regex, pattern: "config validate|deploy status", flags: ["I"]}
-    max_tokens: 512
-    temperature: 0.3
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: length_range
+      min: 3
+      max: 6
+      unit: lines
+    - type: contains
+      expected: sleep
+    - type: contains
+      expected: 30%
+  max_tokens: 512
+  temperature: 0.4
+- id: wri-10-rhetorical-devices
+  prompt: 'Rewrite this claim using ALL THREE rhetorical devices: chiasmus, anaphora,
 
-  - id: wri-40-migration-announcement
-    prompt: |
-      Write a 4-paragraph engineering-wide migration announcement.
-      Para 1: what is being deprecated and why (1 sentence, ≤20 words)
-      Para 2: timeline (2 sentences, include dates)
-      Para 3: action required from teams (2 sentences, include "update your CI/CD")
-      Para 4: where to ask questions (1 sentence, include Slack channel #infra-migration)
-      No headers. Separate paragraphs with blank lines.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_any, expected: ["deprecat", "migrat", "sunset"]}
-        - {type: contains_all, expected: ["update your CI/CD", "#infra-migration"]}
-        - {type: length_range, min: 6, max: 10, unit: sentences}
-    max_tokens: 512
-    temperature: 0.4
+    and epistrophe. ≤40 words total.
+
+    "Fast code is not always correct code."
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: contains
+      expected: code
+    - type: length_range
+      max: 45
+      unit: words
+  max_tokens: 384
+  temperature: 0.5
+- id: wri-11-xyz-spellout
+  prompt: 'Rewrite this sentence replacing every initialism/acronym with its full
+    form.
+
+    "The QA team found the MVP had SQLi in the JWT auth. PM escalated to CTO."
+
+    Output only the rewritten sentence.
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: contains_all
+      expected:
+      - Quality Assurance
+      - Minimum Viable Product
+    - type: contains_all
+      expected:
+      - SQL injection
+      - JSON Web Token
+    - type: contains_all
+      expected:
+      - Product Manager
+      - Chief Technology Officer
+  max_tokens: 384
+  temperature: 0.3
+- id: wri-12-persuade-skeptic
+  prompt: 'Write a 3-sentence rebuttal to: "Code comments are unnecessary if the code
+
+    is readable." Each sentence must start with "First,", "Second,", "Third,".
+
+    Be persuasive, not aggressive.
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: ^First,.*\nSecond,.*\nThird,
+      flags:
+      - S
+    - type: length_range
+      min: 3
+      max: 5
+      unit: sentences
+  max_tokens: 384
+  temperature: 0.5
+- id: wri-13-complex-chart-caption
+  prompt: 'Write a figure caption for this chart (≤30 words). Include both a trend
+
+    summary AND a caveat. Use "although" in the sentence.
+
+    "Chart: Q1 revenue $12M, Q2 $14M, Q3 $11M, Q4 $18M."
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: contains
+      expected: although
+    - type: length_range
+      max: 32
+      unit: words
+    - type: contains_any
+      expected:
+      - revenue
+      - quarter
+      - trend
+      - growth
+  max_tokens: 256
+  temperature: 0.4
+- id: wri-14-context-collapse
+  prompt: 'You are handed a Slack thread mid-conversation. The first message is lost.
+
+    Reconstruct it from context: the rest is "That doesn''t work with Kubernetes
+
+    1.28" and "So we should pin the version?". Write the most likely first
+
+    message (≤25 words) as a single sentence.
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: length_range
+      max: 28
+      unit: words
+    - type: contains_any
+      expected:
+      - Kubernetes
+      - version
+      - upgrade
+      - update
+      - compat
+    - type: regex
+      pattern: \?
+  max_tokens: 256
+  temperature: 0.5
+- id: wri-15-merge-three
+  prompt: 'Merge these three sentences into one fluent sentence (≤25 words, no semicolons):
+
+    A: The API rate limit was exceeded.
+
+    B: The client received a 429 status code.
+
+    C: Retry-after was set to 30 seconds.
+
+    Output only the merged sentence.
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: ^[^;]*$
+      flags:
+      - S
+    - type: length_range
+      max: 27
+      unit: words
+    - type: contains_all
+      expected:
+      - rate limit
+      - '429'
+      - seconds
+  max_tokens: 256
+  temperature: 0.3
+- id: wri-16-speedrun-writeup
+  prompt: 'Write a 4-line changelog entry for a critical security patch.
+
+    Line 1: "## [1.3.2] - 2024-11-15"
+
+    Line 2: severity and CVE ID
+
+    Line 3: what was vulnerable
+
+    Line 4: what the fix does
+
+    Use realistic CVE format (CVE-YYYY-NNNNN). No other text.
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: '## \[1\.3\.2\] - 2024-11-15'
+    - type: regex
+      pattern: CVE-\d{4}-\d+
+    - type: length_range
+      min: 4
+      max: 5
+      unit: lines
+  max_tokens: 256
+  temperature: 0.4
+- id: wri-17-parallel-structure
+  prompt: 'Rewrite this so every item in the list uses parallel grammatical structure:
+
+    "Our system offers: 1. fast deployment, 2. it scales easily, 3. monitoring."
+
+    Use exactly "1. [gerund phrase]" / "2. [gerund phrase]" / "3. [gerund phrase]".
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: (?im)1\.\s*\w+ing\s+
+    - type: regex
+      pattern: (?im)2\.\s*\w+ing\s+
+    - type: regex
+      pattern: (?im)3\.\s*\w+ing\s+
+  max_tokens: 256
+  temperature: 0.3
+- id: wri-18-stakeholder-matrix
+  prompt: 'Convert this into a stakeholder communication matrix (exactly 3 rows):
+
+    Group | Message | Channel | Frequency
+
+    "Developers need to know about the API deprecation. Executives care about
+
+    revenue impact. Customers just want to know if their data is safe."
+
+    Use pipe-separated format. No other text.
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: contains
+      expected: Group | Message | Channel | Frequency
+    - type: regex
+      pattern: \n[^|]+\|[^|]+\|[^|]+\|[^|]+\n[^|]+\|[^|]+\|[^|]+\|[^|]+\n[^|]+\|[^|]+\|[^|]+\|[^|]+
+  max_tokens: 384
+  temperature: 0.4
+- id: wri-19-six-hats
+  prompt: 'Respond to "We should rewrite the frontend in Rust" using De Bono''s Six
+
+    Thinking Hats. Output exactly 6 lines. Each: "White hat:" / "Red hat:" /
+
+    "Black hat:" / "Yellow hat:" / "Green hat:" / "Blue hat:". One sentence each.
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: contains_all
+      expected:
+      - 'White hat:'
+      - 'Red hat:'
+      - 'Black hat:'
+      - 'Yellow hat:'
+      - 'Green hat:'
+      - 'Blue hat:'
+    - type: length_range
+      min: 6
+      max: 8
+      unit: lines
+  max_tokens: 512
+  temperature: 0.5
+- id: wri-20-minimal-repro
+  prompt: 'Write a minimal reproducible bug report from this description (4 sections,
+    each
+
+    exactly one line):
+
+    "The app crashes when uploading PNG files larger than 5MB."
+
+    Sections: "## Environment" / "## Steps" / "## Expected" / "## Actual".
+
+    Steps must be numbered 1-3. No other text.
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: contains_all
+      expected:
+      - '## Environment'
+      - '## Steps'
+      - '## Expected'
+      - '## Actual'
+    - type: regex
+      pattern: '## Steps[^#]*1\.[^#]*2\.[^#]*3\.'
+      flags:
+      - S
+    - type: length_range
+      min: 4
+      max: 8
+      unit: lines
+  max_tokens: 384
+  temperature: 0.4

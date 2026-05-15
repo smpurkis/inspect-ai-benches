@@ -1,316 +1,316 @@
 category: reasoning
 tasks:
-  - id: reas-01-zebra-puzzle
-    prompt: |
-      Five houses in a row, each of a different color, inhabited by owners of different nationalities who drink different beverages, smoke different brands, and keep different pets. The Brit lives in the red house. The Swede keeps dogs. The Dane drinks tea. The green house is immediately left of the white house. The green house owner drinks coffee. The Pall Mall smoker keeps birds. The yellow house smokes Dunhill. Milk is drunk in the middle house. The Norwegian lives in the first house. The Blend smoker lives next to the cat owner. The horse owner lives next to the Dunhill smoker. The Blue Master smoker drinks beer. The German smokes Prince. The Norwegian lives next to the blue house. The Blend smoker has a neighbor who drinks water. Who keeps the fish?       Answer with just the nationality.
-    scoring: {type: regex, pattern: "(?i)^\\s*German\\s*\\.?\\s*$"}
-    max_tokens: 1024
+- id: reas-01-zebra-puzzle
+  prompt: 'Five houses in a row, each of a different color, inhabited by owners of
+    different nationalities who drink different beverages, smoke different brands,
+    and keep different pets. The Brit lives in the red house. The Swede keeps dogs.
+    The Dane drinks tea. The green house is immediately left of the white house. The
+    green house owner drinks coffee. The Pall Mall smoker keeps birds. The yellow
+    house smokes Dunhill. Milk is drunk in the middle house. The Norwegian lives in
+    the first house. The Blend smoker lives next to the cat owner. The horse owner
+    lives next to the Dunhill smoker. The Blue Master smoker drinks beer. The German
+    smokes Prince. The Norwegian lives next to the blue house. The Blend smoker has
+    a neighbor who drinks water. Who keeps the fish?       Answer with just the nationality.
 
-  - id: reas-02-knights-knaves-3
-    prompt: |
-      On an island where knights always tell the truth and knaves always lie, you meet three inhabitants: A, B, and C. A says: "B is a knave." B says: "A and C are of the same type." C says: "Exactly one of us is a knight." Determine the types (knight or knave) of each person. Respond as three comma-separated words: e.g., "knight, knave, knight".
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains, expected: "knave", flags: ["I"]}
-        - {type: contains, expected: "knight", flags: ["I"]}
-        - {type: contains, expected: "knave", flags: ["I"]}
-    max_tokens: 1024
+    '
+  scoring:
+    type: regex
+    pattern: (?i)^\s*German\s*\.?\s*$
+  max_tokens: 1024
+- id: reas-02-knights-knaves-3
+  prompt: 'On an island where knights always tell the truth and knaves always lie,
+    you meet three inhabitants: A, B, and C. A says: "B is a knave." B says: "A and
+    C are of the same type." C says: "Exactly one of us is a knight." Determine the
+    types (knight or knave) of each person. Respond as three comma-separated words:
+    e.g., "knight, knave, knight".
 
-  - id: reas-03-bayes-medical
-    prompt: |
-      A disease affects 0.1% of the population. A test is 99% accurate: it correctly identifies 99% of those with the disease (true positive) and correctly identifies 99% of those without the disease (true negative). You take the test and receive a positive result. What is the probability (as a percentage to one decimal place) that you actually have the disease?
-    scoring: {type: regex, pattern: "9\\.0|9\\.1"}
-    max_tokens: 1024
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: contains
+      expected: knave
+      flags:
+      - I
+    - type: contains
+      expected: knight
+      flags:
+      - I
+    - type: contains
+      expected: knave
+      flags:
+      - I
+  max_tokens: 1024
+- id: reas-03-bayes-medical
+  prompt: 'A disease affects 0.1% of the population. A test is 99% accurate: it correctly
+    identifies 99% of those with the disease (true positive) and correctly identifies
+    99% of those without the disease (true negative). You take the test and receive
+    a positive result. What is the probability (as a percentage to one decimal place)
+    that you actually have the disease?
 
-  - id: reas-04-scheduling-constraints
-    prompt: |
-      Five tasks (A, B, C, D, E) must be scheduled in consecutive time slots 1-5. Constraints: A must be before B. C must be after D. E cannot be first. B cannot be adjacent to D. C must be exactly two slots after A. Determine the unique schedule ordering from slot 1 to slot 5. Answer as a 5-letter sequence (e.g., "ABCDE").
-    scoring: {type: regex, pattern: "(?i)^\\s*DAECB\\s*\\.?\\s*$"}
-    max_tokens: 1024
+    '
+  scoring:
+    type: regex
+    pattern: 9\.0|9\.1
+  max_tokens: 1024
+- id: reas-04-scheduling-constraints
+  prompt: 'Five tasks (A, B, C, D, E) must be scheduled in consecutive time slots
+    1-5. Constraints: A must be before B. C must be after D. E cannot be first. B
+    cannot be adjacent to D. C must be exactly two slots after A. Determine the unique
+    schedule ordering from slot 1 to slot 5. Answer as a 5-letter sequence (e.g.,
+    "ABCDE").
 
-  - id: reas-05-monty-100-doors
-    prompt: |
-      In a variation of the Monty Hall problem, there are 100 doors. One hides a car; 99 hide goats. You pick one door. The host, who knows where the car is, opens 98 doors that all reveal goats, leaving only your original door and one other door unopened. He then offers you the chance to switch. What is the probability the car is behind the other door? Express as a fraction.
-    scoring: {type: regex, pattern: "99\\s*/\\s*100|99/100"}
-    max_tokens: 1024
+    '
+  scoring:
+    type: regex
+    pattern: (?i)^\s*DAECB\s*\.?\s*$
+  max_tokens: 1024
+- id: reas-05-monty-100-doors
+  prompt: 'In a variation of the Monty Hall problem, there are 100 doors. One hides
+    a car; 99 hide goats. You pick one door. The host, who knows where the car is,
+    opens 98 doors that all reveal goats, leaving only your original door and one
+    other door unopened. He then offers you the chance to switch. What is the probability
+    the car is behind the other door? Express as a fraction.
 
-  - id: reas-06-counterfactual-curie
-    prompt: |
-      Consider a counterfactual world where Marie Curie died in a lab accident in 1900, before her major discoveries. In this world, which of the following would be true, false, or uncertain? (a) Element 84 would still be discovered by 1910. (b) The term "radioactivity" (coined by Curie) would not exist. (c) X-rays would not have been discovered. Answer the number of statements from (a)-(c) that are true (0, 1, 2, or 3).
-    scoring: {type: regex, pattern: "\\b[12]\\b"}
-    max_tokens: 1024
+    '
+  scoring:
+    type: regex
+    pattern: 99\s*/\s*100|99/100
+  max_tokens: 1024
+- id: reas-06-counterfactual-curie
+  prompt: 'Consider a counterfactual world where Marie Curie died in a lab accident
+    in 1900, before her major discoveries. In this world, which of the following would
+    be true, false, or uncertain? (a) Element 84 would still be discovered by 1910.
+    (b) The term "radioactivity" (coined by Curie) would not exist. (c) X-rays would
+    not have been discovered. Answer the number of statements from (a)-(c) that are
+    true (0, 1, 2, or 3).
 
-  - id: reas-07-grid-deduction
-    prompt: |
-      A 3x3 grid of cells. Each cell contains a distinct digit from 1 to 9. The sum of the top row is 15. The sum of the middle row is 15. The sum of the numbers in the first column is 8. The central cell is 5. The number in the top-right corner is the smallest even number. The number in the bottom-left corner is a prime. What is the number in the bottom-right corner?
-    scoring: {type: regex_number, expected: 2}
-    max_tokens: 1024
+    '
+  scoring:
+    type: regex
+    pattern: \b[12]\b
+  max_tokens: 1024
+- id: reas-07-grid-deduction
+  prompt: 'A 3x3 grid of cells. Each cell contains a distinct digit from 1 to 9. The
+    sum of the top row is 15. The sum of the middle row is 15. The sum of the numbers
+    in the first column is 8. The central cell is 5. The number in the top-right corner
+    is the smallest even number. The number in the bottom-left corner is a prime.
+    What is the number in the bottom-right corner?
 
-  - id: reas-08-birthday-paradox
-    prompt: |
-      What is the minimum number of people needed in a room for there to be a greater than 50% probability that at least two share a birthday? (Ignore leap years.) Now give the approximate probability for 60 people. Provide both answers: first the number of people (an integer), then the probability as a percentage rounded to the nearest whole percent, separated by a comma.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "\\b23\\b"}
-        - {type: regex, pattern: "99"}
-        - {type: contains_all, expected: ["23", "99"]}
-    max_tokens: 1024
+    '
+  scoring:
+    type: regex_number
+    expected: 2
+  max_tokens: 1024
+- id: reas-08-birthday-paradox
+  prompt: 'What is the minimum number of people needed in a room for there to be a
+    greater than 50% probability that at least two share a birthday? (Ignore leap
+    years.) Now give the approximate probability for 60 people. Provide both answers:
+    first the number of people (an integer), then the probability as a percentage
+    rounded to the nearest whole percent, separated by a comma.
 
-  - id: reas-09-causal-dag
-    prompt: |
-      Consider a causal DAG: X -> Y, X -> Z, Z -> Y. There is no direct edge X -> Y that bypasses Z. Suppose you observe a correlation between X and Y. You then condition on Z (stratify by Z). If the effect of X on Y is entirely mediated by Z, what happens to the conditional correlation between X and Y given Z? Answer "zero" or "nonzero."
-    scoring: {type: regex, pattern: "(?i)^\\s*zero\\s*\\.?\\s*$"}
-    max_tokens: 1024
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: \b23\b
+    - type: regex
+      pattern: '99'
+    - type: contains_all
+      expected:
+      - '23'
+      - '99'
+  max_tokens: 1024
+- id: reas-09-causal-dag
+  prompt: 'Consider a causal DAG: X -> Y, X -> Z, Z -> Y. There is no direct edge
+    X -> Y that bypasses Z. Suppose you observe a correlation between X and Y. You
+    then condition on Z (stratify by Z). If the effect of X on Y is entirely mediated
+    by Z, what happens to the conditional correlation between X and Y given Z? Answer
+    "zero" or "nonzero."
 
-  - id: reas-10-water-jug
-    prompt: |
-      You have a 5-liter jug and a 3-liter jug, both unmarked, and an unlimited water supply. You need exactly 4 liters. You can fill a jug completely, empty a jug completely, or pour water from one jug to the other until the source is empty or the destination is full. What is the minimum number of pours (fill, empty, or transfer operations) needed to obtain exactly 4 liters in the 5-liter jug?
-    scoring: {type: regex_number, expected: 6}
-    max_tokens: 1024
+    '
+  scoring:
+    type: regex
+    pattern: (?i)^\s*zero\s*\.?\s*$
+  max_tokens: 1024
+- id: reas-10-water-jug
+  prompt: 'You have a 5-liter jug and a 3-liter jug, both unmarked, and an unlimited
+    water supply. You need exactly 4 liters. You can fill a jug completely, empty
+    a jug completely, or pour water from one jug to the other until the source is
+    empty or the destination is full. What is the minimum number of pours (fill, empty,
+    or transfer operations) needed to obtain exactly 4 liters in the 5-liter jug?
 
-  - id: reas-11-combinatorics-derangements
-    prompt: |
-      Four people leave their hats at a restaurant. The waiter returns the hats randomly, one to each person. What is the probability that no one receives their own hat? Express as a simplified fraction.
-    scoring: {type: regex, pattern: "3\\s*/\\s*8|3/8"}
-    max_tokens: 1024
+    '
+  scoring:
+    type: regex_number
+    expected: 6
+  max_tokens: 1024
+- id: reas-11-combinatorics-derangements
+  prompt: 'Four people leave their hats at a restaurant. The waiter returns the hats
+    randomly, one to each person. What is the probability that no one receives their
+    own hat? Express as a simplified fraction.
 
-  - id: reas-12-simpsons-paradox
-    prompt: |
-      At a university, men and women apply to two departments. Across both departments combined, 60% of male applicants are admitted but only 50% of female applicants are admitted — suggesting bias against women. However, within Department A, women have a 70% admission rate vs 60% for men. Within Department B, women have a 40% admission rate vs 30% for men. Women have higher admission rates in BOTH individual departments. What explains the aggregate reversal?
-    scoring: {type: contains_any, expected: ["Simpson", "lurking", "confounding", "weights", "proportion", "more women applied to harder"]}
-    max_tokens: 1024
+    '
+  scoring:
+    type: regex
+    pattern: 3\s*/\s*8|3/8
+  max_tokens: 1024
+- id: reas-12-simpsons-paradox
+  prompt: 'At a university, men and women apply to two departments. Across both departments
+    combined, 60% of male applicants are admitted but only 50% of female applicants
+    are admitted — suggesting bias against women. However, within Department A, women
+    have a 70% admission rate vs 60% for men. Within Department B, women have a 40%
+    admission rate vs 30% for men. Women have higher admission rates in BOTH individual
+    departments. What explains the aggregate reversal?
 
-  - id: reas-13-blue-eyes-island
-    prompt: |
-      On an island of 100 people, each has either blue or brown eyes. No one knows their own eye color, but everyone can see everyone else's eye color. There is no mirror, and no one discusses eye color. A foreigner arrives and announces publicly: "At least one of you has blue eyes." If there are exactly 10 blue-eyed people on the island, on which day after the announcement do all blue-eyed people leave? (Assume everyone is perfectly logical.)
-    scoring: {type: regex_number, expected: 10}
-    max_tokens: 1024
+    '
+  scoring:
+    type: contains_any
+    expected:
+    - Simpson
+    - lurking
+    - confounding
+    - weights
+    - proportion
+    - more women applied to harder
+  max_tokens: 1024
+- id: reas-13-blue-eyes-island
+  prompt: 'On an island of 100 people, each has either blue or brown eyes. No one
+    knows their own eye color, but everyone can see everyone else''s eye color. There
+    is no mirror, and no one discusses eye color. A foreigner arrives and announces
+    publicly: "At least one of you has blue eyes." If there are exactly 10 blue-eyed
+    people on the island, on which day after the announcement do all blue-eyed people
+    leave? (Assume everyone is perfectly logical.)
 
-  - id: reas-14-handshake-lemma
-    prompt: |
-      At a party, several people shake hands. Each handshake involves two distinct people. Some people might shake hands with any number of others (including zero). Prove that the number of people who have shaken hands an odd number of times is always even. What is this theorem called? Provide a clear proof in 3-5 sentences.
-    scoring:
-      type: judge
-      rubric: "Response must name the handshaking lemma (or handshake lemma) and provide a correct proof using parity argument: sum of degrees is twice edges (even), so count of odd-degree vertices must be even."
-    max_tokens: 1024
+    '
+  scoring:
+    type: regex_number
+    expected: 10
+  max_tokens: 1024
+- id: reas-14-handshake-lemma
+  prompt: 'At a party, several people shake hands. Each handshake involves two distinct
+    people. Some people might shake hands with any number of others (including zero).
+    Prove that the number of people who have shaken hands an odd number of times is
+    always even. What is this theorem called? Provide a clear proof in 3-5 sentences.
 
-  - id: reas-15-prisoner-hats-3
-    prompt: |
-      Three prisoners A, B, C are told that they will each get either a black or white hat, chosen uniformly at random. Each can see the hats of the other two but not their own. They are asked simultaneously to guess their own hat color. If at least one guesses correctly, all are freed; if any guess incorrectly and none are correct, they are executed. They can strategize beforehand. They achieve a 75% success rate. What strategy guarantees exactly 75% success? Describe it in one sentence.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_any, expected: ["parity", "odd", "even", "XOR", "sum mod 2"]}
-        - {type: contains_any, expected: ["pass", "abstain", "silent", "don't guess"]}
-    max_tokens: 1024
+    '
+  scoring:
+    type: judge
+    rubric: 'Response must name the handshaking lemma (or handshake lemma) and provide
+      a correct proof using parity argument: sum of degrees is twice edges (even),
+      so count of odd-degree vertices must be even.'
+  max_tokens: 1024
+- id: reas-15-prisoner-hats-3
+  prompt: 'Three prisoners A, B, C are told that they will each get either a black
+    or white hat, chosen uniformly at random. Each can see the hats of the other two
+    but not their own. They are asked simultaneously to guess their own hat color.
+    If at least one guesses correctly, all are freed; if any guess incorrectly and
+    none are correct, they are executed. They can strategize beforehand. They achieve
+    a 75% success rate. What strategy guarantees exactly 75% success? Describe it
+    in one sentence.
 
-  - id: reas-16-eight-queens
-    prompt: |
-      How many distinct solutions exist for placing eight queens on a standard 8x8 chessboard such that no two queens attack each other? Count only fundamentally distinct solutions (not counting rotations and reflections as distinct). Then, how many total solutions (counting rotations and reflections separately)? Give two comma-separated numbers.
-    scoring: {type: contains, expected: "92"}
-    max_tokens: 1024
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: contains_any
+      expected:
+      - parity
+      - odd
+      - even
+      - XOR
+      - sum mod 2
+    - type: contains_any
+      expected:
+      - pass
+      - abstain
+      - silent
+      - don't guess
+  max_tokens: 1024
+- id: reas-16-eight-queens
+  prompt: 'How many distinct solutions exist for placing eight queens on a standard
+    8x8 chessboard such that no two queens attack each other? Count only fundamentally
+    distinct solutions (not counting rotations and reflections as distinct). Then,
+    how many total solutions (counting rotations and reflections separately)? Give
+    two comma-separated numbers.
 
-  - id: reas-17-true-false-unknown
-    prompt: |
-      You have three cards. Card 1 says: "Card 2 tells the truth." Card 2 says: "Card 3 lies." Card 3 says: "Card 1 tells the truth." Each card is either always truthful or always lying. Is this system consistent? If so, determine the truthfulness (truth or lie) of each card. Answer with the types separated by commas, or "inconsistent".
-    scoring:
-      type: composite
-      mode: mean
-      parts:
-        - {type: contains, expected: "truth"}
-        - {type: contains, expected: "lie"}
-        - {type: contains, expected: "lie"}
-    max_tokens: 1024
+    '
+  scoring:
+    type: contains
+    expected: '92'
+  max_tokens: 1024
+- id: reas-17-true-false-unknown
+  prompt: 'You have three cards. Card 1 says: "Card 2 tells the truth." Card 2 says:
+    "Card 3 lies." Card 3 says: "Card 1 tells the truth." Each card is either always
+    truthful or always lying. Is this system consistent? If so, determine the truthfulness
+    (truth or lie) of each card. Answer with the types separated by commas, or "inconsistent".
 
-  - id: reas-18-schelling-point
-    prompt: |
-      Two people who cannot communicate must each independently choose a meeting point in New York City. They want to meet without having pre-arranged anything. Which location is the most likely Schelling point (natural focal point)? Answer with the name of the location. Now, more generally, in game theory, what property makes a Schelling point salient?
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains_any, expected: ["Grand Central", "Empire State", "Times Square"]}
-        - {type: contains_any, expected: ["focal", "prominent", "natural", "unique", "obvious"]}
-    max_tokens: 1024
+    '
+  scoring:
+    type: composite
+    mode: mean
+    parts:
+    - type: contains
+      expected: truth
+    - type: contains
+      expected: lie
+    - type: contains
+      expected: lie
+  max_tokens: 1024
+- id: reas-18-schelling-point
+  prompt: 'Two people who cannot communicate must each independently choose a meeting
+    point in New York City. They want to meet without having pre-arranged anything.
+    Which location is the most likely Schelling point (natural focal point)? Answer
+    with the name of the location. Now, more generally, in game theory, what property
+    makes a Schelling point salient?
 
-  - id: reas-19-number-sequence-grid
-    prompt: |
-      Find the missing number in this 3x3 grid:
-      2  7  17
-      3  11  ?
-      5  13 23
-      Each row follows the same mathematical rule involving primes or prime-indexed numbers. Answer with just the number.
-    scoring: {type: regex_number, expected: 19}
-    max_tokens: 1024
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: contains_any
+      expected:
+      - Grand Central
+      - Empire State
+      - Times Square
+    - type: contains_any
+      expected:
+      - focal
+      - prominent
+      - natural
+      - unique
+      - obvious
+  max_tokens: 1024
+- id: reas-19-number-sequence-grid
+  prompt: 'Find the missing number in this 3x3 grid:
 
-  - id: reas-20-probability-conditional
-    prompt: |
-      A family has two children. You know that at least one is a boy born on a Tuesday. What is the probability that both children are boys? Assume equal probability of boy/girl and equal probability of being born on any day of the week. Express as a simplified fraction.
-    scoring: {type: regex, pattern: "13\\s*/\\s*27|13/27"}
-    max_tokens: 1024
+    2  7  17
 
-  - id: reas-21-cryptarithmetic
-    prompt: |
-      Solve the cryptarithm: SEND + MORE = MONEY. Each letter stands for a distinct digit (0-9). M is not zero. What is the numerical value of MONEY? Answer with just the five-digit number.
-    scoring: {type: regex_number, expected: 10652}
-    max_tokens: 1024
+    3  11  ?
 
-  - id: reas-22-modal-logic
-    prompt: |
-      In modal logic, the axiom schema K states: □(p -> q) -> (□p -> □q). The axiom T states: □p -> p. The axiom 4 states: □p -> □□p. Using K and T but not 4, can you derive □□p from □p? Answer yes or no. Which frame condition corresponds to axiom 4 (transitivity, reflexivity, or symmetry)?
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^\\s*no\\b", flags: ["I"]}
-        - {type: contains, expected: "transitivity"}
-    max_tokens: 1024
+    5  13 23
 
-  - id: reas-23-missing-dollar
-    prompt: |
-      Three friends split a $30 hotel room, paying $10 each. Later the clerk realizes the room costs only $25 and sends $5 with the bellhop as refund. The bellhop, unable to divide $5 evenly, pockets $2 and gives each friend $1 back. Each friend paid $9, total $27, plus the bellhop's $2 equals $29. Where is the missing dollar? Identify the logical flaw in one sentence and provide the correct accounting.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: length_range, min: 30, max: 500, unit: chars}
-        - {type: contains_any, expected: ["subtraction", "should be subtracted", "wrong operation", "false equivalence"]}
-    max_tokens: 1024
+    Each row follows the same mathematical rule involving primes or prime-indexed
+    numbers. Answer with just the number.
 
-  - id: reas-24-probability-bayes-2
-    prompt: |
-      Two boxes: Box A contains 3 red and 7 blue marbles. Box B contains 6 red and 4 blue marbles. You choose a box at random (50% each), then draw a marble, which turns out to be red. What is the probability you drew from Box A? Express as a simplified fraction.
-    scoring: {type: regex, pattern: "1\\s*/\\s*3|1/3"}
-    max_tokens: 1024
+    '
+  scoring:
+    type: regex_number
+    expected: 19
+  max_tokens: 1024
+- id: reas-20-probability-conditional
+  prompt: 'A family has two children. You know that at least one is a boy born on
+    a Tuesday. What is the probability that both children are boys? Assume equal probability
+    of boy/girl and equal probability of being born on any day of the week. Express
+    as a simplified fraction.
 
-  - id: reas-25-flooded-basement
-    prompt: |
-      A basement has 10,000 liters of water from a flood. Two pumps are available. Pump A can remove 500 L/hour. Pump B can remove 300 L/hour. However, every hour, 200 liters of groundwater seeps back in. If both pumps run continuously, how many hours will it take to empty the basement? Answer with just the number.
-    scoring: {type: regex_number, expected: 50}
-    max_tokens: 1024
-
-  - id: reas-26-hoppel-poppel
-    prompt: |
-      Consider a game: Two players take turns placing coins on a circular table. The coins must be identical, must not overlap, and must lie fully on the table. The player who cannot place a coin loses. Is there a winning strategy for the first or second player? Answer with "first" or "second." What is the key geometric idea behind the strategy?
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains, expected: "first"}
-        - {type: contains_any, expected: ["center", "symmetry", "reflection", "central"]}
-    max_tokens: 1024
-
-  - id: reas-27-syllogism-all-some
-    prompt: |
-      Determine whether the following syllogism is valid: All philosophers are thinkers. Some thinkers are logicians. Therefore, some philosophers are logicians. Answer valid or invalid. Now consider: No mathematicians are poets. Some poets are dreamers. Therefore, some mathematicians are not dreamers. Answer valid or invalid. Provide two comma-separated answers.
-    scoring: {type: contains, expected: "invalid, invalid"}
-    max_tokens: 1024
-
-  - id: reas-28-tetromino-tiling
-    prompt: |
-      A standard 8x8 chessboard has two diagonally opposite corner squares removed (both white squares). Can the remaining 62 squares be tiled by 31 dominoes, each covering exactly two adjacent (orthogonally adjacent) squares? Answer yes or no. Now answer the same question if instead the two removed squares are one white and one black that are not opposite corners. Answer yes or no. Provide two comma-separated answers.
-    scoring: {type: contains, expected: "no, yes"}
-    max_tokens: 1024
-
-  - id: reas-29-game-theory-prisoners
-    prompt: |
-      In a one-shot prisoner's dilemma, both players have a dominant strategy to defect, leading to a Nash equilibrium that is Pareto-inferior to mutual cooperation. In an infinitely repeated prisoner's dilemma with discount factor δ, the Grim Trigger strategy (cooperate until the opponent defects, then defect forever) can sustain cooperation if δ is above a threshold. What is the minimum δ for Grim Trigger to be a subgame perfect equilibrium given payoffs: mutual cooperation (3,3), mutual defection (1,1), temptation (5,0), sucker (0,5)?
-    scoring: {type: regex, pattern: "1\\s*/\\s*3|0\\.33"}
-    max_tokens: 1024
-
-  - id: reas-30-trains-meet
-    prompt: |
-      Two trains, 100 km apart, approach each other on the same track at 50 km/h each. A bee flies back and forth between them at 75 km/h, starting from the front of one train. When the trains collide, how far has the bee flown in total? Answer in km.
-    scoring: {type: regex_number, expected: 75}
-    max_tokens: 1024
-
-  - id: reas-31-sudoku-variant
-    prompt: |
-      In a 4x4 Sudoku grid (using numbers 1-4 in each row, column, and 2x2 block), you are given: Row 1: [1, ?, ?, 4]. Row 2: [?, 3, 1, ?]. Row 3: [?, ?, ?, ?]. Row 4: [4, ?, ?, 2]. Additionally, the main diagonal (top-left to bottom-right) must contain all four distinct numbers. What number belongs in Row 3, Column 2?
-    scoring: {type: regex_number, expected: 2}
-    max_tokens: 1024
-
-  - id: reas-32-conjunction-fallacy
-    prompt: |
-      Linda is 31 years old, single, outspoken, and very bright. She majored in philosophy. As a student, she was deeply concerned with issues of discrimination and social justice, and also participated in anti-nuclear demonstrations. Which is more probable: (a) Linda is a bank teller, or (b) Linda is a bank teller and is active in the feminist movement? Answer with just (a) or (b) and name the cognitive bias this illustrates.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "^\\(?a\\)?$", flags: ["I"]}
-        - {type: contains_any, expected: ["conjunction fallacy", "representativeness"]}
-    max_tokens: 1024
-
-  - id: reas-33-set-theory-paradox
-    prompt: |
-      Consider the set of all sets that do not contain themselves. Does this set contain itself? If it does, it does not; if it does not, it does. This is Russell's paradox. What axiom was introduced in Zermelo-Fraenkel set theory to avoid this paradox? Name the axiom.
-    scoring: {type: contains_any, expected: ["axiom of foundation", "foundation", "regularity", "restricted comprehension", "separation"]}
-    max_tokens: 1024
-
-  - id: reas-34-epidemic-modeling
-    prompt: |
-      In the SIR model, dS/dt = -βSI, dI/dt = βSI - γI, dR/dt = γI. The basic reproduction number R0 = βS(0)/γ. In a population of 1 million with one initially infected person, and β = 0.0000003 per person per day, γ = 0.1 per day, calculate R0. Will an epidemic occur (R0 > 1)? Answer with the R0 value to one decimal place and yes or no.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: "3\\.?0?"}
-        - {type: regex, pattern: "^\\s*yes\\b", flags: ["I"]}
-    max_tokens: 1024
-
-  - id: reas-35-code-exec-python-1
-    prompt: |
-      Write a Python function f(n) that returns the nth term of the sequence: 0, 1, 1, 2, 3, 5, 8, 13, 21, ... Then call f(20) and output ONLY the result.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert f(0) == 0"
-        - "assert f(1) == 1"
-        - "assert f(10) == 55"
-        - "assert f(20) == 6765"
-    max_tokens: 1024
-
-  - id: reas-36-graph-coloring
-    prompt: |
-      What is the chromatic number of a complete bipartite graph K_{3,3}? Answer with just the number. Now, what is the chromatic number of a complete graph K_5?
-    scoring: {type: contains, expected: "2"}
-    max_tokens: 1024
-
-  - id: reas-37-surgeon-gloves
-    prompt: |
-      Two surgeons need to operate on a patient. Both have active hepatitis B (bloodborne). There's one pair of surgical gloves available. Each surgeon's hands must not contact the other surgeon's blood or the patient's blood, and the patient must not contact either surgeon's blood. How can they operate safely using just this one pair of gloves? Describe the protocol in at most two sentences.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: contains, expected: "double"}
-        - {type: contains_any, expected: ["two layers", "inner and outer", "wear the same glove", "swap"]}
-    max_tokens: 1024
-
-  - id: reas-38-torricelli-point
-    prompt: |
-      Given a triangle with all angles less than 120 degrees, the Fermat point (Torricelli point) is the point that minimizes the sum of distances to the three vertices. It is found by constructing equilateral triangles outward on each side and connecting each vertex to the opposite new vertex. All three lines intersect at the Fermat point. What is the angle between each pair of lines from the Fermat point to the vertices?
-    scoring: {type: regex, pattern: "120\\s*°?|120\\s*degrees"}
-    max_tokens: 1024
-
-  - id: reas-39-liar-truth-teller-random
-    prompt: |
-      You meet three people: A (always tells truth), B (always lies), C (answers randomly yes/no). You need to find the road to the city by asking exactly two yes/no questions, each directed to a single person. You do not know who is who (they appear identical). Devise an optimal questioning strategy that guarantees finding the correct road.
-    scoring:
-      type: composite
-      mode: mean
-      parts:
-        - {type: contains_any, expected: ["ask", "question", "what would"]}
-        - {type: contains_any, expected: ["random", "second question", "control", "eliminate"]}
-    max_tokens: 1024
-
-  - id: reas-40-arrow-theorem
-    prompt: |
-      Arrow's impossibility theorem states that no voting system can simultaneously satisfy all of: (1) Pareto efficiency, (2) independence of irrelevant alternatives, (3) non-dictatorship, and (4) unrestricted domain when there are at least three alternatives. If you drop the independence of irrelevant alternatives condition, which voting method becomes viable but is subject to strategic voting (tactical manipulation)?
-    scoring: {type: contains_any, expected: ["ranked-choice", "instant-runoff", "preferential", "Borda"]}
-    max_tokens: 1024
+    '
+  scoring:
+    type: regex
+    pattern: 13\s*/\s*27|13/27
+  max_tokens: 1024

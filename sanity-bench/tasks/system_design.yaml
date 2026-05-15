@@ -1,1516 +1,1044 @@
 category: system_design
 tasks:
-  - id: sd-21-plugin-system
-    prompt: |
-      Design a plugin system. Write `PluginBase` (abstract base with `run(self, data)`) and `PluginManager` with `register(cls)`, `list()`, `execute_all(data)`. Plugins self-register via `__init_subclass__`. Reply with just Python code.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: 'class\\s+PluginBase'}
-        - {type: regex, pattern: 'class\\s+PluginManager'}
-        - {type: regex, pattern: '__init_subclass__|register'}
-        - {type: regex, pattern: 'execute_all'}
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-22-vector-db
-    prompt: |
-      Write a minimal vector database. `VectorDB` class with `add(id: str, vec: list[float])`, `search(vec: list[float], k: int) -> list[str]` returning top-k IDs by cosine similarity, and `delete(id: str)`. Use numpy. Reply with just Python code.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: 'class\\s+VectorDB'}
-        - {type: regex, pattern: 'def\\s+add'}
-        - {type: regex, pattern: 'def\\s+search'}
-        - {type: regex, pattern: 'np\\.dot|cosine'}
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-23-event-bus
-    prompt: |
-      Write an event bus. `EventBus` class with `subscribe(event: str, handler: callable) -> int` (returns sub ID), `publish(event: str, data: any)`, and `unsubscribe(sub_id: int)`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          bus = EventBus()
-          events = []
-          sid = bus.subscribe('test', lambda d: events.append(d))
-          bus.publish('test', 42)
-          bus.publish('other', 99)
-          assert events == [42]
-          bus.unsubscribe(sid)
-          bus.publish('test', 0)
-          assert events == [42]
-    max_tokens: 1024
-    temperature: 0.3
-  - id: sd-24-task-queue
-    prompt: |
-      Write a task queue with worker pool. `TaskQueue` class with `enqueue(fn, *args)`, `worker()` running tasks sequentially, and `start(n: int)` to spawn n workers via threading. Reply with just Python code.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: 'class\\s+TaskQueue'}
-        - {type: regex, pattern: 'queue\\.Queue|collections\\.deque'}
-        - {type: regex, pattern: 'threading\\.Thread'}
-        - {type: regex, pattern: 'def\\s+enqueue'}
-        - {type: regex, pattern: 'def\\s+worker'}
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-25-kv-store
-    prompt: |
-      Write a persistent key-value store. `KVStore` class with `get(key: str)`, `set(key: str, value: str)`, `delete(key: str)`, and `flush()` writing to "kvstore.json". Loads from file on init if it exists. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import os, json
-      tests:
-        - |
-          store = KVStore()
-          store.set('a', '1'); store.set('b', '2')
-          store.flush()
-          store2 = KVStore()
-          assert store2.get('a') == '1'
-          assert store2.get('b') == '2'
-          store2.delete('a')
-          assert store2.get('a') is None
-          os.unlink('kvstore.json')
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-26-di-container
-    prompt: |
-      Write a simple DI container. `Container` class with `register(name: str, impl: type, *deps: str)` and `resolve(name: str) -> object` that constructs the object injecting its dependencies as constructor args. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          class A: pass
-          class B: def __init__(self, a): self.a = a
-          c = Container()
-          c.register('a', A); c.register('b', B, 'a')
-          b = c.resolve('b')
-          assert isinstance(b.a, A)
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-27-middleware
-    prompt: |
-      Write a middleware pipeline. `Pipeline` class with `use(middleware: callable)` and `run(request: dict) -> dict`. Each middleware is a function (req, next) calling next(req). The final handler returns {"result": "ok"}. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          p = Pipeline()
-          p.use(lambda r, n: n({**r, 'x': r.get('x',0)+1}))
-          p.use(lambda r, n: {**r, 'y': r['x'] * 2})
-          assert p.run({'a':1}) == {'a':1, 'x':1, 'y':2}
-    max_tokens: 1024
-    temperature: 0.3
-  - id: sd-28-observer
-    prompt: |
-      Write the observer pattern. `Observable` class with `attach(observer: callable)`, `detach(observer)`, and `notify(data)`. Then implement `Logger` (prints to list) and `Notifier` (collects messages) as observers. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          obs = Observable()
-          log = []; notif = []
-          obs.attach(Logger(log)); obs.attach(Notifier(notif))
-          obs.notify("event1")
-          obs.notify("event2")
-          assert len(log) == 2
-          assert len(notif) == 2
-    max_tokens: 1024
-    temperature: 0.3
-  - id: sd-29-state-machine
-    prompt: |
-      Write a finite state machine. `StateMachine` class with `add_state(name, handlers: dict)` (handlers: event→next_state), `set_start(name)`, and `dispatch(event)`. Raises ValueError for invalid events. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          sm = StateMachine()
-          sm.add_state('idle', {'start': 'running'})
-          sm.add_state('running', {'stop': 'idle'})
-          sm.set_start('idle')
-          sm.dispatch('start')
-          sm.dispatch('stop')
-          try: sm.dispatch('unknown'); assert False
-          except ValueError: pass
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-30-template-engine
-    prompt: |
-      Write a minimal template engine. `render(template: str, context: dict) -> str` that replaces `{{var}}` with context[var]. Supports dotted paths like `{{user.name}}`. Respects |upper and |lower filters. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - 'assert render("Hello {{name}}!", {"name":"World"}) == "Hello World!"'
-        - 'assert render("{{user.name|upper}}", {"user":{"name":"alice"}}) == "ALICE"'
-        - 'assert render("plain text", {}) == "plain text"'
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-31-token-bucket
-    prompt: |
-      Write a token bucket rate limiter. `TokenBucket` class with `__init__(capacity, fill_rate)` (tokens per sec), `consume(tokens=1) -> bool` (returns False if insufficient). Use time.monotonic for refill. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time, unittest.mock
-      tests:
-        - |
-          with unittest.mock.patch('time.monotonic') as mt:
-              mt.side_effect = [0.0, 0.0]
-              b = TokenBucket(5, 10)
-              for _ in range(5):
-                  assert b.consume() == True
-              assert b.consume() == False
-              mt.side_effect = [1.0]
-              assert b.consume() == True
-    max_tokens: 1024
-    temperature: 0.3
-  - id: sd-32-circuit-breaker
-    prompt: |
-      Write a circuit breaker. `CircuitBreaker` class with `__init__(failure_threshold, recovery_timeout)`. Calls `call(fn, *args, **kwargs)` that wraps fn. After failure_threshold failures, opens circuit and raises CircuitBreakerOpenError. After recovery_timeout, allows one trial. Reply with just Python code.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: 'class\\s+CircuitBreaker'}
-        - {type: regex, pattern: 'class\\s+CircuitBreakerOpenError'}
-        - {type: regex, pattern: 'def\\s+call'}
-        - {type: regex, pattern: 'failure_threshold|recovery_timeout'}
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-33-retry-backoff
-    prompt: |
-      Write `retry(max_attempts=3, delay=1.0, backoff=2.0)` decorator. It retries the wrapped function on any exception, waiting delay * backoff^n seconds between attempts. After max_attempts, re-raises. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          calls = []
-          @retry(max_attempts=3, delay=0.01, backoff=2.0)
-          def flaky():
-              calls.append(1)
-              if len(calls) < 2: raise ValueError("fail")
-              return "ok"
-          assert flaky() == "ok"
-          assert len(calls) == 2
-    max_tokens: 1024
-    temperature: 0.3
-  - id: sd-34-cascade-config
-    prompt: |
-      Write a cascading config system. `Config` class loading from dict, env vars (prefix "APP_"), and file (JSON). `get(key, default=None)` checks: explicit set > env var > file > default. Reply with just Python code.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: 'class\\s+Config'}
-        - {type: regex, pattern: 'os\\.environ|getenv'}
-        - {type: regex, pattern: 'json\\.load|json\\.loads'}
-        - {type: regex, pattern: 'def\\s+get'}
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-35-logger
-    prompt: |
-      Write `get_logger(name: str) -> Logger`. Logger has `info(msg)`, `error(msg)`, `warning(msg)` methods. Messages are written to "app.log" with format "[LEVEL] name: msg". Use a module-level dict to cache loggers. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import os
-      tests:
-        - |
-          log = get_logger("test")
-          log.info("hello"); log.error("oops")
-          with open("app.log") as f:
-              content = f.read()
-          assert "[INFO]" in content and "hello" in content
-          assert "[ERROR]" in content and "oops" in content
-          os.unlink("app.log")
-    max_tokens: 1024
-    temperature: 0.3
-  - id: sd-36-bloom-filter
-    prompt: |
-      Write a Bloom filter. `BloomFilter` class with `__init__(size: int, num_hashes: int)`, `add(item: str)`, and `__contains__(item: str) -> bool`. Use built-in hash() with seeds for k hashes. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          bf = BloomFilter(100, 3)
-          bf.add("apple"); bf.add("banana")
-          assert "apple" in bf
-          assert "banana" in bf
-    max_tokens: 1024
-    temperature: 0.3
-  - id: sd-37-connection-pool
-    prompt: |
-      Write a connection pool. `Pool` class with `__init__(min_size, max_size, factory: callable)` where factory() creates a connection. `acquire() -> conn` (blocks if none available). `release(conn)` returns it. Use threading.Semaphore. Reply with just Python code.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: 'class\\s+Pool'}
-        - {type: regex, pattern: 'threading\\.Semaphore|threading\\.Lock'}
-        - {type: regex, pattern: 'def\\s+acquire'}
-        - {type: regex, pattern: 'def\\s+release'}
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-38-scheduler
-    prompt: |
-      Write a simple scheduler. `Scheduler` class with `schedule(delay: float, fn, *args) -> int` (runs fn(*args) after delay seconds via threading.Timer), `cancel(task_id: int)`, and `stop_all()`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time
-      tests:
-        - |
-          s = Scheduler()
-          results = []
-          s.schedule(0.01, lambda: results.append(1))
-          s.schedule(0.02, lambda: results.append(2))
-          time.sleep(0.05)
-          assert 1 in results and 2 in results
-          s.stop_all()
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-39-cache-ttl
-    prompt: |
-      Write a TTL cache. `TTLCache` class with `get(key: str)` and `set(key: str, value: any, ttl: float)`. Entries expire after ttl seconds. Uses time.monotonic. Expired get returns None. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time, unittest.mock
-      tests:
-        - |
-          with unittest.mock.patch('time.monotonic') as mt:
-              mt.side_effect = [0.0, 0.0]
-              c = TTLCache()
-              c.set('a', 1, 10.0)
-              assert c.get('a') == 1
-              mt.side_effect = [15.0]
-              assert c.get('a') is None
-    max_tokens: 1024
-    temperature: 0.3
-  - id: sd-40-pubsub-file
-    prompt: |
-      Write a file-based pub/sub. `FilePubSub(root_dir: str)` class. `publish(topic: str, message: str)` appends to `{root_dir}/{topic}.log`. `subscribe(topic: str, since: int=0) -> list[str]` returns new messages after index since. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import os, tempfile, shutil
-      tests:
-        - |
-          d = tempfile.mkdtemp()
-          ps = FilePubSub(d)
-          ps.publish('news', 'hello')
-          msgs = ps.subscribe('news')
-          assert msgs == ['hello']
-          ps.publish('news', 'world')
-          msgs = ps.subscribe('news', since=1)
-          assert msgs == ['world']
-          shutil.rmtree(d)
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-41-rate-limited-api
-    prompt: |
-      Design a rate-limited REST API server stub. Write `RateLimitedAPI` class with `register_route(method, path, handler)`, `handle_request(method, path, auth_token)`, and per-token rate limiting (100 req/min). Return 429 on limit exceeded. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time, json
-      tests:
-        - |
-          api = RateLimitedAPI()
-          api.register_route('GET', '/users', lambda r: {'users':[]})
-          resp = api.handle_request('GET', '/users', 'tok1')
-          assert resp['status'] == 200
-        - |
-          api = RateLimitedAPI()
-          api.register_route('POST', '/data', lambda r: {'id': 1})
-          for _ in range(100): api.handle_request('POST', '/data', 'tok1')
-          resp = api.handle_request('POST', '/data', 'tok1')
-          assert resp['status'] == 429
-        - |
-          api = RateLimitedAPI()
-          resp = api.handle_request('GET', '/nonexistent', 'tok1')
-          assert resp['status'] == 404
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-42-microservice-disc
-    prompt: |
-      Write a microservice discovery system. `ServiceRegistry` class with `register(name, host, port, health_endpoint)`, `unregister(name)`, `discover(name) -> list[dict]` returning healthy instances, and `health_check()` that pings all endpoints. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import threading, time
-      tests:
-        - |
-          reg = ServiceRegistry()
-          reg.register('auth', 'localhost', 8081, '/health')
-          reg.register('auth', 'localhost', 8082, '/health')
-          instances = reg.discover('auth')
-          assert len(instances) == 2
-        - "assert reg.discover('nonexistent') == []"
-        - |
-          reg = ServiceRegistry()
-          reg.register('x', 'h', 1, '/h')
-          reg.unregister('x')
-          assert reg.discover('x') == []
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-43-cicd-pipeline
-    prompt: |
-      Write a CI/CD pipeline simulator. `Pipeline` class with `add_stage(name, steps: list[callable])`, `run(branch: str) -> dict` executing stages sequentially. Stages: build, test, lint, deploy. Each step returns True/False. Abort on failure. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          p = Pipeline()
-          p.add_stage('build', [lambda: True])
-          p.add_stage('test', [lambda: True])
-          result = p.run('main')
-          assert result['status'] == 'passed'
-        - |
-          p = Pipeline()
-          p.add_stage('build', [lambda: False])
-          result = p.run('main')
-          assert result['status'] == 'failed' and result['stage'] == 'build'
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-44-metrics-dashboard
-    prompt: |
-      Write a metrics collection system. `MetricsCollector` class with `incr(name: str, tags: dict)`, `gauge(name: str, value: float, tags: dict)`, `timing(name: str, duration: float, tags: dict)`, and `query(metric: str, aggregator: str) -> float` supporting avg, sum, p95. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          mc = MetricsCollector()
-          mc.incr('requests', {'status': '200'})
-          mc.incr('requests', {'status': '200'})
-          assert mc.query('requests', 'sum') == 2
-        - |
-          mc = MetricsCollector()
-          mc.timing('latency', 0.1, {})
-          mc.timing('latency', 0.2, {})
-          assert abs(mc.query('latency', 'avg') - 0.15) < 0.001
-        - "assert mc.query('nonexistent', 'sum') == 0"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-45-data-pipeline
-    prompt: |
-      Write an ETL data pipeline. `ETLPipeline` class with `extract(source: callable)`, `transform(fn: callable)`, `validate(schema: dict[str, type])`, `dedup(key_fn: callable)`, `load(sink: callable)`. All methods return self for chaining. `run()` executes sequentially. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          results = []
-          p = ETLPipeline()
-          p.extract(lambda: [{'id':1,'v':10},{'id':2,'v':20},{'id':1,'v':30}])
-          p.transform(lambda r: {'id':r['id'],'v':r['v']*2})
-          p.validate({'id': int, 'v': int})
-          p.dedup(lambda r: r['id'])
-          p.load(lambda rows: results.extend(rows))
-          p.run()
-          assert len(results) == 2
-          assert results[0]['v'] == 20
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-46-react-router
-    prompt: |
-      Scaffold a minimal React-like component system. Write `Component` class with `render()` returning virtual DOM (dict with tag, props, children), `useState(initial)` returning [value, setter] via closure, and `mount(root, component)` that renders into root dict. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          def App():
-              count, setCount = useState(0)
-              return {'tag':'div', 'props':{}, 'children':[str(count)]}
-          state = mount(None, App)
-          assert state['children'] == ['0']
-        - |
-          comp = Component()
-          comp.render = lambda: {'tag':'h1', 'props':{'id':'x'}, 'children':['hi']}
-          assert comp.render()['tag'] == 'h1'
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-47-plugin-hot-reload
-    prompt: |
-      Write a hot-reloadable plugin system. `PluginHost` class with `load_plugin(path: str)` importing a .py file as a module, `unload(name: str)`, `invoke(name: str, method: str, *args)`, and `watch()` that polls for file changes and reloads. Use importlib. Reply with just Python code.
-    scoring:
-      type: composite
-      mode: all
-      parts:
-        - {type: regex, pattern: 'class\\s+PluginHost'}
-        - {type: regex, pattern: 'importlib|__import__'}
-        - {type: regex, pattern: 'def\\s+load_plugin|def\\s+invoke'}
-        - {type: regex, pattern: 'def\\s+watch|def\\s+reload'}
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-48-message-queue
-    prompt: |
-      Write a message queue system. `MessageQueue` class with `create_topic(name: str, partitions: int)`, `publish(topic: str, key: str, message: str)`, `subscribe(topic: str, group: str, consumer_id: str) -> int` (returns offset), and `poll(consumer_id: int) -> list[str]`. Messages are partitioned by key hash. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          mq = MessageQueue()
-          mq.create_topic('orders', 3)
-          mq.publish('orders', 'user1', 'order1')
-          mq.publish('orders', 'user2', 'order2')
-          offset = mq.subscribe('orders', 'g1', 'c1')
-          msgs = mq.poll(offset)
-          assert len(msgs) > 0
-        - "mq = MessageQueue(); assert mq.poll(0) == []"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-49-api-gateway
-    prompt: |
-      Write an API gateway. `APIGateway` class with `add_route(path: str, target: str, methods: list[str])`, `add_middleware(fn: callable)`, and `forward(request: dict) -> dict`. Middleware receives (request, next). Routes forward to mock targets. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          gw = APIGateway()
-          gw.add_route('/users', 'user-service', ['GET'])
-          resp = gw.forward({'method':'GET','path':'/users','headers':{}})
-          assert resp['status'] == 200
-        - |
-          gw = APIGateway()
-          gw.add_middleware(lambda req, n: {**n(req), 'headers': {'X-Proxied':'true'}})
-          gw.add_route('/x', 'svc', ['GET'])
-          resp = gw.forward({'method':'GET','path':'/x','headers':{}})
-          assert 'X-Proxied' in resp.get('headers', {})
-        - |
-          gw = APIGateway()
-          resp = gw.forward({'method':'POST','path':'/nope','headers':{}})
-          assert resp['status'] == 404
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-50-dist-cache
-    prompt: |
-      Write a distributed cache with consistent hashing. `DistCache` class with `add_node(node_id: str)`, `remove_node(node_id: str)`, `get(key: str) -> str|None`, `set(key: str, value: str)`. Keys assigned to nodes via consistent hash ring with virtual replicas. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          dc = DistCache()
-          dc.add_node('node1'); dc.add_node('node2')
-          dc.set('k1', 'v1'); dc.set('k2', 'v2')
-          assert dc.get('k1') == 'v1'
-        - |
-          dc = DistCache()
-          assert dc.get('missing') is None
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-51-load-balancer
-    prompt: |
-      Write a load balancer. `LoadBalancer` class supporting round-robin and least-connections strategies. `add_backend(host, port)`, `remove_backend(host, port)`, `next(strategy: str) -> dict` returns {host, port}. Track connection counts for least-connections. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          lb = LoadBalancer()
-          lb.add_backend('10.0.0.1', 80)
-          lb.add_backend('10.0.0.2', 80)
-          b1 = lb.next('round-robin')
-          b2 = lb.next('round-robin')
-          assert b1 != b2
-        - |
-          lb = LoadBalancer()
-          assert lb.next('round-robin') is None
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-52-feature-flags
-    prompt: |
-      Write a feature flag system. `FeatureFlags` class loading from JSON file. `is_enabled(flag: str, user_id: str = None) -> bool` supports global on/off, percentage rollouts (user_id hash % 100 < percentage), and overrides. `set_flag(flag: str, enabled: bool)`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          ff = FeatureFlags()
-          ff.set_flag('new_checkout', True)
-          assert ff.is_enabled('new_checkout')
-          ff.set_flag('new_checkout', False)
-          assert not ff.is_enabled('new_checkout')
-        - "assert not FeatureFlags().is_enabled('nonexistent')"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-53-webhook-dispatcher
-    prompt: |
-      Write a webhook dispatcher. `WebhookDispatcher` class with `register(url: str, events: list[str]) -> str` (returns webhook ID), `unregister(id: str)`, `dispatch(event: str, payload: dict)`. Dispatches concurrently with retry (3 attempts, 1s delay). Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import threading, time
-      tests:
-        - |
-          wd = WebhookDispatcher()
-          wid = wd.register('http://example.com/hook', ['order.created'])
-          assert wid is not None
-        - |
-          wd = WebhookDispatcher()
-          wid = wd.register('http://hook.example', ['event.x'])
-          wd.unregister(wid)
-          # Should not raise
-          wd.dispatch('event.x', {})
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-54-auth-service
-    prompt: |
-      Write an authentication service stub. `AuthService` class with `register_user(username, password) -> str` (returns token), `authenticate(token: str) -> str|None` (returns username or None), `invalidate(token: str)`. Store users in dict. Hash passwords with hashlib.sha256. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import hashlib, uuid
-      tests:
-        - |
-          auth = AuthService()
-          token = auth.register_user('alice', 'secret123')
-          assert auth.authenticate(token) == 'alice'
-        - |
-          auth = AuthService()
-          assert auth.authenticate('fake_token') is None
-        - |
-          auth = AuthService()
-          t = auth.register_user('bob', 'pass')
-          auth.invalidate(t)
-          assert auth.authenticate(t) is None
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-55-audit-log
-    prompt: |
-      Write an audit logging system. `AuditLog` class with `log(user: str, action: str, resource: str, detail: dict)`, `query(user: str = None, action: str = None, start: float = None, end: float = None) -> list[dict]`, and `export(path: str)` writing JSON lines. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import json, os, time
-      tests:
-        - |
-          al = AuditLog()
-          al.log('alice', 'read', 'file1', {'size': 100})
-          al.log('bob', 'write', 'file2', {'size': 200})
-          entries = al.query(user='alice')
-          assert len(entries) == 1
-        - "assert AuditLog().query() == []"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-56-file-upload
-    prompt: |
-      Write a file upload service stub. `UploadService` class with `upload(filename: str, data: bytes, user: str) -> str` (returns file ID), `download(file_id: str) -> bytes|None`, `list(user: str) -> list[dict]`, `delete(file_id: str)`. Validate file extension against allowed list. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          us = UploadService()
-          fid = us.upload('doc.txt', b'hello', 'alice')
-          assert us.download(fid) == b'hello'
-        - |
-          us = UploadService()
-          fid = us.upload('doc.txt', b'data', 'alice')
-          us.delete(fid)
-          assert us.download(fid) is None
-        - |
-          us = UploadService()
-          try:
-              us.upload('malware.exe', b'bad', 'alice')
-              assert False
-          except ValueError: pass
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-57-image-pipeline
-    prompt: |
-      Write an image processing pipeline (simulated). `ImagePipeline` class with `add_filter(name: str, fn: callable)` where fn takes (pixels: list[list[int]]) and returns transformed pixels. `execute(img: list[list[int]], filters: list[str]) -> list[list[int]]` chains filters. Include blur and edge_detect. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          ip = ImagePipeline()
-          ip.add_filter('invert', lambda p: [[255-v for v in row] for row in p])
-          result = ip.execute([[0,128],[255,0]], ['invert'])
-          assert result == [[255,127],[0,255]]
-        - "assert ImagePipeline().execute([[1]], []) == [[1]]"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-58-search-engine
-    prompt: |
-      Write a minimal search engine. `SearchEngine` class with `index(doc_id: str, text: str)` building an inverted index, `search(query: str) -> list[str]` returning doc IDs by TF-IDF scoring, and `remove(doc_id: str)`. Tokenize by splitting on whitespace. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          se = SearchEngine()
-          se.index('d1', 'the quick brown fox')
-          se.index('d2', 'the lazy dog')
-          results = se.search('fox')
-          assert 'd1' in results
-        - "assert SearchEngine().search('nothing') == []"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-59-notification-svc
-    prompt: |
-      Write a notification service. `NotificationService` class with `register_channel(type: str, config: dict)` (email, sms, push), `send(user: str, message: str, channels: list[str])`, and `get_history(user: str) -> list[dict]`. Each channel has a `send(recipient, msg)` method. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          ns = NotificationService()
-          ns.register_channel('email', {'recipient': 'a@x.com'})
-          ns.send('alice', 'Hello', ['email'])
-          history = ns.get_history('alice')
-          assert len(history) == 1
-        - "assert NotificationService().get_history('x') == []"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-60-recommend-engine
-    prompt: |
-      Write a collaborative filtering recommendation engine. `Recommender` class with `add_rating(user: str, item: str, rating: float)`, `similar_users(user: str, k: int) -> list[str]` by Pearson correlation, and `recommend(user: str, k: int) -> list[str]` returning top-k items. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          rec = Recommender()
-          rec.add_rating('u1', 'm1', 5)
-          rec.add_rating('u1', 'm2', 3)
-          rec.add_rating('u2', 'm1', 4)
-          rec.add_rating('u2', 'm2', 3)
-          sim = rec.similar_users('u1', 1)
-          assert len(sim) > 0
-        - "assert Recommender().recommend('new_user', 5) == []"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-61-db-migration
-    prompt: |
-      Write a database migration tool. `MigrationManager` class with `add_migration(version: str, up: callable, down: callable)`, `migrate(target: str = None)` running pending migrations in order, `rollback(steps: int = 1)`. Track current version in '_migrations' list. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          mm = MigrationManager()
-          log = []
-          mm.add_migration('001', lambda: log.append('up1'), lambda: log.append('down1'))
-          mm.add_migration('002', lambda: log.append('up2'), lambda: log.append('down2'))
-          mm.migrate()
-          assert log == ['up1', 'up2']
-        - |
-          mm = MigrationManager()
-          log = []
-          mm.add_migration('001', lambda: log.append('u1'), lambda: log.append('d1'))
-          mm.migrate(); mm.rollback(1)
-          assert 'd1' in log
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-62-log-aggregator
-    prompt: |
-      Write a log aggregation system. `LogAggregator` class with `ingest(source: str, level: str, message: str, tags: dict)`, `search(level: str = None, source: str = None, keyword: str = None, start: float = None, end: float = None) -> list[dict]`, and `stats() -> dict` returning counts by level. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          la = LogAggregator()
-          la.ingest('app1', 'ERROR', 'disk full', {'host':'x'})
-          la.ingest('app1', 'INFO', 'started', {})
-          la.ingest('app2', 'ERROR', 'OOM', {'host':'y'})
-          errors = la.search(level='ERROR')
-          assert len(errors) == 2
-        - "assert LogAggregator().stats() == {}"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-63-realtime-analytics
-    prompt: |
-      Write a real-time analytics dashboard backend. `Analytics` class with `track(event: str, properties: dict)`, `count(event: str, window: int) -> int` (events in last window seconds), `top_events(k: int) -> list[tuple[str,int]]`, and `segment(event: str, property: str) -> dict[str,int]`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time
-      tests:
-        - |
-          a = Analytics()
-          a.track('page_view', {'page':'/'})
-          a.track('page_view', {'page':'/about'})
-          assert a.count('page_view', 3600) == 2
-        - "assert Analytics().count('x', 60) == 0"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-64-ab-testing
-    prompt: |
-      Write an A/B testing framework. `ABTest` class with `create_experiment(name: str, variants: list[str], traffic_percent: int)`, `assign(user_id: str, experiment: str) -> str` (consistent assignment via hash), and `track(user_id: str, experiment: str, variant: str, metric: str, value: float)`. `results(experiment: str) -> dict` returns per-variant metrics. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          ab = ABTest()
-          ab.create_experiment('signup_btn', ['red','blue'], 100)
-          v = ab.assign('user123', 'signup_btn')
-          assert v in ('red', 'blue')
-        - |
-          ab = ABTest()
-          ab.create_experiment('test', ['a','b'], 100)
-          assert ab.assign('same_user', 'test') == ab.assign('same_user', 'test')
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-65-config-server
-    prompt: |
-      Write a configuration server. `ConfigServer` class with `set(key: str, value: any, version: int = 1)`, `get(key: str) -> tuple[any,int]` (value, version), `watch(keys: list[str], callback: callable)` that triggers callback on changes, and `history(key: str) -> list[tuple[any,int]]`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          cs = ConfigServer()
-          cs.set('db.url', 'localhost:5432', 1)
-          val, ver = cs.get('db.url')
-          assert val == 'localhost:5432' and ver == 1
-        - "assert ConfigServer().get('missing') is None"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-66-mock-server
-    prompt: |
-      Write a mock server for API testing. `MockServer` class with `when(method: str, path: str) -> Expectation` where Expectation has `then_response(status: int, body: dict)`, `verify(method: str, path: str) -> int` returns call count, and `reset()`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          ms = MockServer()
-          ms.when('GET', '/users').then_response(200, {'users':[]})
-          resp = ms.handle('GET', '/users')
-          assert resp['status'] == 200
-        - |
-          ms = MockServer()
-          ms.when('POST', '/data').then_response(201, {'id': 1})
-          ms.handle('POST', '/data')
-          assert ms.verify('POST', '/data') == 1
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-67-api-versioning
-    prompt: |
-      Write an API versioning middleware. `APIVersioner` class with `register(version: str, routes: dict[str, dict[str, callable]])` mapping method->path->handler, `handle(version: str, method: str, path: str, request: dict) -> dict`, and `latest(request: dict) -> dict` that auto-routes unversioned requests to latest version. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          av = APIVersioner()
-          av.register('v1', {'GET': {'/users': lambda r: {'ver':'v1'}}})
-          av.register('v2', {'GET': {'/users': lambda r: {'ver':'v2'}}})
-          assert av.handle('v1', 'GET', '/users', {})['ver'] == 'v1'
-          assert av.handle('v2', 'GET', '/users', {})['ver'] == 'v2'
-        - |
-          av = APIVersioner()
-          try: av.handle('v1', 'GET', '/x', {})
-          except KeyError: pass
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-68-secret-rotation
-    prompt: |
-      Write a secret rotation service. `SecretManager` class with `store(name: str, value: str, rotation_days: int)`, `get(name: str) -> str|None`, `rotate(name: str) -> str` generates new random secret and updates, `list_expiring(days: int) -> list[str]` returns secrets expiring within days. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time, string, random
-      tests:
-        - |
-          sm = SecretManager()
-          sm.store('db_pass', 's3cret!', 90)
-          assert sm.get('db_pass') == 's3cret!'
-        - |
-          sm = SecretManager()
-          sm.store('key', 'old', 30)
-          new = sm.rotate('key')
-          assert new != 'old' and len(new) >= 8
-        - "assert SecretManager().get('nonexistent') is None"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-69-dist-tracing
-    prompt: |
-      Write a distributed tracing system. `Tracer` class with `start_span(name: str, parent_id: str = None) -> str` (returns span_id), `end_span(span_id: str)`, `get_trace(span_id: str) -> dict` returning span tree, and `export() -> list[dict]`. Each span has name, parent_id, start, end. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          t = Tracer()
-          root = t.start_span('request')
-          child = t.start_span('db.query', root)
-          t.end_span(child); t.end_span(root)
-          trace = t.get_trace(root)
-          assert trace['name'] == 'request'
-          assert len(trace['children']) == 1
-        - "assert Tracer().export() == []"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-70-chat-server
-    prompt: |
-      Write a chat server (stub) with rooms. `ChatServer` class with `create_room(name: str) -> str`, `join(room_id: str, user: str)`, `send(room_id: str, user: str, message: str)`, `messages(room_id: str, since: int = 0) -> list[dict]`, `leave(room_id: str, user: str)`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          cs = ChatServer()
-          rid = cs.create_room('general')
-          cs.join(rid, 'alice'); cs.join(rid, 'bob')
-          cs.send(rid, 'alice', 'hello')
-          msgs = cs.messages(rid)
-          assert len(msgs) == 1 and msgs[0]['user'] == 'alice'
-        - |
-          cs = ChatServer()
-          rid = cs.create_room('general')
-          assert cs.messages(rid) == []
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-71-url-shortener
-    prompt: |
-      Write a URL shortener service. `URLShortener` class with `shorten(url: str) -> str` (returns short code), `resolve(short_code: str) -> str|None`, `stats(short_code: str) -> dict` with access_count and created_at, `delete(short_code: str)`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time
-      tests:
-        - |
-          us = URLShortener()
-          code = us.shorten('https://example.com/long/url')
-          assert us.resolve(code) == 'https://example.com/long/url'
-        - "assert URLShortener().resolve('nonexistent') is None"
-        - |
-          us = URLShortener()
-          code = us.shorten('https://x.com')
-          us.resolve(code)
-          s = us.stats(code)
-          assert s['access_count'] == 1
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-72-payment-stub
-    prompt: |
-      Write a payment processing stub. `PaymentProcessor` class with `create_payment(amount: int, currency: str, source: str) -> str` (returns payment_id), `capture(payment_id: str) -> dict` with status and fee, `refund(payment_id: str) -> bool`, `list_payments(status: str = None) -> list[dict]`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          pp = PaymentProcessor()
-          pid = pp.create_payment(2000, 'usd', 'card_123')
-          result = pp.capture(pid)
-          assert result['status'] == 'captured'
-        - |
-          pp = PaymentProcessor()
-          pid = pp.create_payment(500, 'eur', 'card_456')
-          pp.capture(pid)
-          assert pp.refund(pid) == True
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-73-multi-tenant-db
-    prompt: |
-      Write a multi-tenant database router. `TenantRouter` class with `add_tenant(tenant_id: str, connection_string: str)`, `execute(tenant_id: str, query: str, params: tuple = ()) -> list[dict]` (simulated), `migrate(tenant_id: str, schema: list[str])` applies table creations. Simulate storage with dicts. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          tr = TenantRouter()
-          tr.add_tenant('acme', 'sqlite:///acme.db')
-          result = tr.execute('acme', 'SELECT 1')
-          assert result is not None
-        - |
-          tr = TenantRouter()
-          try:
-              tr.execute('nonexistent', 'SELECT 1')
-              assert False
-          except KeyError: pass
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-74-task-scheduler
-    prompt: |
-      Write a DAG-based task scheduler. `DAGScheduler` class with `add_task(name: str, fn: callable, dependencies: list[str] = None)`, `run() -> dict` executing tasks in topological order. Run tasks in parallel when dependencies are met. Return {name: result}. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import threading
-      tests:
-        - |
-          sched = DAGScheduler()
-          results = {}
-          sched.add_task('a', lambda: results.__setitem__('a', 1))
-          sched.add_task('b', lambda: results.__setitem__('b', 2), ['a'])
-          sched.run()
-          assert results == {'a': 1, 'b': 2}
-        - |
-          sched = DAGScheduler()
-          sched.add_task('single', lambda: 42)
-          res = sched.run()
-          assert res['single'] == 42
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-75-stream-processor
-    prompt: |
-      Write a stream processing pipeline. `StreamProcessor` class with `add_source(name: str, generator: callable)`, `add_operator(name: str, fn: callable)` (takes record, yields records), `add_sink(name: str, fn: callable)`, and `run(batch_size: int)`. Process data from source through operators to sinks. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          sp = StreamProcessor()
-          sp.add_source('nums', lambda: iter([1,2,3]))
-          results = []
-          sp.add_sink('collect', lambda r: results.append(r))
-          sp.run(10)
-          assert results == [1,2,3]
-        - |
-          sp = StreamProcessor()
-          sp.add_source('empty', lambda: iter([]))
-          results = []
-          sp.add_sink('c', lambda r: results.append(r))
-          sp.run(10)
-          assert results == []
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-76-rate-limit-proxy
-    prompt: |
-      Write a rate-limiting proxy. `RateLimitProxy` class with `__init__(backend: callable)`, `add_limit(route: str, max_reqs: int, window: float)`, `request(method: str, path: str, headers: dict) -> dict` that forwards to backend after checking limits. Returns 429 with Retry-After header if exceeded. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time
-      tests:
-        - |
-          backend = lambda req: {'status': 200, 'body': 'ok', 'headers': {}}
-          proxy = RateLimitProxy(backend)
-          proxy.add_limit('/', 5, 1.0)
-          for _ in range(5):
-              resp = proxy.request('GET', '/', {})
-              assert resp['status'] == 200
-          resp = proxy.request('GET', '/', {})
-          assert resp['status'] == 429
-        - "assert proxy.request('GET', '/unlimited', {})['status'] == 200"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-77-canary-release
-    prompt: |
-      Write a canary release controller. `CanaryRelease` class with `deploy(version: str, traffic_percent: int)` routing that % of traffic to new version, `promote(version: str)` sets to 100%, `rollback(version: str)`, and `handle_request(request: dict) -> str` returns version handling this request. Uses consistent routing by user_id. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          cr = CanaryRelease()
-          cr.deploy('v2', 50)
-          results = {}
-          for i in range(100):
-              ver = cr.handle_request({'user_id': f'user{i}'})
-              results[ver] = results.get(ver, 0) + 1
-          assert 'v2' in results and 'v1' in results
-        - |
-          cr = CanaryRelease()
-          cr.deploy('v2', 100)
-          cr.promote('v2')
-          assert cr.handle_request({'user_id':'x'}) == 'v2'
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-78-graphql-resolver
-    prompt: |
-      Write a minimal GraphQL resolver engine. `GraphQLResolver` class with `add_type(name: str, fields: dict[str, callable])` where fields maps field name to resolver fn(parent, args), and `resolve(query: str, root: dict) -> dict` that parses a simplified { field { subfield } } query and resolves it. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          gr = GraphQLResolver()
-          gr.add_type('Query', {'user': lambda p, a: {'name': 'Alice', 'age': 30}})
-          result = gr.resolve('{ user { name age } }', {})
-          assert result == {'user': {'name': 'Alice', 'age': 30}}
-        - "assert GraphQLResolver().resolve('{ x }', {'x': 1}) == {'x': 1}"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-79-websocket-manager
-    prompt: |
-      Write a WebSocket connection manager (simulated). `WSManager` class with `connect(client_id: str)`, `disconnect(client_id: str)`, `subscribe(client_id: str, channel: str)`, `unsubscribe(client_id: str, channel: str)`, `publish(channel: str, message: str) -> list[str]` returns list of client IDs that received the message. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          wsm = WSManager()
-          wsm.connect('c1'); wsm.connect('c2')
-          wsm.subscribe('c1', 'alerts'); wsm.subscribe('c2', 'alerts')
-          recipients = wsm.publish('alerts', 'hello')
-          assert len(recipients) == 2
-        - |
-          wsm = WSManager()
-          wsm.connect('c1')
-          recipients = wsm.publish('empty', 'msg')
-          assert recipients == []
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-80-event-sourcing
-    prompt: |
-      Write an event sourcing system. `EventStore` class with `append(stream: str, event_type: str, data: dict) -> int` (returns version), `read(stream: str, from_version: int = 0) -> list[dict]`, `aggregate(stream: str, apply: callable, initial: any) -> any` that replays events through the apply function. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          es = EventStore()
-          es.append('cart-1', 'item_added', {'sku': 'A'})
-          es.append('cart-1', 'item_added', {'sku': 'B'})
-          total = es.aggregate('cart-1', lambda s, e: s + 1, 0)
-          assert total == 2
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-81-health-aggregator
-    prompt: |
-      Write a health check aggregator. `HealthAggregator` class with `register(service: str, check_fn: callable)`, `unregister(service: str)`, `check_all() -> dict[str, dict]` returning {service: {status, latency, last_check}}, and `healthy_services(min_uptime: int = 1) -> list[str]`. Simulate with time. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time
-      tests:
-        - |
-          ha = HealthAggregator()
-          ha.register('db', lambda: {'status': 'ok', 'latency': 0.005})
-          ha.register('cache', lambda: {'status': 'ok', 'latency': 0.001})
-          results = ha.check_all()
-          assert all(r['status'] == 'ok' for r in results.values())
-          assert len(ha.healthy_services()) == 2
-        - "assert HealthAggregator().healthy_services() == []"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-82-config-validator
-    prompt: |
-      Write a configuration validator. `ConfigValidator` class with `add_rule(key: str, validator: callable, required: bool = False)` where validator(value) returns True/False. `validate(config: dict) -> list[str]` returns list of error messages. Supports nested keys via dotted paths. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          cv = ConfigValidator()
-          cv.add_rule('port', lambda v: isinstance(v, int) and 0 < v < 65536, required=True)
-          cv.add_rule('host', lambda v: isinstance(v, str) and len(v) > 0, required=True)
-          errors = cv.validate({'port': 8080, 'host': 'localhost'})
-          assert errors == []
-        - |
-          cv = ConfigValidator()
-          cv.add_rule('port', lambda v: v > 0, required=True)
-          errors = cv.validate({})
-          assert len(errors) > 0
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-83-data-anonymizer
-    prompt: |
-      Write a data anonymizer pipeline. `Anonymizer` class with `add_rule(field: str, strategy: str, mask_char: str = '*')` where strategy is 'mask', 'hash', or 'redact'. `anonymize(record: dict) -> dict` applies rules to matching fields. Supports nested field paths. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          anon = Anonymizer()
-          anon.add_rule('email', 'mask')
-          anon.add_rule('ssn', 'redact')
-          result = anon.anonymize({'email': 'alice@x.com', 'ssn': '123-45-6789', 'name': 'Alice'})
-          assert '***' in result['email'] and result['ssn'] is None
-          assert result['name'] == 'Alice'
-        - "assert Anonymizer().anonymize({}) == {}"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-84-rate-limit-config
-    prompt: |
-      Write a dynamic rate limit configuration system. `RateLimitConfig` class with `set_default(max_requests: int, window: float)`, `add_override(route: str, max_requests: int, window: float)`, `get_limit(route: str) -> tuple[int, float]` merging overrides with defaults, and `remove_override(route: str)`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          rlc = RateLimitConfig()
-          rlc.set_default(100, 60.0)
-          rlc.add_override('/login', 5, 60.0)
-          assert rlc.get_limit('/login') == (5, 60.0)
-          assert rlc.get_limit('/other') == (100, 60.0)
-        - |
-          rlc = RateLimitConfig()
-          rlc.set_default(50, 30.0)
-          rlc.add_override('/api', 10, 1.0)
-          rlc.remove_override('/api')
-          assert rlc.get_limit('/api') == (50, 30.0)
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-85-script-runner
-    prompt: |
-      Write a script runner with sandboxing (simulated). `ScriptRunner` class with `register_command(name: str, fn: callable, allowed: bool = True)`, `run(script: str) -> list[str]` parsing lines as "command arg1 arg2" and executing registered commands, and `block_command(name: str)`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          sr = ScriptRunner()
-          results = []
-          sr.register_command('echo', lambda args: results.append(' '.join(args)))
-          sr.run('echo hello world\\necho foo')
-          assert results == ['hello world', 'foo']
-        - |
-          sr = ScriptRunner()
-          sr.register_command('danger', lambda args: 'boom', allowed=False)
-          try: sr.run('danger x'); assert False
-          except PermissionError: pass
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-86-api-doc-gen
-    prompt: |
-      Write an API documentation generator. `APIDocGenerator` class with `add_endpoint(method: str, path: str, description: str, params: list[dict], responses: dict)`, `generate() -> str` producing Markdown documentation, and `export_json() -> list[dict]`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          gen = APIDocGenerator()
-          gen.add_endpoint('GET', '/users', 'List users', [{'name':'page','type':'int'}], {200: 'ok'})
-          doc = gen.generate()
-          assert '/users' in doc and 'GET' in doc and 'List users' in doc
-        - "assert '[]' in APIDocGenerator().export_json() or APIDocGenerator().export_json() == []"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-87-code-coverage
-    prompt: |
-      Write a code coverage tracker (simulated). `CoverageTracker` class with `register_file(filename: str, total_lines: int)`, `mark_line(filename: str, line: int)`, `report() -> dict[str, dict]` returning per-file coverage %, and `summary() -> float` returning overall coverage. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          ct = CoverageTracker()
-          ct.register_file('main.py', 10)
-          for i in range(1, 8): ct.mark_line('main.py', i)
-          r = ct.report()
-          assert r['main.py']['coverage'] == 70.0
-        - "assert CoverageTracker().summary() == 100.0"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-88-dep-graph
-    prompt: |
-      Write a dependency graph manager. `DepGraph` class with `add_node(name: str, version: str)`, `add_dependency(from_node: str, to_node: str, constraint: str)`, `resolve(name: str) -> list[str]` returning topological install order with dependency resolution, and `detect_cycle() -> bool`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          dg = DepGraph()
-          dg.add_node('app', '1.0'); dg.add_node('lib', '2.0')
-          dg.add_dependency('app', 'lib', '>=2.0')
-          order = dg.resolve('app')
-          assert order.index('lib') < order.index('app')
-        - |
-          dg = DepGraph()
-          dg.add_node('a', '1'); dg.add_node('b', '1')
-          dg.add_dependency('a', 'b', ''); dg.add_dependency('b', 'a', '')
-          assert dg.detect_cycle()
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-89-test-runner
-    prompt: |
-      Write a test runner framework. `TestRunner` class with `add_test(name: str, fn: callable)`, `run() -> dict` returning {passed: int, failed: int, tests: [{name, status, error}]}, and `skip(name: str)`. Each test raises AssertionError on failure. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          tr = TestRunner()
-          tr.add_test('pass', lambda: None)
-          tr.add_test('fail', lambda: 1/0)
-          result = tr.run()
-          assert result['passed'] == 1 and result['failed'] == 1
-        - "assert TestRunner().run() == {'passed': 0, 'failed': 0, 'tests': []}"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-90-linter
-    prompt: |
-      Write a simple Python linter. `Linter` class with `add_rule(name: str, check: callable)` where check(line: str, line_num: int, lines: list[str]) -> str|None returns error message or None. `lint(code: str) -> list[dict]` returns [{line, col, message, rule}]. Include rules: line-too-long (>79), trailing-whitespace. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          l = Linter()
-          l.add_rule('trailing-space', lambda line, n, lines: 'Trailing whitespace' if line != line.rstrip() else None)
-          errors = l.lint('hello \\nworld')
-          assert len(errors) == 1
-        - "assert Linter().lint('') == []"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-91-cache-warm
-    prompt: |
-      Write a cache warming system. `CacheWarmer` class with `add_source(name: str, loader: callable)` where loader() returns {key: value} pairs, `warm(cache: dict)` loads all sources into the cache dict, `schedule(interval: float)` runs warming periodically via threading, and `stop()`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import threading, time
-      tests:
-        - |
-          cw = CacheWarmer()
-          cache = {}
-          cw.add_source('users', lambda: {'u1': 'Alice', 'u2': 'Bob'})
-          cw.warm(cache)
-          assert cache == {'u1': 'Alice', 'u2': 'Bob'}
-        - "assert CacheWarmer().warm({}) is None"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-92-key-generator
-    prompt: |
-      Write a unique key generation service. `KeyGenerator` class with `generate(prefix: str = 'key', length: int = 8) -> str` returning unique keys (using timestamp + counter), `batch(count: int, prefix: str = 'key') -> list[str]`, and `parse(key: str) -> dict` returning metadata. Keys are 0-9a-z. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          kg = KeyGenerator()
-          k1 = kg.generate('ord')
-          k2 = kg.generate('ord')
-          assert k1 != k2 and k1.startswith('ord')
-        - "assert len(kg.batch(5, 'x')) == 5"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-93-session-store
-    prompt: |
-      Write a session store with expiration. `SessionStore` class with `create(session_id: str = None) -> str`, `get(session_id: str) -> dict|None`, `set(session_id: str, key: str, value: any)`, `delete(session_id: str)`, `cleanup(max_age: float)` removes expired sessions. Uses time.monotonic. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time, unittest.mock
-      tests:
-        - |
-          with unittest.mock.patch('time.monotonic') as mt:
-              mt.return_value = 0.0
-              ss = SessionStore()
-              sid = ss.create()
-              ss.set(sid, 'user', 'alice')
-              assert ss.get(sid).get('user') == 'alice'
-              mt.return_value = 100.0
-              ss.cleanup(50.0)
-              assert ss.get(sid) is None
-        - "assert SessionStore().get('nonexistent') is None"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-94-redis-cache
-    prompt: |
-      Write a Redis-like in-memory cache. `RedisCache` class with `set(key: str, value: str, ttl: int = None)`, `get(key: str) -> str|None`, `delete(key: str)`, `expire(key: str, ttl: int)`, `keys(pattern: str) -> list[str]` supporting * glob, and `flush()`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          rc = RedisCache()
-          rc.set('user:1', 'Alice')
-          rc.set('user:2', 'Bob')
-          rc.set('post:1', 'Hello')
-          assert len(rc.keys('user:*')) == 2
-          assert rc.get('user:1') == 'Alice'
-        - "assert RedisCache().get('x') is None"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-95-queue-manager
-    prompt: |
-      Write a queue manager with priority. `QueueManager` class with `enqueue(queue: str, item: any, priority: int = 0)`, `dequeue(queue: str) -> any|None` (returns highest priority item), `ack(queue: str, item: any)`, `requeue(queue: str, item: any, delay: float = 0)`. Items without dequeue go back after delay. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          qm = QueueManager()
-          qm.enqueue('tasks', 'low', 0)
-          qm.enqueue('tasks', 'high', 10)
-          assert qm.dequeue('tasks') == 'high'
-        - "assert QueueManager().dequeue('empty') is None"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-96-file-watcher
-    prompt: |
-      Write a file watcher (simulated). `FileWatcher` class with `watch(path: str, callback: callable)`, `unwatch(path: str)`, `poll()` that checks for changes by comparing stored content hashes and triggers callbacks, and `watched_files() -> list[str]`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          fw = FileWatcher()
-          events = []
-          fw.watch('/tmp/test.txt', lambda p: events.append(p))
-          fw.trigger('/tmp/test.txt', 'new content')
-          assert '/tmp/test.txt' in fw.watched_files()
-        - "assert FileWatcher().watched_files() == []"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-97-bulkhead
-    prompt: |
-      Write a bulkhead isolation pattern. `Bulkhead` class with `add_group(name: str, max_concurrent: int)`, `acquire(group: str) -> bool`, `release(group: str)`, and `with_bulkhead(group: str, fn: callable, *args)` that acquires then releases. Uses threading.Semaphore. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import threading
-      tests:
-        - |
-          b = Bulkhead()
-          b.add_group('db', 2)
-          assert b.acquire('db') and b.acquire('db')
-          assert not b.acquire('db')
-          b.release('db')
-          assert b.acquire('db')
-        - |
-          b = Bulkhead()
-          b.add_group('api', 1)
-          result = b.with_bulkhead('api', lambda: 42)
-          assert result == 42
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-98-idempotency
-    prompt: |
-      Write an idempotency key middleware. `IdempotencyMiddleware` class with `__init__(ttl: float = 3600)`, `process(idempotency_key: str, request: dict, handler: callable) -> dict` that stores responses keyed by idempotency_key and returns cached response for repeated keys within ttl. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time, unittest.mock, hashlib
-      tests:
-        - |
-          with unittest.mock.patch('time.monotonic') as mt:
-              mt.return_value = 0.0
-              im = IdempotencyMiddleware()
-              call_count = [0]
-              def handler(req): call_count[0] += 1; return {'status': 'ok'}
-              r1 = im.process('key-1', {'data': 'x'}, handler)
-              r2 = im.process('key-1', {'data': 'x'}, handler)
-              assert call_count[0] == 1
-        - "assert IdempotencyMiddleware().process('k', {}, lambda r: {'status':'ok'}) == {'status':'ok'}"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-99-cron-scheduler
-    prompt: |
-      Write a cron-like task scheduler. `CronScheduler` class with `schedule(expr: str, fn: callable) -> str` (returns job_id) where expr is "second minute hour day month weekday" (like cron), `unschedule(job_id: str)`, `tick(current: float)` evaluates and runs due jobs, and `jobs() -> list[dict]`. Use time.struct_time matching. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      setup: |
-        import time
-      tests:
-        - |
-          cs = CronScheduler()
-          results = []
-          cs.schedule('* * * * * *', lambda: results.append('tick'))
-          cs.tick(0.0)
-          assert len(results) > 0
-        - "assert CronScheduler().jobs() == []"
-    max_tokens: 1536
-    temperature: 0.3
-  - id: sd-100-feature-store
-    prompt: |
-      Write a feature store for ML. `FeatureStore` class with `register_feature(name: str, compute_fn: callable, dependencies: list[str] = None)`, `compute(entity_id: str, features: list[str]) -> dict[str, any}` computing features with caching and dependency resolution, and `invalidate(entity_id: str, feature: str)`. Reply with just Python code.
-    scoring:
-      type: code_exec_python
-      tests:
-        - |
-          fs = FeatureStore()
-          fs.register_feature('age', lambda e: 30)
-          fs.register_feature('age_group', lambda e: 'adult' if fs.compute(e, ['age'])['age'] >= 18 else 'minor', ['age'])
-          result = fs.compute('user1', ['age_group'])
-          assert result['age_group'] == 'adult'
-        - "assert FeatureStore().compute('x', ['missing']) == {}"
-    max_tokens: 1536
-    temperature: 0.3
+- id: sd-21-plugin-system
+  prompt: 'Design a plugin system. Write `PluginBase` (abstract base with `run(self,
+    data)`) and `PluginManager` with `register(cls)`, `list()`, `execute_all(data)`.
+    Plugins self-register via `__init_subclass__`. Reply with just Python code.
 
-  # --- Multi-turn design review tasks (use mock_api to investigate + recommend) ---
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: class\\s+PluginBase
+    - type: regex
+      pattern: class\\s+PluginManager
+    - type: regex
+      pattern: __init_subclass__|register
+    - type: regex
+      pattern: execute_all
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-22-vector-db
+  prompt: 'Write a minimal vector database. `VectorDB` class with `add(id: str, vec:
+    list[float])`, `search(vec: list[float], k: int) -> list[str]` returning top-k
+    IDs by cosine similarity, and `delete(id: str)`. Use numpy. Reply with just Python
+    code.
 
-  - id: sd-101-performance-audit
-    prompt: |
-      You are reviewing the payment-api service. It's been having latency
-      issues. Use mock_api(operation, params) to investigate the system
-      and make design recommendations.
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: class\\s+VectorDB
+    - type: regex
+      pattern: def\\s+add
+    - type: regex
+      pattern: def\\s+search
+    - type: regex
+      pattern: np\\.dot|cosine
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-23-event-bus
+  prompt: 'Write an event bus. `EventBus` class with `subscribe(event: str, handler:
+    callable) -> int` (returns sub ID), `publish(event: str, data: any)`, and `unsubscribe(sub_id:
+    int)`. Reply with just Python code.
 
-      Available operations:
-      - trace_request(id) - trace a sample request
-      - check_metrics() - view latency/error metrics
-      - check_config() - view current configuration
-      - check_logs() - view recent logs
-      - check_health() - check service health
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'bus = EventBus()
 
-      Step 1: Investigate (trace_request, check_metrics, check_config).
-      Step 2: Review findings and check logs.
-      Step 3: Write a brief summary with your design recommendations.
-      Call mock_api for each investigation step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: trace_request
-        - operation: check_metrics
-        - operation: check_config
-        - operation: check_logs
-    max_tokens: 2048
-    temperature: 0.3
+      events = []
 
-  - id: sd-102-db-migration-review
-    prompt: |
-      You are reviewing a database migration plan. The team wants to migrate
-      from PostgreSQL to Aurora. Use mock_api to investigate the current
-      system and make recommendations.
+      sid = bus.subscribe(''test'', lambda d: events.append(d))
 
-      Available operations:
-      - check_health() - check current DB health
-      - check_config() - view current DB config
-      - check_logs() - view recent DB logs
-      - run_diagnostics() - run DB diagnostics
-      - db_migrate() - run a test migration
+      bus.publish(''test'', 42)
 
-      Step 1: Investigate current system.
-      Step 2: Run diagnostics.
-      Step 3: Summarize your migration recommendations.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: check_health
-        - operation: check_config
-        - operation: run_diagnostics
-    max_tokens: 2048
-    temperature: 0.3
+      bus.publish(''other'', 99)
 
-  - id: sd-103-deployment-pipeline
-    prompt: |
-      You are auditing the deployment pipeline. There have been recent
-      rollbacks. Use mock_api to investigate and recommend improvements.
+      assert events == [42]
 
-      Available operations:
-      - check_deploy() - check last deployment
-      - check_logs() - view deploy logs
-      - check_health() - check service health
-      - check_alerts() - view deploy-related alerts
-      - check_config() - view pipeline config
+      bus.unsubscribe(sid)
 
-      Investigate the deployment pipeline, identify issues, summarize
-      recommendations. Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: check_deploy
-        - operation: check_logs
-        - operation: check_alerts
-        - operation: check_config
-    max_tokens: 2048
-    temperature: 0.3
+      bus.publish(''test'', 0)
 
-  - id: sd-104-architecture-review
-    prompt: |
-      You are reviewing the microservices architecture. The team reports
-      that the checkout flow is slow and sometimes fails.
+      assert events == [42]
 
-      Available operations:
-      - trace_request(id) - trace a checkout request
-      - check_metrics() - view service metrics
-      - check_config() - view service config
-      - check_health() - check all services health
-      - check_logs() - view error logs
+      '
+  max_tokens: 1024
+  temperature: 0.3
+- id: sd-24-task-queue
+  prompt: 'Write a task queue with worker pool. `TaskQueue` class with `enqueue(fn,
+    *args)`, `worker()` running tasks sequentially, and `start(n: int)` to spawn n
+    workers via threading. Reply with just Python code.
 
-      Trace a request, check metrics and health, review logs.
-      Summarize your architecture recommendations.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: trace_request
-        - operation: check_metrics
-        - operation: check_health
-        - operation: check_logs
-    max_tokens: 2048
-    temperature: 0.3
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: class\\s+TaskQueue
+    - type: regex
+      pattern: queue\\.Queue|collections\\.deque
+    - type: regex
+      pattern: threading\\.Thread
+    - type: regex
+      pattern: def\\s+enqueue
+    - type: regex
+      pattern: def\\s+worker
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-25-kv-store
+  prompt: 'Write a persistent key-value store. `KVStore` class with `get(key: str)`,
+    `set(key: str, value: str)`, `delete(key: str)`, and `flush()` writing to "kvstore.json".
+    Loads from file on init if it exists. Reply with just Python code.
 
-  - id: sd-105-security-review
-    prompt: |
-      You are reviewing the API security posture. Investigate and recommend
-      improvements.
+    '
+  scoring:
+    type: code_exec_python
+    setup: 'import os, json
 
-      Available operations:
-      - check_config() - view security config
-      - check_cert() - check TLS cert status
-      - check_health() - check auth service health
-      - check_logs() - view auth logs
-      - run_diagnostics() - run security diagnostics
+      '
+    tests:
+    - 'store = KVStore()
 
-      Investigate security config, certs, auth health, and logs.
-      Summarize your security recommendations.
-      Call mock_api for each step.
-    scoring:
-      type: tool_sequence
-      expected:
-        - operation: check_config
-        - operation: check_cert
-        - operation: check_health
-        - operation: check_logs
-    max_tokens: 2048
-    temperature: 0.3
+      store.set(''a'', ''1''); store.set(''b'', ''2'')
+
+      store.flush()
+
+      store2 = KVStore()
+
+      assert store2.get(''a'') == ''1''
+
+      assert store2.get(''b'') == ''2''
+
+      store2.delete(''a'')
+
+      assert store2.get(''a'') is None
+
+      os.unlink(''kvstore.json'')
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-26-di-container
+  prompt: 'Write a simple DI container. `Container` class with `register(name: str,
+    impl: type, *deps: str)` and `resolve(name: str) -> object` that constructs the
+    object injecting its dependencies as constructor args. Reply with just Python
+    code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'class A: pass
+
+      class B: def __init__(self, a): self.a = a
+
+      c = Container()
+
+      c.register(''a'', A); c.register(''b'', B, ''a'')
+
+      b = c.resolve(''b'')
+
+      assert isinstance(b.a, A)
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-27-middleware
+  prompt: 'Write a middleware pipeline. `Pipeline` class with `use(middleware: callable)`
+    and `run(request: dict) -> dict`. Each middleware is a function (req, next) calling
+    next(req). The final handler returns {"result": "ok"}. Reply with just Python
+    code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'p = Pipeline()
+
+      p.use(lambda r, n: n({**r, ''x'': r.get(''x'',0)+1}))
+
+      p.use(lambda r, n: {**r, ''y'': r[''x''] * 2})
+
+      assert p.run({''a'':1}) == {''a'':1, ''x'':1, ''y'':2}
+
+      '
+  max_tokens: 1024
+  temperature: 0.3
+- id: sd-28-observer
+  prompt: 'Write the observer pattern. `Observable` class with `attach(observer: callable)`,
+    `detach(observer)`, and `notify(data)`. Then implement `Logger` (prints to list)
+    and `Notifier` (collects messages) as observers. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'obs = Observable()
+
+      log = []; notif = []
+
+      obs.attach(Logger(log)); obs.attach(Notifier(notif))
+
+      obs.notify("event1")
+
+      obs.notify("event2")
+
+      assert len(log) == 2
+
+      assert len(notif) == 2
+
+      '
+  max_tokens: 1024
+  temperature: 0.3
+- id: sd-29-state-machine
+  prompt: 'Write a finite state machine. `StateMachine` class with `add_state(name,
+    handlers: dict)` (handlers: event→next_state), `set_start(name)`, and `dispatch(event)`.
+    Raises ValueError for invalid events. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'sm = StateMachine()
+
+      sm.add_state(''idle'', {''start'': ''running''})
+
+      sm.add_state(''running'', {''stop'': ''idle''})
+
+      sm.set_start(''idle'')
+
+      sm.dispatch(''start'')
+
+      sm.dispatch(''stop'')
+
+      try: sm.dispatch(''unknown''); assert False
+
+      except ValueError: pass
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-30-template-engine
+  prompt: 'Write a minimal template engine. `render(template: str, context: dict)
+    -> str` that replaces `{{var}}` with context[var]. Supports dotted paths like
+    `{{user.name}}`. Respects |upper and |lower filters. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - assert render("Hello {{name}}!", {"name":"World"}) == "Hello World!"
+    - assert render("{{user.name|upper}}", {"user":{"name":"alice"}}) == "ALICE"
+    - assert render("plain text", {}) == "plain text"
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-31-token-bucket
+  prompt: 'Write a token bucket rate limiter. `TokenBucket` class with `__init__(capacity,
+    fill_rate)` (tokens per sec), `consume(tokens=1) -> bool` (returns False if insufficient).
+    Use time.monotonic for refill. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    setup: 'import time, unittest.mock
+
+      '
+    tests:
+    - "with unittest.mock.patch('time.monotonic') as mt:\n    mt.side_effect = [0.0,\
+      \ 0.0]\n    b = TokenBucket(5, 10)\n    for _ in range(5):\n        assert b.consume()\
+      \ == True\n    assert b.consume() == False\n    mt.side_effect = [1.0]\n   \
+      \ assert b.consume() == True\n"
+  max_tokens: 1024
+  temperature: 0.3
+- id: sd-32-circuit-breaker
+  prompt: 'Write a circuit breaker. `CircuitBreaker` class with `__init__(failure_threshold,
+    recovery_timeout)`. Calls `call(fn, *args, **kwargs)` that wraps fn. After failure_threshold
+    failures, opens circuit and raises CircuitBreakerOpenError. After recovery_timeout,
+    allows one trial. Reply with just Python code.
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: class\\s+CircuitBreaker
+    - type: regex
+      pattern: class\\s+CircuitBreakerOpenError
+    - type: regex
+      pattern: def\\s+call
+    - type: regex
+      pattern: failure_threshold|recovery_timeout
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-33-retry-backoff
+  prompt: 'Write `retry(max_attempts=3, delay=1.0, backoff=2.0)` decorator. It retries
+    the wrapped function on any exception, waiting delay * backoff^n seconds between
+    attempts. After max_attempts, re-raises. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - "calls = []\n@retry(max_attempts=3, delay=0.01, backoff=2.0)\ndef flaky():\n\
+      \    calls.append(1)\n    if len(calls) < 2: raise ValueError(\"fail\")\n  \
+      \  return \"ok\"\nassert flaky() == \"ok\"\nassert len(calls) == 2\n"
+  max_tokens: 1024
+  temperature: 0.3
+- id: sd-34-cascade-config
+  prompt: 'Write a cascading config system. `Config` class loading from dict, env
+    vars (prefix "APP_"), and file (JSON). `get(key, default=None)` checks: explicit
+    set > env var > file > default. Reply with just Python code.
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: class\\s+Config
+    - type: regex
+      pattern: os\\.environ|getenv
+    - type: regex
+      pattern: json\\.load|json\\.loads
+    - type: regex
+      pattern: def\\s+get
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-35-logger
+  prompt: 'Write `get_logger(name: str) -> Logger`. Logger has `info(msg)`, `error(msg)`,
+    `warning(msg)` methods. Messages are written to "app.log" with format "[LEVEL]
+    name: msg". Use a module-level dict to cache loggers. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    setup: 'import os
+
+      '
+    tests:
+    - "log = get_logger(\"test\")\nlog.info(\"hello\"); log.error(\"oops\")\nwith\
+      \ open(\"app.log\") as f:\n    content = f.read()\nassert \"[INFO]\" in content\
+      \ and \"hello\" in content\nassert \"[ERROR]\" in content and \"oops\" in content\n\
+      os.unlink(\"app.log\")\n"
+  max_tokens: 1024
+  temperature: 0.3
+- id: sd-36-bloom-filter
+  prompt: 'Write a Bloom filter. `BloomFilter` class with `__init__(size: int, num_hashes:
+    int)`, `add(item: str)`, and `__contains__(item: str) -> bool`. Use built-in hash()
+    with seeds for k hashes. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'bf = BloomFilter(100, 3)
+
+      bf.add("apple"); bf.add("banana")
+
+      assert "apple" in bf
+
+      assert "banana" in bf
+
+      '
+  max_tokens: 1024
+  temperature: 0.3
+- id: sd-37-connection-pool
+  prompt: 'Write a connection pool. `Pool` class with `__init__(min_size, max_size,
+    factory: callable)` where factory() creates a connection. `acquire() -> conn`
+    (blocks if none available). `release(conn)` returns it. Use threading.Semaphore.
+    Reply with just Python code.
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: class\\s+Pool
+    - type: regex
+      pattern: threading\\.Semaphore|threading\\.Lock
+    - type: regex
+      pattern: def\\s+acquire
+    - type: regex
+      pattern: def\\s+release
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-38-scheduler
+  prompt: 'Write a simple scheduler. `Scheduler` class with `schedule(delay: float,
+    fn, *args) -> int` (runs fn(*args) after delay seconds via threading.Timer), `cancel(task_id:
+    int)`, and `stop_all()`. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    setup: 'import time
+
+      '
+    tests:
+    - 's = Scheduler()
+
+      results = []
+
+      s.schedule(0.01, lambda: results.append(1))
+
+      s.schedule(0.02, lambda: results.append(2))
+
+      time.sleep(0.05)
+
+      assert 1 in results and 2 in results
+
+      s.stop_all()
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-39-cache-ttl
+  prompt: 'Write a TTL cache. `TTLCache` class with `get(key: str)` and `set(key:
+    str, value: any, ttl: float)`. Entries expire after ttl seconds. Uses time.monotonic.
+    Expired get returns None. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    setup: 'import time, unittest.mock
+
+      '
+    tests:
+    - "with unittest.mock.patch('time.monotonic') as mt:\n    mt.side_effect = [0.0,\
+      \ 0.0]\n    c = TTLCache()\n    c.set('a', 1, 10.0)\n    assert c.get('a') ==\
+      \ 1\n    mt.side_effect = [15.0]\n    assert c.get('a') is None\n"
+  max_tokens: 1024
+  temperature: 0.3
+- id: sd-40-pubsub-file
+  prompt: 'Write a file-based pub/sub. `FilePubSub(root_dir: str)` class. `publish(topic:
+    str, message: str)` appends to `{root_dir}/{topic}.log`. `subscribe(topic: str,
+    since: int=0) -> list[str]` returns new messages after index since. Reply with
+    just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    setup: 'import os, tempfile, shutil
+
+      '
+    tests:
+    - 'd = tempfile.mkdtemp()
+
+      ps = FilePubSub(d)
+
+      ps.publish(''news'', ''hello'')
+
+      msgs = ps.subscribe(''news'')
+
+      assert msgs == [''hello'']
+
+      ps.publish(''news'', ''world'')
+
+      msgs = ps.subscribe(''news'', since=1)
+
+      assert msgs == [''world'']
+
+      shutil.rmtree(d)
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-41-rate-limited-api
+  prompt: 'Design a rate-limited REST API server stub. Write `RateLimitedAPI` class
+    with `register_route(method, path, handler)`, `handle_request(method, path, auth_token)`,
+    and per-token rate limiting (100 req/min). Return 429 on limit exceeded. Reply
+    with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    setup: 'import time, json
+
+      '
+    tests:
+    - 'api = RateLimitedAPI()
+
+      api.register_route(''GET'', ''/users'', lambda r: {''users'':[]})
+
+      resp = api.handle_request(''GET'', ''/users'', ''tok1'')
+
+      assert resp[''status''] == 200
+
+      '
+    - 'api = RateLimitedAPI()
+
+      api.register_route(''POST'', ''/data'', lambda r: {''id'': 1})
+
+      for _ in range(100): api.handle_request(''POST'', ''/data'', ''tok1'')
+
+      resp = api.handle_request(''POST'', ''/data'', ''tok1'')
+
+      assert resp[''status''] == 429
+
+      '
+    - 'api = RateLimitedAPI()
+
+      resp = api.handle_request(''GET'', ''/nonexistent'', ''tok1'')
+
+      assert resp[''status''] == 404
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-42-microservice-disc
+  prompt: 'Write a microservice discovery system. `ServiceRegistry` class with `register(name,
+    host, port, health_endpoint)`, `unregister(name)`, `discover(name) -> list[dict]`
+    returning healthy instances, and `health_check()` that pings all endpoints. Reply
+    with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    setup: 'import threading, time
+
+      '
+    tests:
+    - 'reg = ServiceRegistry()
+
+      reg.register(''auth'', ''localhost'', 8081, ''/health'')
+
+      reg.register(''auth'', ''localhost'', 8082, ''/health'')
+
+      instances = reg.discover(''auth'')
+
+      assert len(instances) == 2
+
+      '
+    - assert reg.discover('nonexistent') == []
+    - 'reg = ServiceRegistry()
+
+      reg.register(''x'', ''h'', 1, ''/h'')
+
+      reg.unregister(''x'')
+
+      assert reg.discover(''x'') == []
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-43-cicd-pipeline
+  prompt: 'Write a CI/CD pipeline simulator. `Pipeline` class with `add_stage(name,
+    steps: list[callable])`, `run(branch: str) -> dict` executing stages sequentially.
+    Stages: build, test, lint, deploy. Each step returns True/False. Abort on failure.
+    Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'p = Pipeline()
+
+      p.add_stage(''build'', [lambda: True])
+
+      p.add_stage(''test'', [lambda: True])
+
+      result = p.run(''main'')
+
+      assert result[''status''] == ''passed''
+
+      '
+    - 'p = Pipeline()
+
+      p.add_stage(''build'', [lambda: False])
+
+      result = p.run(''main'')
+
+      assert result[''status''] == ''failed'' and result[''stage''] == ''build''
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-44-metrics-dashboard
+  prompt: 'Write a metrics collection system. `MetricsCollector` class with `incr(name:
+    str, tags: dict)`, `gauge(name: str, value: float, tags: dict)`, `timing(name:
+    str, duration: float, tags: dict)`, and `query(metric: str, aggregator: str) ->
+    float` supporting avg, sum, p95. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'mc = MetricsCollector()
+
+      mc.incr(''requests'', {''status'': ''200''})
+
+      mc.incr(''requests'', {''status'': ''200''})
+
+      assert mc.query(''requests'', ''sum'') == 2
+
+      '
+    - 'mc = MetricsCollector()
+
+      mc.timing(''latency'', 0.1, {})
+
+      mc.timing(''latency'', 0.2, {})
+
+      assert abs(mc.query(''latency'', ''avg'') - 0.15) < 0.001
+
+      '
+    - assert mc.query('nonexistent', 'sum') == 0
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-45-data-pipeline
+  prompt: 'Write an ETL data pipeline. `ETLPipeline` class with `extract(source: callable)`,
+    `transform(fn: callable)`, `validate(schema: dict[str, type])`, `dedup(key_fn:
+    callable)`, `load(sink: callable)`. All methods return self for chaining. `run()`
+    executes sequentially. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'results = []
+
+      p = ETLPipeline()
+
+      p.extract(lambda: [{''id'':1,''v'':10},{''id'':2,''v'':20},{''id'':1,''v'':30}])
+
+      p.transform(lambda r: {''id'':r[''id''],''v'':r[''v'']*2})
+
+      p.validate({''id'': int, ''v'': int})
+
+      p.dedup(lambda r: r[''id''])
+
+      p.load(lambda rows: results.extend(rows))
+
+      p.run()
+
+      assert len(results) == 2
+
+      assert results[0][''v''] == 20
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-46-react-router
+  prompt: 'Scaffold a minimal React-like component system. Write `Component` class
+    with `render()` returning virtual DOM (dict with tag, props, children), `useState(initial)`
+    returning [value, setter] via closure, and `mount(root, component)` that renders
+    into root dict. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - "def App():\n    count, setCount = useState(0)\n    return {'tag':'div', 'props':{},\
+      \ 'children':[str(count)]}\nstate = mount(None, App)\nassert state['children']\
+      \ == ['0']\n"
+    - 'comp = Component()
+
+      comp.render = lambda: {''tag'':''h1'', ''props'':{''id'':''x''}, ''children'':[''hi'']}
+
+      assert comp.render()[''tag''] == ''h1''
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-47-plugin-hot-reload
+  prompt: 'Write a hot-reloadable plugin system. `PluginHost` class with `load_plugin(path:
+    str)` importing a .py file as a module, `unload(name: str)`, `invoke(name: str,
+    method: str, *args)`, and `watch()` that polls for file changes and reloads. Use
+    importlib. Reply with just Python code.
+
+    '
+  scoring:
+    type: composite
+    mode: all
+    parts:
+    - type: regex
+      pattern: class\\s+PluginHost
+    - type: regex
+      pattern: importlib|__import__
+    - type: regex
+      pattern: def\\s+load_plugin|def\\s+invoke
+    - type: regex
+      pattern: def\\s+watch|def\\s+reload
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-48-message-queue
+  prompt: 'Write a message queue system. `MessageQueue` class with `create_topic(name:
+    str, partitions: int)`, `publish(topic: str, key: str, message: str)`, `subscribe(topic:
+    str, group: str, consumer_id: str) -> int` (returns offset), and `poll(consumer_id:
+    int) -> list[str]`. Messages are partitioned by key hash. Reply with just Python
+    code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'mq = MessageQueue()
+
+      mq.create_topic(''orders'', 3)
+
+      mq.publish(''orders'', ''user1'', ''order1'')
+
+      mq.publish(''orders'', ''user2'', ''order2'')
+
+      offset = mq.subscribe(''orders'', ''g1'', ''c1'')
+
+      msgs = mq.poll(offset)
+
+      assert len(msgs) > 0
+
+      '
+    - mq = MessageQueue(); assert mq.poll(0) == []
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-49-api-gateway
+  prompt: 'Write an API gateway. `APIGateway` class with `add_route(path: str, target:
+    str, methods: list[str])`, `add_middleware(fn: callable)`, and `forward(request:
+    dict) -> dict`. Middleware receives (request, next). Routes forward to mock targets.
+    Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'gw = APIGateway()
+
+      gw.add_route(''/users'', ''user-service'', [''GET''])
+
+      resp = gw.forward({''method'':''GET'',''path'':''/users'',''headers'':{}})
+
+      assert resp[''status''] == 200
+
+      '
+    - 'gw = APIGateway()
+
+      gw.add_middleware(lambda req, n: {**n(req), ''headers'': {''X-Proxied'':''true''}})
+
+      gw.add_route(''/x'', ''svc'', [''GET''])
+
+      resp = gw.forward({''method'':''GET'',''path'':''/x'',''headers'':{}})
+
+      assert ''X-Proxied'' in resp.get(''headers'', {})
+
+      '
+    - 'gw = APIGateway()
+
+      resp = gw.forward({''method'':''POST'',''path'':''/nope'',''headers'':{}})
+
+      assert resp[''status''] == 404
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-50-dist-cache
+  prompt: 'Write a distributed cache with consistent hashing. `DistCache` class with
+    `add_node(node_id: str)`, `remove_node(node_id: str)`, `get(key: str) -> str|None`,
+    `set(key: str, value: str)`. Keys assigned to nodes via consistent hash ring with
+    virtual replicas. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'dc = DistCache()
+
+      dc.add_node(''node1''); dc.add_node(''node2'')
+
+      dc.set(''k1'', ''v1''); dc.set(''k2'', ''v2'')
+
+      assert dc.get(''k1'') == ''v1''
+
+      '
+    - 'dc = DistCache()
+
+      assert dc.get(''missing'') is None
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-51-load-balancer
+  prompt: 'Write a load balancer. `LoadBalancer` class supporting round-robin and
+    least-connections strategies. `add_backend(host, port)`, `remove_backend(host,
+    port)`, `next(strategy: str) -> dict` returns {host, port}. Track connection counts
+    for least-connections. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'lb = LoadBalancer()
+
+      lb.add_backend(''10.0.0.1'', 80)
+
+      lb.add_backend(''10.0.0.2'', 80)
+
+      b1 = lb.next(''round-robin'')
+
+      b2 = lb.next(''round-robin'')
+
+      assert b1 != b2
+
+      '
+    - 'lb = LoadBalancer()
+
+      assert lb.next(''round-robin'') is None
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-52-feature-flags
+  prompt: 'Write a feature flag system. `FeatureFlags` class loading from JSON file.
+    `is_enabled(flag: str, user_id: str = None) -> bool` supports global on/off, percentage
+    rollouts (user_id hash % 100 < percentage), and overrides. `set_flag(flag: str,
+    enabled: bool)`. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'ff = FeatureFlags()
+
+      ff.set_flag(''new_checkout'', True)
+
+      assert ff.is_enabled(''new_checkout'')
+
+      ff.set_flag(''new_checkout'', False)
+
+      assert not ff.is_enabled(''new_checkout'')
+
+      '
+    - assert not FeatureFlags().is_enabled('nonexistent')
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-53-webhook-dispatcher
+  prompt: 'Write a webhook dispatcher. `WebhookDispatcher` class with `register(url:
+    str, events: list[str]) -> str` (returns webhook ID), `unregister(id: str)`, `dispatch(event:
+    str, payload: dict)`. Dispatches concurrently with retry (3 attempts, 1s delay).
+    Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    setup: 'import threading, time
+
+      '
+    tests:
+    - 'wd = WebhookDispatcher()
+
+      wid = wd.register(''http://example.com/hook'', [''order.created''])
+
+      assert wid is not None
+
+      '
+    - 'wd = WebhookDispatcher()
+
+      wid = wd.register(''http://hook.example'', [''event.x''])
+
+      wd.unregister(wid)
+
+      # Should not raise
+
+      wd.dispatch(''event.x'', {})
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-54-auth-service
+  prompt: 'Write an authentication service stub. `AuthService` class with `register_user(username,
+    password) -> str` (returns token), `authenticate(token: str) -> str|None` (returns
+    username or None), `invalidate(token: str)`. Store users in dict. Hash passwords
+    with hashlib.sha256. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    setup: 'import hashlib, uuid
+
+      '
+    tests:
+    - 'auth = AuthService()
+
+      token = auth.register_user(''alice'', ''secret123'')
+
+      assert auth.authenticate(token) == ''alice''
+
+      '
+    - 'auth = AuthService()
+
+      assert auth.authenticate(''fake_token'') is None
+
+      '
+    - 'auth = AuthService()
+
+      t = auth.register_user(''bob'', ''pass'')
+
+      auth.invalidate(t)
+
+      assert auth.authenticate(t) is None
+
+      '
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-55-audit-log
+  prompt: 'Write an audit logging system. `AuditLog` class with `log(user: str, action:
+    str, resource: str, detail: dict)`, `query(user: str = None, action: str = None,
+    start: float = None, end: float = None) -> list[dict]`, and `export(path: str)`
+    writing JSON lines. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    setup: 'import json, os, time
+
+      '
+    tests:
+    - 'al = AuditLog()
+
+      al.log(''alice'', ''read'', ''file1'', {''size'': 100})
+
+      al.log(''bob'', ''write'', ''file2'', {''size'': 200})
+
+      entries = al.query(user=''alice'')
+
+      assert len(entries) == 1
+
+      '
+    - assert AuditLog().query() == []
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-56-file-upload
+  prompt: 'Write a file upload service stub. `UploadService` class with `upload(filename:
+    str, data: bytes, user: str) -> str` (returns file ID), `download(file_id: str)
+    -> bytes|None`, `list(user: str) -> list[dict]`, `delete(file_id: str)`. Validate
+    file extension against allowed list. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'us = UploadService()
+
+      fid = us.upload(''doc.txt'', b''hello'', ''alice'')
+
+      assert us.download(fid) == b''hello''
+
+      '
+    - 'us = UploadService()
+
+      fid = us.upload(''doc.txt'', b''data'', ''alice'')
+
+      us.delete(fid)
+
+      assert us.download(fid) is None
+
+      '
+    - "us = UploadService()\ntry:\n    us.upload('malware.exe', b'bad', 'alice')\n\
+      \    assert False\nexcept ValueError: pass\n"
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-57-image-pipeline
+  prompt: 'Write an image processing pipeline (simulated). `ImagePipeline` class with
+    `add_filter(name: str, fn: callable)` where fn takes (pixels: list[list[int]])
+    and returns transformed pixels. `execute(img: list[list[int]], filters: list[str])
+    -> list[list[int]]` chains filters. Include blur and edge_detect. Reply with just
+    Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'ip = ImagePipeline()
+
+      ip.add_filter(''invert'', lambda p: [[255-v for v in row] for row in p])
+
+      result = ip.execute([[0,128],[255,0]], [''invert''])
+
+      assert result == [[255,127],[0,255]]
+
+      '
+    - assert ImagePipeline().execute([[1]], []) == [[1]]
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-58-search-engine
+  prompt: 'Write a minimal search engine. `SearchEngine` class with `index(doc_id:
+    str, text: str)` building an inverted index, `search(query: str) -> list[str]`
+    returning doc IDs by TF-IDF scoring, and `remove(doc_id: str)`. Tokenize by splitting
+    on whitespace. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'se = SearchEngine()
+
+      se.index(''d1'', ''the quick brown fox'')
+
+      se.index(''d2'', ''the lazy dog'')
+
+      results = se.search(''fox'')
+
+      assert ''d1'' in results
+
+      '
+    - assert SearchEngine().search('nothing') == []
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-59-notification-svc
+  prompt: 'Write a notification service. `NotificationService` class with `register_channel(type:
+    str, config: dict)` (email, sms, push), `send(user: str, message: str, channels:
+    list[str])`, and `get_history(user: str) -> list[dict]`. Each channel has a `send(recipient,
+    msg)` method. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'ns = NotificationService()
+
+      ns.register_channel(''email'', {''recipient'': ''a@x.com''})
+
+      ns.send(''alice'', ''Hello'', [''email''])
+
+      history = ns.get_history(''alice'')
+
+      assert len(history) == 1
+
+      '
+    - assert NotificationService().get_history('x') == []
+  max_tokens: 1536
+  temperature: 0.3
+- id: sd-60-recommend-engine
+  prompt: 'Write a collaborative filtering recommendation engine. `Recommender` class
+    with `add_rating(user: str, item: str, rating: float)`, `similar_users(user: str,
+    k: int) -> list[str]` by Pearson correlation, and `recommend(user: str, k: int)
+    -> list[str]` returning top-k items. Reply with just Python code.
+
+    '
+  scoring:
+    type: code_exec_python
+    tests:
+    - 'rec = Recommender()
+
+      rec.add_rating(''u1'', ''m1'', 5)
+
+      rec.add_rating(''u1'', ''m2'', 3)
+
+      rec.add_rating(''u2'', ''m1'', 4)
+
+      rec.add_rating(''u2'', ''m2'', 3)
+
+      sim = rec.similar_users(''u1'', 1)
+
+      assert len(sim) > 0
+
+      '
+    - assert Recommender().recommend('new_user', 5) == []
+  max_tokens: 1536
+  temperature: 0.3

@@ -1,247 +1,179 @@
 category: math
 tasks:
-  - id: math-01-crt-three-prime
-    prompt: |
-      Find the smallest positive integer x such that: x ≡ 3 (mod 7), x ≡ 5 (mod 11), x ≡ 7 (mod 13). Answer as integer.
-    scoring: {type: regex_number, expected: 423}
-    max_tokens: 512
+- id: math-01-crt-three-prime
+  prompt: 'Find the smallest positive integer x such that: x ≡ 3 (mod 7), x ≡ 5 (mod
+    11), x ≡ 7 (mod 13). Answer as integer.
 
-  - id: math-02-euler-thm
-    prompt: |
-      Use Euler's theorem to compute 3^2024 mod 25. Answer as integer in {0,...,24}.
-    scoring: {type: regex_number, expected: 6}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex_number
+    expected: 423
+  max_tokens: 512
+- id: math-02-euler-thm
+  prompt: 'Use Euler''s theorem to compute 3^2024 mod 25. Answer as integer in {0,...,24}.
 
-  - id: math-03-primitive-roots
-    prompt: |
-      How many primitive roots does the prime 17 have? Answer as integer.
-    scoring: {type: regex_number, expected: 8}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex_number
+    expected: 6
+  max_tokens: 512
+- id: math-03-primitive-roots
+  prompt: 'How many primitive roots does the prime 17 have? Answer as integer.
 
-  - id: math-04-diophantine
-    prompt: |
-      How many positive integer solutions (x,y) satisfy 7x + 11y = 100? Answer as integer.
-    scoring: {type: regex_number, expected: 1}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex_number
+    expected: 8
+  max_tokens: 512
+- id: math-04-diophantine
+  prompt: 'How many positive integer solutions (x,y) satisfy 7x + 11y = 100? Answer
+    as integer.
 
-  - id: math-05-inc-exc-4
-    prompt: |
-      How many integers from 1 to 1000 are divisible by 2, 3, 5, or 7? Answer as integer.
-    scoring: {type: regex_number, expected: 772}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex_number
+    expected: 1
+  max_tokens: 512
+- id: math-05-inc-exc-4
+  prompt: 'How many integers from 1 to 1000 are divisible by 2, 3, 5, or 7? Answer
+    as integer.
 
-  - id: math-06-catalan
-    prompt: |
-      What is the 10th Catalan number C_10? Answer as integer.
-    scoring: {type: regex_number, expected: 16796}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex_number
+    expected: 772
+  max_tokens: 512
+- id: math-06-catalan
+  prompt: 'What is the 10th Catalan number C_10? Answer as integer.
 
-  - id: math-07-spanning-trees
-    prompt: |
-      How many spanning trees does the complete graph K_6 have? Use Cayley's formula. Answer as integer.
-    scoring: {type: regex_number, expected: 1296}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex_number
+    expected: 16796
+  max_tokens: 512
+- id: math-07-spanning-trees
+  prompt: 'How many spanning trees does the complete graph K_6 have? Use Cayley''s
+    formula. Answer as integer.
 
-  - id: math-08-pigeonhole-prime
-    prompt: |
-      From the set {1,2,...,200}, what is the minimum number you must pick to guarantee at least one pair where one divides the other? Answer as integer.
-    scoring: {type: regex_number, expected: 101}
-    max_tokens: 768
+    '
+  scoring:
+    type: regex_number
+    expected: 1296
+  max_tokens: 512
+- id: math-08-pigeonhole-prime
+  prompt: 'From the set {1,2,...,200}, what is the minimum number you must pick to
+    guarantee at least one pair where one divides the other? Answer as integer.
 
-  - id: math-09-bayes-factory
-    prompt: |
-      Factory A supplies 60% of parts, defect rate 2%. Factory B supplies 40%, defect rate 5%. A defective part is found. Probability it came from Factory A? Answer as simplified fraction.
-    scoring: {type: regex, pattern: "3\\s*/\\s*8"}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex_number
+    expected: 101
+  max_tokens: 768
+- id: math-09-bayes-factory
+  prompt: 'Factory A supplies 60% of parts, defect rate 2%. Factory B supplies 40%,
+    defect rate 5%. A defective part is found. Probability it came from Factory A?
+    Answer as simplified fraction.
 
-  - id: math-10-expected-recursive
-    prompt: |
-      Roll a fair die. If even, win $10 and stop. If odd, roll again (once). On second roll, if even win $5, if odd lose $10. Find the expected value. Answer as simplified fraction a/b.
-    scoring: {type: regex, pattern: "15\\s*/\\s*4"}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex
+    pattern: 3\s*/\s*8
+  max_tokens: 512
+- id: math-10-expected-recursive
+  prompt: 'Roll a fair die. If even, win $10 and stop. If odd, roll again (once).
+    On second roll, if even win $5, if odd lose $10. Find the expected value. Answer
+    as simplified fraction a/b.
 
-  - id: math-11-markov-steady
-    prompt: |
-      A Markov chain on {0,1} has transition matrix [[0.6,0.4],[0.3,0.7]]. Find the steady-state probability of state 1 as simplified fraction a/b.
-    scoring: {type: regex, pattern: "4\\s*/\\s*7"}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex
+    pattern: 15\s*/\s*4
+  max_tokens: 512
+- id: math-11-markov-steady
+  prompt: 'A Markov chain on {0,1} has transition matrix [[0.6,0.4],[0.3,0.7]]. Find
+    the steady-state probability of state 1 as simplified fraction a/b.
 
-  - id: math-12-random-walk
-    prompt: |
-      Simple symmetric random walk on Z starts at 0. Probability of returning to 0 on exactly the 6th step (not necessarily first return)? Answer as simplified fraction a/b.
-    scoring: {type: regex, pattern: "5\\s*/\\s*16"}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex
+    pattern: 4\s*/\s*7
+  max_tokens: 512
+- id: math-12-random-walk
+  prompt: 'Simple symmetric random walk on Z starts at 0. Probability of returning
+    to 0 on exactly the 6th step (not necessarily first return)? Answer as simplified
+    fraction a/b.
 
-  - id: math-13-polynomial-roots
-    prompt: |
-      The polynomial x^3 - 6x^2 + 11x - 6 has roots a,b,c. Compute 1/a + 1/b + 1/c. Answer as simplified fraction a/b.
-    scoring: {type: regex, pattern: "11\\s*/\\s*6"}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex
+    pattern: 5\s*/\s*16
+  max_tokens: 512
+- id: math-13-polynomial-roots
+  prompt: 'The polynomial x^3 - 6x^2 + 11x - 6 has roots a,b,c. Compute 1/a + 1/b
+    + 1/c. Answer as simplified fraction a/b.
 
-  - id: math-14-complex-mod2
-    prompt: |
-      Compute |(2+3i)/(1-i)|^2. Answer as simplified fraction a/b.
-    scoring: {type: regex, pattern: "13\\s*/\\s*2"}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex
+    pattern: 11\s*/\s*6
+  max_tokens: 512
+- id: math-14-complex-mod2
+  prompt: 'Compute |(2+3i)/(1-i)|^2. Answer as simplified fraction a/b.
 
-  - id: math-15-matrix-det
-    prompt: |
-      Find the determinant of the 3x3 matrix with rows [1,2,3], [4,5,6], [7,8,10]. Answer as integer.
-    scoring: {type: regex_number, expected: -3}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex
+    pattern: 13\s*/\s*2
+  max_tokens: 512
+- id: math-15-matrix-det
+  prompt: 'Find the determinant of the 3x3 matrix with rows [1,2,3], [4,5,6], [7,8,10].
+    Answer as integer.
 
-  - id: math-16-group-order
-    prompt: |
-      In the multiplicative group Z_13^* (nonzero integers mod 13), what is the order of the element 2? Answer as integer.
-    scoring: {type: regex_number, expected: 12}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex_number
+    expected: -3
+  max_tokens: 512
+- id: math-16-group-order
+  prompt: 'In the multiplicative group Z_13^* (nonzero integers mod 13), what is the
+    order of the element 2? Answer as integer.
 
-  - id: math-17-circle-radius
-    prompt: |
-      Circle passes through (1,0), (0,1), (-1,0). Find its radius as integer.
-    scoring: {type: regex_number, expected: 1}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex_number
+    expected: 12
+  max_tokens: 512
+- id: math-17-circle-radius
+  prompt: 'Circle passes through (1,0), (0,1), (-1,0). Find its radius as integer.
 
-  - id: math-18-point-plane-dist
-    prompt: |
-      Distance from point (1,1,1) to plane x + 2y + 2z = 10? Answer as simplified fraction a/b.
-    scoring: {type: regex, pattern: "5\\s*/\\s*3"}
-    max_tokens: 512
+    '
+  scoring:
+    type: regex_number
+    expected: 1
+  max_tokens: 512
+- id: math-18-point-plane-dist
+  prompt: 'Distance from point (1,1,1) to plane x + 2y + 2z = 10? Answer as simplified
+    fraction a/b.
 
-  - id: math-19-lagrange-max
-    prompt: |
-      Use Lagrange multipliers: maximize f(x,y)=xy subject to x^2+y^2=1. Maximum value as simplified fraction a/b.
-    scoring: {type: regex, pattern: "1\\s*/\\s*2"}
-    max_tokens: 768
+    '
+  scoring:
+    type: regex
+    pattern: 5\s*/\s*3
+  max_tokens: 512
+- id: math-19-lagrange-max
+  prompt: 'Use Lagrange multipliers: maximize f(x,y)=xy subject to x^2+y^2=1. Maximum
+    value as simplified fraction a/b.
 
-  - id: math-20-series-diverges
-    prompt: |
-      Does Σ_{n=1}^{∞} n/(n^2+1) converge or diverge? Answer with one word.
-    scoring: {type: contains, expected: "diverge"}
-    max_tokens: 256
+    '
+  scoring:
+    type: regex
+    pattern: 1\s*/\s*2
+  max_tokens: 768
+- id: math-20-series-diverges
+  prompt: 'Does Σ_{n=1}^{∞} n/(n^2+1) converge or diverge? Answer with one word.
 
-  - id: math-21-limit-hard
-    prompt: |
-      Evaluate lim_{x→0} (sin x - x)/x^3. Answer as simplified fraction a/b.
-    scoring: {type: regex, pattern: "-1\\s*/\\s*6"}
-    max_tokens: 512
-
-  - id: math-22-flt-power
-    prompt: |
-      Compute 5^100 mod 17 using Fermat's little theorem. Answer as integer in {0,...,16}.
-    scoring: {type: regex_number, expected: 13}
-    max_tokens: 512
-
-  - id: math-23-bayes-two-tests
-    prompt: |
-      Disease prevalence 1%. Test A: 90% sensitive, 95% specific. Test B (independent given status): 80% sensitive, 90% specific. Both positive. Probability of disease? Round to nearest percent.
-    scoring: {type: regex_number, expected: 59}
-    max_tokens: 768
-
-  - id: math-24-combinatorial-sum
-    prompt: |
-      Compute Σ_{k=0}^{8} C(8,k)^2. Use the identity Σ C(n,k)^2 = C(2n,n). Answer as integer.
-    scoring: {type: regex_number, expected: 12870}
-    max_tokens: 512
-
-  - id: math-25-crt-four
-    prompt: |
-      Find smallest positive x: x≡2 (mod 3), x≡3 (mod 5), x≡1 (mod 7), x≡4 (mod 11). Answer as integer.
-    scoring: {type: regex_number, expected: 323}
-    max_tokens: 768
-
-  - id: math-26-euler-totient
-    prompt: |
-      Find φ(1000), Euler's totient of 1000. Answer as integer.
-    scoring: {type: regex_number, expected: 400}
-    max_tokens: 512
-
-  - id: math-27-legendre-symbol
-    prompt: |
-      Compute the Legendre symbol (7/19). Answer 1 if 7 is a quadratic residue mod 19, -1 if not.
-    scoring: {type: regex, pattern: "1"}
-    max_tokens: 768
-
-  - id: math-28-recursive-limit
-    prompt: |
-      Sequence defined by a_1=1, a_{n+1}=√(2a_n+3). Find limit as n→∞. Answer as integer.
-    scoring: {type: regex_number, expected: 3}
-    max_tokens: 512
-
-  - id: math-29-tetrahedron-vol
-    prompt: |
-      Tetrahedron with vertices (0,0,0), (2,0,0), (0,3,0), (0,0,4). Find volume as integer.
-    scoring: {type: regex_number, expected: 4}
-    max_tokens: 512
-
-  - id: math-30-roots-of-unity
-    prompt: |
-      Let ω be a primitive 5th root of unity. Compute 1 + ω + ω^2 + ω^3 + ω^4. Answer as integer.
-    scoring: {type: regex_number, expected: 0}
-    max_tokens: 256
-
-  - id: math-31-matrix-trace
-    prompt: |
-      Find the sum of eigenvalues of [[4,1,0],[1,4,1],[0,1,4]]. Answer as integer (hint: trace).
-    scoring: {type: regex_number, expected: 12}
-    max_tokens: 512
-
-  - id: math-32-fib-mod-fast
-    prompt: |
-      Write a Python function fib_mod(n, MOD=1000000007) returning F_n mod MOD with F_1=F_2=1. Then compute fib_mod(100, 1000000007) and print just the number.
-    scoring:
-      type: code_exec_python
-      tests:
-        - "assert fib_mod(1, 1000000007) == 1"
-        - "assert fib_mod(2, 1000000007) == 1"
-        - "assert fib_mod(10, 1000000007) == 55"
-        - "assert fib_mod(100, 1000000007) == 687995182"
-    max_tokens: 1024
-
-  - id: math-33-integral-hard
-    prompt: |
-      Evaluate ∫_0^{π/2} sin^2 x cos^2 x dx. Answer of form aπ/b where a,b are integers.
-    scoring: {type: regex, pattern: "π\\s*/\\s*16"}
-    max_tokens: 768
-
-  - id: math-34-taylor-coeff
-    prompt: |
-      Find the coefficient of x^3 in the Maclaurin expansion of ln(1 + sin x). Answer as simplified fraction a/b.
-    scoring: {type: regex, pattern: "1\\s*/\\s*6"}
-    max_tokens: 768
-
-  - id: math-35-cond-prob-urn
-    prompt: |
-      Urn: 5 red, 3 blue, 2 green. Draw 3 without replacement. Given at least one is red, probability all three are same color? Fraction a/b.
-    scoring: {type: regex, pattern: "1\\s*/\\s*11"}
-    max_tokens: 768
-
-  - id: math-36-stirling-2
-    prompt: |
-      S(6,3) = number of ways to partition 6 labeled items into 3 unlabeled nonempty subsets. Compute S(6,3). Answer as integer.
-    scoring: {type: regex_number, expected: 90}
-    max_tokens: 512
-
-  - id: math-37-burnside-necklace
-    prompt: |
-      How many distinct necklaces (up to rotation only) can be made with 6 beads, each black or white? Use Burnside's lemma. Answer as integer.
-    scoring: {type: regex_number, expected: 14}
-    max_tokens: 768
-
-  - id: math-38-polynomial-remainder
-    prompt: |
-      When P(x) = x^5+2x^4+3x^3+4x^2+5x+6 is divided by (x-2), what is the remainder? Answer as integer.
-    scoring: {type: regex_number, expected: 120}
-    max_tokens: 512
-
-  - id: math-39-stars-and-bars
-    prompt: |
-      Number of nonnegative integer solutions to x1+x2+x3+x4+x5=30 with x1≥2 and x3≥5? Answer as integer.
-    scoring: {type: regex_number, expected: 17550}
-    max_tokens: 768
-
-  - id: math-40-no-consecutive
-    prompt: |
-      Number of subsets of {1,2,...,10} containing no consecutive integers? This is the (n+2)nd Fibonacci number. Answer as integer.
-    scoring: {type: regex_number, expected: 144}
-    max_tokens: 512
+    '
+  scoring:
+    type: contains
+    expected: diverge
+  max_tokens: 256
