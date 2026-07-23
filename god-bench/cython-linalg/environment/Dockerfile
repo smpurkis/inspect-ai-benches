@@ -21,7 +21,7 @@ RUN pip install --upgrade pip && pip install numpy pytest pytest-timeout scipy C
 WORKDIR /app
 
 # Make agent's compiled module importable
-ENV PYTHONPATH="/app/files:$PYTHONPATH"
+ENV PYTHONPATH="/app/files"
 
 # --- Fixture data ---
 COPY gen_fixtures.py /tmp/gen_fixtures.py

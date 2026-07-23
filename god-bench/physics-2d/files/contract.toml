@@ -1,0 +1,46 @@
+[task]
+id = "physics-2d"
+entry = "/app/files/physics2d.py"
+command = "python3 /app/files/physics2d.py --config <config.json> --output <output.jsonl> --steps <N>"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+
+[limits]
+max_agent_turns = 24
+max_weighted_tool_cost = 44
+max_public_test_runs = 3
+max_file_read_bytes = 180000
+wall_clock_seconds = 900
+max_model_tokens = 32000
+
+[policy]
+network = false
+editable = ["physics2d.py"]
+require_determinism = true
+
+[implementation]
+allowed_imports = ["python_stdlib", "numpy"]
+
+[schema]
+input = "schema.json"
+output_record = "schema.json#/$defs/output_step"
+output_encoding = "UTF-8 JSON Lines"
+null_policy = "null is forbidden"
+sort_policy = "bodies ascending by numeric id"
+float_policy = "x,y,vx,vy,angle,omega rounded to 6 decimal places"
+numeric_policy = "all input and output numbers are finite; body IDs are unique and preserved"
+validation_policy = "input and each JSONL record must satisfy schema.json; additional properties and nulls are forbidden"
+
+[physics]
+coordinates = "x-right,y-down,angle-counter-clockwise"
+integrator = "semi-implicit Euler: gravity, integrate, body impulses, position correction, walls, record"
+pair_order = "ascending (idA,idB), idA < idB"
+wall_order = ["left", "right", "top", "bottom"]
+restitution_combine = "sqrt(eA*eB); force zero when abs(vN)<1.0"
+friction_combine = "sqrt(muA*muB)"
+normal_accumulator = "clamp accumulated impulse to [0,+inf), apply delta only"
+friction_accumulator = "clamp to [-mu*accN,+mu*accN], apply delta only"
+position_slop = 0.005
+position_factor = 0.2
+contact_epsilon = 1e-10
+collision_detection = "discrete at the post-integration state; no swept/continuous collision detection"
+invariance = "away from walls/gravity, global rigid transforms preserve trajectories; input body permutations do not change output"

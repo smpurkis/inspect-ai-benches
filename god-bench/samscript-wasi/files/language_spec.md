@@ -1,4 +1,6 @@
-# SamScript Language Specification v1.0
+# Archived SamScript Interpreter Specification v0.9
+
+> Historical interpreter documentation. It is not authoritative for the released WASI target and intentionally includes features and rules from other versions.
 
 ## Overview
 

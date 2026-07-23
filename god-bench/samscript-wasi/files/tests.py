@@ -1,40 +1,22 @@
 import re
 import subprocess
+import sys
 from pathlib import Path
 
-COMPILER = "/app/samscript"
+COMPILER = Path("/app/files/compiler.py")
 SAMPLES = Path("/app/files/samples")
 
 
-def _find_compiler() -> str:
-    """Find the compiler binary — check common locations."""
-    candidates = [
-        "/app/samscript",
-        "/app/target/release/samscript",
-        "/app/compiler/samscript",
-    ]
-    for c in candidates:
-        if Path(c).exists():
-            return c
-    # Try building if Cargo.toml exists
-    if Path("/app/Cargo.toml").exists():
-        result = subprocess.run(
-            ["cargo", "build", "--release"],
-            capture_output=True, text=True, cwd="/app", timeout=600,
-        )
-        assert result.returncode == 0, f"cargo build failed:\n{result.stderr[-3000:]}"
-        if Path("/app/target/release/samscript").exists():
-            return "/app/target/release/samscript"
-    assert False, (
-        "Compiler binary not found. Expected at /app/samscript or /app/target/release/samscript. "
-        "Your compiler must be invocable as: /app/samscript compile <input.sam> -o <output.wasm> --target wasm32-wasi"
-    )
+def _find_compiler() -> list[str]:
+    """Return the single contract-authorized compiler entry point."""
+    assert COMPILER.is_file(), f"Compiler not found at {COMPILER}"
+    return [sys.executable, str(COMPILER)]
 
 
 def _compile_to_wasm(sam_file: Path, out_wasm: str, timeout: int = 120) -> subprocess.CompletedProcess:
     compiler = _find_compiler()
     return subprocess.run(
-        [compiler, "compile", str(sam_file), "-o", out_wasm, "--target", "wasm32-wasi"],
+        [*compiler, "compile", str(sam_file), "-o", out_wasm, "--target", "wasm32-wasi"],
         capture_output=True, text=True, timeout=timeout,
     )
 
@@ -166,7 +148,7 @@ def _assert_real_wasm(wasm_file: str, *, min_reachable: int = 3) -> None:
 def test_compiler_exists():
     """A samscript compiler binary exists and is executable."""
     compiler = _find_compiler()
-    assert Path(compiler).exists(), f"Compiler not found at {compiler}"
+    assert Path(compiler[-1]).exists(), f"Compiler not found at {compiler[-1]}"
 
 
 def test_compile_hello_to_wasm():

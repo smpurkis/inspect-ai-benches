@@ -7,16 +7,110 @@ correction, and circle-rectangle collision handling.
 """
 
 import json
-import subprocess
-import os
-import tempfile
 import math
+import os
+import subprocess
+import tempfile
+
 import pytest
 
 SCRIPT = "/app/files/physics2d.py"
 
+CONFIG_KEYS = {"width", "height", "dt", "g", "solver_iterations", "bodies"}
+REQUIRED_CONFIG_KEYS = {"width", "height", "dt", "g", "bodies"}
+BODY_KEYS = {
+    "id", "x", "y", "vx", "vy", "angle", "omega", "mass",
+    "shape", "w", "h", "r", "e", "mu",
+}
+REQUIRED_BODY_KEYS = {"id", "x", "y", "vx", "vy", "mass"}
+OUTPUT_BODY_KEYS = {"id", "x", "y", "vx", "vy", "angle", "omega"}
+STATE_KEYS = ("x", "y", "vx", "vy", "angle", "omega")
+
+
+def _is_number(value):
+    return type(value) in (int, float) and math.isfinite(value)
+
+
+def _require_number(value, path, *, positive=False, minimum=None, maximum=None):
+    assert _is_number(value), f"{path} must be a finite JSON number"
+    if positive:
+        assert value > 0, f"{path} must be > 0"
+    if minimum is not None:
+        assert value >= minimum, f"{path} must be >= {minimum}"
+    if maximum is not None:
+        assert value <= maximum, f"{path} must be <= {maximum}"
+
+
+def validate_config(config):
+    """Validate the schema.json input subset without requiring jsonschema."""
+    assert type(config) is dict, "config must be an object"
+    assert REQUIRED_CONFIG_KEYS <= set(config), "config is missing required properties"
+    assert set(config) <= CONFIG_KEYS, f"unexpected config properties: {set(config) - CONFIG_KEYS}"
+    _require_number(config["width"], "width", positive=True)
+    _require_number(config["height"], "height", positive=True)
+    _require_number(config["dt"], "dt", positive=True)
+    _require_number(config["g"], "g")
+    if "solver_iterations" in config:
+        assert type(config["solver_iterations"]) is int
+        assert config["solver_iterations"] >= 1
+    assert type(config["bodies"]) is list
+
+    ids = []
+    for index, body in enumerate(config["bodies"]):
+        path = f"bodies[{index}]"
+        assert type(body) is dict, f"{path} must be an object"
+        assert REQUIRED_BODY_KEYS <= set(body), f"{path} is missing required properties"
+        assert set(body) <= BODY_KEYS, f"{path} has unexpected properties"
+        assert type(body["id"]) is int, f"{path}.id must be an integer"
+        ids.append(body["id"])
+        for key in ("x", "y", "vx", "vy"):
+            _require_number(body[key], f"{path}.{key}")
+        _require_number(body["mass"], f"{path}.mass", positive=True)
+        for key in ("angle", "omega"):
+            if key in body:
+                _require_number(body[key], f"{path}.{key}")
+        if "e" in body:
+            _require_number(body["e"], f"{path}.e", minimum=0, maximum=1)
+        if "mu" in body:
+            _require_number(body["mu"], f"{path}.mu", minimum=0)
+
+        shape = body.get("shape", "rect")
+        assert shape in ("rect", "circle"), f"{path}.shape is invalid"
+        for key in ("w", "h", "r"):
+            if key in body:
+                _require_number(body[key], f"{path}.{key}", positive=True)
+        dimensions = ("r",) if shape == "circle" else ("w", "h")
+        for key in dimensions:
+            assert key in body, f"{path}.{key} is required for {shape}"
+    assert len(ids) == len(set(ids)), "body IDs must be unique"
+
+
+def _reject_nonfinite_json(token):
+    raise ValueError(f"non-finite JSON number {token}")
+
+
+def validate_output_record(record, expected_step, input_bodies):
+    assert type(record) is dict
+    assert set(record) == {"step", "bodies"}
+    assert type(record["step"]) is int and record["step"] == expected_step
+    assert type(record["bodies"]) is list
+    expected_ids = sorted(body["id"] for body in input_bodies)
+    actual_ids = []
+    for index, body in enumerate(record["bodies"]):
+        assert type(body) is dict
+        assert set(body) == OUTPUT_BODY_KEYS, f"output body {index} does not match schema"
+        assert type(body["id"]) is int
+        actual_ids.append(body["id"])
+        for key in STATE_KEYS:
+            value = body[key]
+            _require_number(value, f"step {expected_step}.bodies[{index}].{key}")
+            assert value == round(value, 6), f"{key} is not rounded to six decimals"
+    assert actual_ids == expected_ids
+
 
 def run_sim(config: dict, steps: int, *, timeout=120):
+    validate_config(config)
+    assert type(steps) is int and steps >= 0
     with tempfile.NamedTemporaryFile(suffix=".json", mode="w", delete=False) as cf:
         json.dump(config, cf)
         cfg_path = cf.name
@@ -29,9 +123,14 @@ def run_sim(config: dict, steps: int, *, timeout=120):
             capture_output=True, text=True, timeout=timeout,
         )
         assert r.returncode == 0, f"simulator exited {r.returncode}:\n{r.stderr}"
-        lines = open(out_path).read().splitlines()
+        lines = open(out_path, encoding="utf-8").read().splitlines()
         assert len(lines) == steps, f"expected {steps} lines, got {len(lines)}"
-        return [json.loads(l) for l in lines]
+        records = [
+            json.loads(line, parse_constant=_reject_nonfinite_json) for line in lines
+        ]
+        for index, record in enumerate(records):
+            validate_output_record(record, index, config["bodies"])
+        return records
     finally:
         os.unlink(cfg_path)
         if os.path.exists(out_path):
@@ -107,6 +206,100 @@ def total_angular_momentum(step, bodies_cfg):
         L += m * (b["x"] * b["vy"] - b["y"] * b["vx"])
         L += I * b.get("omega", 0.0)
     return L
+
+
+# Baseline assertions moved out of the compact public smoke suite.
+
+
+def test_hidden_cli_step_counts_and_schema_baseline():
+    assert os.path.isfile(SCRIPT), f"{SCRIPT} not found"
+    config = cfg([body_cfg()])
+    for count in (1, 10, 100):
+        assert len(run_sim(config, count)) == count
+
+
+def test_hidden_free_rotation_and_gravity_baseline():
+    rotation = run_sim(
+        cfg(
+            [body_cfg(angle=0.5, omega=2.0)],
+            width=1000.0,
+            height=1000.0,
+            dt=0.1,
+        ),
+        5,
+    )
+    for index, step in enumerate(rotation, start=1):
+        state = step["bodies"][0]
+        assert approx(state["angle"], 0.5 + 0.2 * index, tol=1e-4)
+        assert approx(state["omega"], 2.0, tol=1e-4)
+
+    falling = run_sim(
+        cfg([body_cfg(y=100.0)], width=1000.0, height=1000.0, dt=0.1, g=9.81),
+        5,
+    )
+    velocities = [step["bodies"][0]["vy"] for step in falling]
+    assert all(current > previous for previous, current in zip([0.0] + velocities, velocities))
+
+
+def test_hidden_inelastic_wall_bounce_baseline():
+    steps = run_sim(
+        cfg([body_cfg(x=25.0, y=50.0, vx=10.0, e=0.5)], width=30.0, height=100.0, dt=0.1),
+        10,
+    )
+    post_bounce = next(state["bodies"][0]["vx"] for state in steps if state["bodies"][0]["vx"] < 0)
+    assert 2.0 < abs(post_bounce) < 8.0
+
+
+def test_hidden_resting_body_settles_baseline():
+    steps = run_sim(
+        cfg(
+            [body_cfg(x=50.0, y=90.0, w=4.0, h=4.0, e=0.5, mu=0.1)],
+            width=100.0,
+            height=100.0,
+            dt=0.01,
+            g=9.81,
+        ),
+        500,
+        timeout=120,
+    )
+    final = steps[-1]["bodies"][0]
+    assert abs(final["vy"]) < 2.0
+    assert 90.0 < final["y"] < 100.0
+
+
+def test_hidden_body_body_separation_baseline():
+    bodies = [
+        body_cfg(id=0, x=95.0, y=100.0, vx=10.0, w=4.0, h=4.0),
+        body_cfg(id=1, x=105.0, y=100.0, vx=-10.0, w=4.0, h=4.0),
+    ]
+    steps = run_sim(cfg(bodies, width=200.0, height=200.0, dt=0.05), 20)
+    for step in steps[5:]:
+        by_id = {body["id"]: body for body in step["bodies"]}
+        assert abs(by_id[1]["x"] - by_id[0]["x"]) > 3.0
+
+
+def test_hidden_circle_free_motion_and_wall_baseline():
+    circle = circle_cfg(x=100.0, y=100.0, vx=5.0, vy=-2.0, r=1.0)
+    free = run_sim(cfg([circle], width=400.0, height=400.0, dt=0.1), 5)
+    for index, step in enumerate(free, start=1):
+        state = step["bodies"][0]
+        assert approx(state["x"], 100.0 + 0.5 * index, tol=1e-4)
+        assert approx(state["y"], 100.0 - 0.2 * index, tol=1e-4)
+
+    wall_circle = circle_cfg(x=95.0, y=50.0, vx=10.0, r=2.0)
+    wall = run_sim(cfg([wall_circle], width=100.0, height=100.0, dt=0.1), 10)
+    velocities = [step["bodies"][0]["vx"] for step in wall]
+    assert any(vx < 0 for vx in velocities)
+    assert all(approx(abs(vx), 10.0, tol=0.5) for vx in velocities)
+
+
+def test_hidden_circle_circle_collision_baseline():
+    bodies = [
+        circle_cfg(id=0, x=45.0, y=100.0, vx=10.0, r=3.0),
+        circle_cfg(id=1, x=55.0, y=100.0, vx=-10.0, r=3.0),
+    ]
+    steps = run_sim(cfg(bodies, width=200.0, height=200.0, dt=0.01), 30)
+    assert any(step["bodies"][0]["vx"] < 0 for step in steps)
 
 
 # ===========================================================================
@@ -925,3 +1118,216 @@ def test_circle_rect_oblique_friction_spin():
     max_omega = max(abs(s["bodies"][0].get("omega", 0.0)) for s in steps)
     assert max_omega > 0.1, \
         f"Circle-rect oblique friction didn't produce spin: omega={max_omega:.4f}"
+
+
+# Deterministic metamorphic coverage
+
+
+def test_body_input_permutation_invariance():
+    bodies = [
+        body_cfg(id=2, x=180.0, y=240.0, vx=0.0, w=3.0, h=5.0),
+        body_cfg(id=0, x=99.0, y=200.0, vx=10.0, w=2.0, h=2.0),
+        body_cfg(id=1, x=101.0, y=200.0, vx=-10.0, w=2.0, h=2.0),
+    ]
+    forward = run_sim(cfg(bodies, dt=0.01), 5)
+    reversed_input = run_sim(cfg(list(reversed(bodies)), dt=0.01), 5)
+    assert forward == reversed_input, (
+        "simulation depends on config body order instead of ascending body IDs"
+    )
+
+
+def test_global_translation_invariance_away_from_walls():
+    bodies = [
+        body_cfg(id=0, x=99.0, y=199.5, vx=10.0, w=2.0, h=2.0),
+        body_cfg(id=1, x=101.0, y=200.5, vx=-10.0, w=2.0, h=2.0),
+    ]
+    dx, dy = 37.0, 29.0
+    translated = [dict(body, x=body["x"] + dx, y=body["y"] + dy) for body in bodies]
+    original_step = run_sim(cfg(bodies, width=500.0, height=500.0), 1)[0]
+    translated_step = run_sim(
+        cfg(translated, width=500.0 + dx, height=500.0 + dy), 1
+    )[0]
+
+    original_by_id = {body["id"]: body for body in original_step["bodies"]}
+    translated_by_id = {body["id"]: body for body in translated_step["bodies"]}
+    for body_id, original in original_by_id.items():
+        shifted = translated_by_id[body_id]
+        assert approx(shifted["x"] - original["x"], dx, tol=2e-5)
+        assert approx(shifted["y"] - original["y"], dy, tol=2e-5)
+        for key in ("vx", "vy", "angle", "omega"):
+            assert approx(shifted[key], original[key], tol=2e-5), (
+                f"body {body_id} {key} changed under global translation"
+            )
+
+
+def _rotate_xy(x, y, angle, origin=(250.0, 250.0)):
+    dx, dy = x - origin[0], y - origin[1]
+    c, s = math.cos(angle), math.sin(angle)
+    return origin[0] + c * dx - s * dy, origin[1] + s * dx + c * dy
+
+
+def _rotate_vector(x, y, angle):
+    c, s = math.cos(angle), math.sin(angle)
+    return c * x - s * y, s * x + c * y
+
+
+def _rotate_body(body, angle):
+    x, y = _rotate_xy(body["x"], body["y"], angle)
+    vx, vy = _rotate_vector(body["vx"], body["vy"], angle)
+    return dict(
+        body,
+        x=x,
+        y=y,
+        vx=vx,
+        vy=vy,
+        angle=body.get("angle", 0.0) + angle,
+    )
+
+
+@pytest.mark.parametrize("rotation", [math.pi / 9, math.pi / 4, math.pi / 2])
+def test_generated_obb_global_rotation_invariance(rotation):
+    bodies = [
+        body_cfg(id=0, x=249.0, y=249.5, vx=10.0, w=2.0, h=2.0),
+        body_cfg(id=1, x=251.0, y=250.5, vx=-10.0, w=2.0, h=2.0),
+    ]
+    original = run_sim(cfg(bodies, width=500.0, height=500.0), 1)[0]
+    rotated = run_sim(
+        cfg([_rotate_body(body, rotation) for body in bodies], width=500.0, height=500.0),
+        1,
+    )[0]
+    original_by_id = {body["id"]: body for body in original["bodies"]}
+    rotated_by_id = {body["id"]: body for body in rotated["bodies"]}
+    for body_id, body in original_by_id.items():
+        transformed = rotated_by_id[body_id]
+        expected_x, expected_y = _rotate_xy(body["x"], body["y"], rotation)
+        expected_vx, expected_vy = _rotate_vector(body["vx"], body["vy"], rotation)
+        assert approx(transformed["x"], expected_x, tol=3e-4)
+        assert approx(transformed["y"], expected_y, tol=3e-4)
+        assert approx(transformed["vx"], expected_vx, tol=3e-4)
+        assert approx(transformed["vy"], expected_vy, tol=3e-4)
+        assert approx(transformed["angle"], body["angle"] + rotation, tol=3e-4)
+        assert approx(transformed["omega"], body["omega"], tol=3e-4)
+
+
+@pytest.mark.parametrize("rotation", [0.0, math.pi / 6, math.pi / 3, math.pi / 2])
+def test_generated_circle_rect_rotations(rotation):
+    base = [
+        circle_cfg(id=0, x=245.0, y=250.0, vx=10.0, mass=1.0, r=2.0),
+        body_cfg(id=1, x=250.0, y=250.0, mass=2.0, w=4.0, h=6.0),
+    ]
+    bodies = [_rotate_body(body, rotation) for body in base]
+    steps = run_sim(cfg(bodies, width=500.0, height=500.0, dt=0.1), 2)
+    initial_vx, initial_vy = bodies[0]["vx"], bodies[0]["vy"]
+    circle = next(body for body in steps[-1]["bodies"] if body["id"] == 0)
+    delta = math.hypot(circle["vx"] - initial_vx, circle["vy"] - initial_vy)
+    assert delta > 1.0, f"circle ignored rectangle rotated by {rotation}"
+
+
+def test_generated_grazing_contact_has_no_false_impulse():
+    bodies = [
+        circle_cfg(id=0, x=220.0, y=246.0, vx=20.0, r=2.0),
+        body_cfg(id=1, x=250.0, y=250.0, w=20.0, h=4.0),
+    ]
+    steps = run_sim(cfg(bodies, width=500.0, height=500.0, dt=0.05), 40)
+    for step in steps:
+        circle = next(body for body in step["bodies"] if body["id"] == 0)
+        rect = next(body for body in step["bodies"] if body["id"] == 1)
+        assert approx(circle["vx"], 20.0, tol=1e-5)
+        assert approx(circle["vy"], 0.0, tol=1e-5)
+        assert approx(rect["vx"], 0.0, tol=1e-5)
+        assert approx(rect["vy"], 0.0, tol=1e-5)
+
+
+def test_generated_high_speed_endpoint_impact_is_finite_and_conservative():
+    bodies = [
+        circle_cfg(id=0, x=90.0, y=200.0, vx=200.0, mass=1.5, r=3.0),
+        circle_cfg(id=1, x=110.0, y=200.0, vx=-200.0, mass=1.5, r=3.0),
+    ]
+    steps = run_sim(cfg(bodies, dt=0.04), 5)
+    first = steps[0]
+    by_id = {body["id"]: body for body in first["bodies"]}
+    assert by_id[0]["vx"] < 0 and by_id[1]["vx"] > 0
+    px, py = total_momentum(first, bodies)
+    assert approx(px, 0.0, tol=1e-4) and approx(py, 0.0, tol=1e-4)
+    for step in steps:
+        for body in step["bodies"]:
+            assert all(math.isfinite(body[key]) for key in STATE_KEYS)
+
+
+def test_generated_timestep_refinement_reduces_freefall_position_error():
+    duration = 1.0
+
+    def final_y(dt):
+        steps = round(duration / dt)
+        config = cfg(
+            [circle_cfg(id=0, x=200.0, y=100.0, r=1.0)],
+            width=1000.0,
+            height=1000.0,
+            dt=dt,
+            g=9.81,
+        )
+        return run_sim(config, steps)[-1]["bodies"][0]
+
+    coarse = final_y(0.04)
+    fine = final_y(0.02)
+    analytic_y = 100.0 + 0.5 * 9.81 * duration**2
+    assert abs(fine["y"] - analytic_y) < abs(coarse["y"] - analytic_y)
+    assert approx(fine["vy"], coarse["vy"], tol=2e-5)
+
+
+def _rect_vertices_from_state(state, original):
+    c, s = math.cos(state["angle"]), math.sin(state["angle"])
+    hw, hh = original["w"] / 2.0, original["h"] / 2.0
+    return [
+        (state["x"] + sx * hw * c - sy * hh * s,
+         state["y"] + sx * hw * s + sy * hh * c)
+        for sx, sy in ((1, -1), (-1, -1), (-1, 1), (1, 1))
+    ]
+
+
+def _pair_penetration(step, originals):
+    states = {body["id"]: body for body in step["bodies"]}
+    first, second = originals
+    a, b = states[first["id"]], states[second["id"]]
+    if first.get("shape") == second.get("shape") == "circle":
+        distance = math.hypot(a["x"] - b["x"], a["y"] - b["y"])
+        return max(0.0, first["r"] + second["r"] - distance)
+
+    vertices_a = _rect_vertices_from_state(a, first)
+    vertices_b = _rect_vertices_from_state(b, second)
+    axes = []
+    for state in (a, b):
+        axes.extend(
+            [(math.cos(state["angle"]), math.sin(state["angle"])),
+             (-math.sin(state["angle"]), math.cos(state["angle"]))]
+        )
+    overlaps = []
+    for axis in axes:
+        projections_a = [x * axis[0] + y * axis[1] for x, y in vertices_a]
+        projections_b = [x * axis[0] + y * axis[1] for x, y in vertices_b]
+        overlaps.append(
+            min(max(projections_a), max(projections_b))
+            - max(min(projections_a), min(projections_b))
+        )
+    return max(0.0, min(overlaps))
+
+
+@pytest.mark.parametrize("shape", ["rect", "circle"])
+def test_generated_position_correction_never_increases_penetration(shape):
+    if shape == "rect":
+        bodies = [
+            body_cfg(id=0, x=199.0, y=200.0, angle=math.pi / 7, w=4.0, h=4.0, e=0.0),
+            body_cfg(id=1, x=201.0, y=200.0, angle=math.pi / 7, w=4.0, h=4.0, e=0.0),
+        ]
+    else:
+        bodies = [
+            circle_cfg(id=0, x=199.0, y=200.0, r=3.0, e=0.0),
+            circle_cfg(id=1, x=202.0, y=200.0, r=3.0, e=0.0),
+        ]
+    steps = run_sim(cfg(bodies, dt=0.01), 12)
+    penetrations = [_pair_penetration(step, bodies) for step in steps]
+    assert all(
+        current <= previous + 2e-5
+        for previous, current in zip(penetrations, penetrations[1:])
+    ), f"penetration increased: {penetrations}"
+    assert penetrations[-1] < penetrations[0]

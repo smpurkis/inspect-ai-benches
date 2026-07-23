@@ -1,0 +1,32 @@
+[task]
+id = "rust-python-pyo3"
+entry = "/app/files/src/lib.rs"
+build = "cp /app/files/src/lib.rs /app/src/lib.rs && cd /app && maturin develop --release"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+
+[limits]
+max_model_tokens = 32000
+max_agent_turns = 32
+max_weighted_tool_cost = 64
+max_public_test_runs = 3
+max_file_read_bytes = 300000
+wall_clock_seconds = 2700
+
+[policy]
+network = false
+editable = ["src/lib.rs"]
+forbid_imports = ["numpy.linalg", "scipy.linalg", "ctypes", "cffi", "cython"]
+require_determinism = true
+
+[implementation]
+writable_outputs = ["/app/src/lib.rs", "/app/target/**"]
+allowed_dependencies = ["pyo3"]
+forbid_python_execution = true
+
+[numerics]
+dtype = "float64"
+reconstruction_atol = 5e-8
+orthogonality_atol = 5e-11
+stress_atol = 1e-6
+finite_outputs = true
+ordschur_selects_whole_real_blocks = true

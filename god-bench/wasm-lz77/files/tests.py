@@ -1,19 +1,8 @@
-"""Visible tests for wasm-lz77: LZ77 compression implemented in WAT/WASM.
-
-The agent must produce:
-  /app/files/lz77.wat   — WAT source
-  /app/files/lz77.wasm  — compiled with wat2wasm
-  /app/files/run_lz77.sh is provided (do not modify)
-
-Usage:
-  bash /app/files/run_lz77.sh compress   <input>  <output>
-  bash /app/files/run_lz77.sh decompress <input>  <output>
-"""
+"""Smoke tests for the public LZ77-T1 contract."""
 
 import os
 import subprocess
 import tempfile
-import pytest
 
 FILES = "/app/files"
 RUNNER = os.path.join(FILES, "run_lz77.sh")
@@ -61,15 +50,9 @@ def roundtrip(data: bytes, *, timeout=30) -> bytes:
 # Artifact checks
 # ---------------------------------------------------------------------------
 
-def test_wat_exists():
+def test_trusted_artifacts_present():
     assert os.path.isfile(WAT), f"{WAT} not found"
-
-
-def test_wasm_exists():
     assert os.path.isfile(WASM), f"{WASM} not found"
-
-
-def test_runner_exists():
     assert os.path.isfile(RUNNER), "run_lz77.sh not found"
     assert os.access(RUNNER, os.X_OK), "run_lz77.sh not executable"
 
@@ -87,68 +70,9 @@ def test_wasm_compiles_from_wat():
             os.unlink(tmp_wasm)
 
 
-# ---------------------------------------------------------------------------
-# Roundtrip correctness
-# ---------------------------------------------------------------------------
-
-def test_roundtrip_hello():
-    data = b"Hello, World!"
-    result = roundtrip(data)
-    assert result == data, f"roundtrip mismatch: {result!r} != {data!r}"
-
-
-def test_roundtrip_empty():
-    data = b""
-    result = roundtrip(data)
-    assert result == data
-
-
-def test_roundtrip_single_byte():
-    data = b"X"
-    result = roundtrip(data)
-    assert result == data
-
-
-def test_roundtrip_binary():
-    """Roundtrip arbitrary binary data including all byte values."""
-    data = bytes(range(256))
-    result = roundtrip(data)
-    assert result == data, "roundtrip failed on byte range 0-255"
-
-
-def test_roundtrip_repetitive():
-    """Highly repetitive data must roundtrip correctly."""
-    data = b"abcabcabc" * 100
-    result = roundtrip(data)
-    assert result == data
-
-
-def test_roundtrip_from_corpus_repetitive():
-    path = os.path.join(CORPUS, "repetitive.txt")
-    if not os.path.isfile(path):
-        pytest.skip("corpus/repetitive.txt not found")
-    data = open(path, "rb").read()
-    result = roundtrip(data)
-    assert result == data
-
-
-def test_roundtrip_from_corpus_english():
-    path = os.path.join(CORPUS, "english.txt")
-    if not os.path.isfile(path):
-        pytest.skip("corpus/english.txt not found")
-    data = open(path, "rb").read()
-    result = roundtrip(data)
-    assert result == data
-
-
-def test_roundtrip_test_txt():
-    """Roundtrip the provided test.txt corpus file."""
-    path = os.path.join(FILES, "test.txt")
-    if not os.path.isfile(path):
-        pytest.skip("test.txt not found")
-    data = open(path, "rb").read()
-    result = roundtrip(data)
-    assert result == data, f"test.txt roundtrip failed: {len(result)} bytes vs {len(data)} expected"
+def test_basic_roundtrips():
+    for data in (b"", b"Hello, World!", bytes(range(256)), b"abc" * 400):
+        assert roundtrip(data) == data
 
 
 # ---------------------------------------------------------------------------
@@ -171,18 +95,16 @@ def compression_ratio(data: bytes) -> float:
                 os.unlink(p)
 
 
-def test_compression_ratio_repetitive():
-    """Highly repetitive data should compress to < 50% of original size."""
-    data = b"abcdefgh" * 1000  # 8000 bytes
-    ratio = compression_ratio(data)
-    assert ratio < 0.5, f"compression ratio {ratio:.2%} not < 50% on repetitive data"
+def test_repetitive_data_compresses_deterministically():
+    data = b"abcdefgh" * 1000
+    assert compression_ratio(data) < 0.5
 
-
-def test_compression_ratio_corpus():
-    """The provided corpus files should compress to < 50%."""
-    path = os.path.join(FILES, "test.txt")
-    if not os.path.isfile(path):
-        pytest.skip("test.txt not found")
-    data = open(path, "rb").read()
-    ratio = compression_ratio(data)
-    assert ratio < 0.5, f"corpus test.txt ratio {ratio:.2%} not < 50%"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        source = os.path.join(tmpdir, "input")
+        first = os.path.join(tmpdir, "first")
+        second = os.path.join(tmpdir, "second")
+        with open(source, "wb") as stream:
+            stream.write(data)
+        assert compress(source, first)[0] == 0
+        assert compress(source, second)[0] == 0
+        assert open(first, "rb").read() == open(second, "rb").read()

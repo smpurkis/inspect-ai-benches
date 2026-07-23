@@ -1,0 +1,28 @@
+[task]
+id = "cython-linalg"
+entry = "/app/files/cylinalg.pyx"
+build = "cd /app/files && python3 setup_build.py build_ext --inplace"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+outputs = ["cylinalg.c", "cylinalg*.so", "build/**"]
+
+[limits]
+max_model_tokens = 32000
+max_agent_turns = 32
+max_weighted_tool_cost = 64
+max_public_test_runs = 3
+max_file_read_bytes = 300000
+wall_clock_seconds = 2400
+
+[policy]
+network = false
+editable = ["cylinalg.pyx"]
+forbid_imports = ["numpy.linalg", "scipy", "ctypes", "cffi", "pyo3"]
+require_determinism = true
+
+[numerics]
+dtype = "float64"
+reconstruction_atol = 5e-8
+orthogonality_atol = 5e-11
+stress_atol = 1e-6
+finite_outputs = true
+ordschur_selects_whole_real_blocks = true

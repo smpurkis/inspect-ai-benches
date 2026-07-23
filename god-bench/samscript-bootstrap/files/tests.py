@@ -3,7 +3,7 @@ from pathlib import Path
 
 INTERPRETER = "/app/target/release/samscript"
 SAMPLES = Path("/app/files/samples")
-BOOTSTRAP = Path("/app/samscript_bootstrap.sam")
+BOOTSTRAP = Path("/app/files/samscript_bootstrap.sam")
 
 
 def _run_direct(sam_file: Path, timeout: int = 30) -> subprocess.CompletedProcess:
@@ -40,7 +40,7 @@ def test_bootstrap_exists():
     """The bootstrap interpreter file exists and is non-trivial."""
     assert BOOTSTRAP.exists(), (
         f"Bootstrap file not found at {BOOTSTRAP}. "
-        "You must create /app/samscript_bootstrap.sam"
+        "You must implement /app/files/samscript_bootstrap.sam"
     )
     lines = BOOTSTRAP.read_text().strip().splitlines()
     assert len(lines) >= 50, (

@@ -1,5 +1,7 @@
 import importlib
 import importlib.util
+import math
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -9,6 +11,7 @@ import pytest
 
 
 FILES = Path("/app/files")
+PYX_SRC = FILES / "cylinalg.pyx"
 
 
 def _build_if_needed():
@@ -45,8 +48,93 @@ def _array64(value, ndim=None):
     return arr
 
 
+def _assert_fresh_process_does_not_delegate(module_name):
+    _build_if_needed()
+    script = f'''
+import importlib
+import numpy as np
+import numpy.linalg as numpy_linalg
+
+def blocked(*args, **kwargs):
+    raise AssertionError("candidate delegated to Python linalg")
+
+modules = [np.linalg, numpy_linalg]
+try:
+    import scipy.linalg as scipy_linalg
+    modules.append(scipy_linalg)
+except Exception:
+    pass
+for module in modules:
+    for name, value in vars(module).items():
+        if not name.startswith("__") and callable(value):
+            setattr(module, name, blocked)
+
+mod = importlib.import_module({module_name!r})
+a = np.load("/app/fixtures/A_svd_tall.npy")
+assert np.asarray(mod.svd(a)[0]).shape[0] == a.shape[0]
+a = np.load("/app/fixtures/A_schur_general.npy")
+assert np.asarray(mod.schur(a)[0]).shape == a.shape
+a = np.load("/app/fixtures/A_matlog_spd.npy")
+assert np.asarray(mod.matrix_log(a)).shape == a.shape
+a = np.load("/app/fixtures/A_sqrtm_spd.npy")
+assert np.asarray(mod.sqrtm(a)).shape == a.shape
+assert np.asarray(mod.matrix_power(a, 0.5)).shape == a.shape
+a = np.load("/app/fixtures/A_qz1.npy")
+b = np.load("/app/fixtures/B_qz1.npy")
+assert np.asarray(mod.qz(a, b)[0]).shape == a.shape
+a = np.load("/app/fixtures/A_signm1.npy")
+assert np.asarray(mod.signm(a)).shape == a.shape
+a = np.load("/app/fixtures/A_syl1.npy")
+b = np.load("/app/fixtures/B_syl1.npy")
+c = np.load("/app/fixtures/C_syl1.npy")
+assert np.asarray(mod.solve_sylvester(a, b, c)).shape == c.shape
+a = np.load("/app/fixtures/A_eig1.npy")
+assert np.asarray(mod.eig(a)[0]).shape == (a.shape[0],)
+t = np.load("/app/fixtures/T_ordschur1.npy")
+q = np.load("/app/fixtures/Q_ordschur1.npy")
+select = np.load("/app/fixtures/select_ordschur1.npy")
+assert np.asarray(mod.ordschur(t, q, select)[0]).shape == t.shape
+'''
+    result = subprocess.run(
+        [sys.executable, "-c", script], capture_output=True, text=True,
+        timeout=180, cwd=str(FILES),
+    )
+    assert result.returncode == 0, (
+        "fresh-process anti-delegation check failed:\n"
+        f"{result.stdout[-1000:]}\n{result.stderr[-3000:]}"
+    )
+
+
+def _schur_selection(T, select):
+    T = np.asarray(T, dtype=np.float64)
+    select = np.asarray(select, dtype=bool)
+    scale = max(1.0, float(np.max(np.abs(T))))
+    block_tol = 100.0 * np.finfo(np.float64).eps * scale
+    selected = []
+    i = 0
+    while i < T.shape[0]:
+        width = 2 if i + 1 < T.shape[0] and abs(T[i + 1, i]) > block_tol else 1
+        if np.any(select[i:i + width]):
+            selected.extend(np.linalg.eigvals(T[i:i + width, i:i + width]))
+        i += width
+    return np.asarray(selected, dtype=np.complex128), len(selected)
+
+
+def _assert_eigenvalue_multiset(actual, expected, rtol=2e-7, atol=2e-9):
+    remaining = list(np.asarray(actual, dtype=np.complex128))
+    for target in np.asarray(expected, dtype=np.complex128):
+        assert remaining, f"missing selected eigenvalue {target}"
+        index = min(range(len(remaining)), key=lambda j: abs(remaining[j] - target))
+        candidate = remaining.pop(index)
+        limit = atol + rtol * max(1.0, abs(target))
+        assert abs(candidate - target) <= limit, (
+            f"selected eigenvalue {target} not in leading block; closest was {candidate}"
+        )
+    assert not remaining, f"unexpected leading-block eigenvalues: {remaining}"
+
+
 # ===================================================================
-# Cross-cutting tests (2)
+# Cross-cutting tests
 # ===================================================================
 
 
@@ -117,6 +205,63 @@ def test_hidden_error_handling():
         )
 
 
+def test_hidden_source_and_runtime_do_not_delegate():
+    source = PYX_SRC.read_text()
+    code_lines = []
+    in_docstring = False
+    for line in source.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(('"""', "'''")):
+            if stripped.count('"""') >= 2 or stripped.count("'''") >= 2:
+                continue
+            in_docstring = not in_docstring
+            continue
+        if not in_docstring and not stripped.startswith("#"):
+            code_lines.append(line.split("#", 1)[0])
+    code_text = "\n".join(code_lines)
+    forbidden = (
+        r"\.\s*linalg\b",
+        r"from\s+(?:numpy|scipy)\s+import\s+linalg",
+        r"\bimport\s+scipy\b",
+        r"\b(?:__import__|importlib)\b",
+        r"\bgetattr\s*\([^,\n]+,\s*['\"]linalg['\"]",
+        r"\bpyo3\b",
+    )
+    for pattern in forbidden:
+        assert re.search(pattern, code_text) is None, (
+            f"cylinalg.pyx contains forbidden delegation pattern: {pattern}"
+        )
+
+    _assert_fresh_process_does_not_delegate("cylinalg")
+
+
+def test_hidden_cython_source_build_and_api_contract():
+    source = PYX_SRC.read_text()
+    assert len(source) > 2000, "cylinalg.pyx is suspiciously short"
+    assert "STUB" not in source, "cylinalg.pyx still contains a STUB placeholder"
+    assert "cimport" in source or "cdef" in source, "Cython features are required"
+
+    code_text = "\n".join(
+        line.split("#", 1)[0]
+        for line in source.splitlines()
+        if not line.strip().startswith("#")
+    ).lower()
+    for alternative in ("import ctypes", "cffi", "pyo3"):
+        assert alternative not in code_text, f"forbidden alternative binding: {alternative}"
+
+    generated = FILES / "cylinalg.c"
+    if generated.exists():
+        generated_source = generated.read_text()
+        assert "Cython" in generated_source or "cython" in generated_source
+
+    module = _import_module()
+    for name in (
+        "svd", "schur", "matrix_log", "sqrtm", "qz", "signm",
+        "solve_sylvester", "eig", "ordschur", "matrix_power",
+    ):
+        assert callable(getattr(module, name, None)), f"missing callable {name}"
+
+
 # ===================================================================
 # SVD hidden tests (4)
 # ===================================================================
@@ -148,26 +293,38 @@ def test_hidden_svd_50x30_tight_tolerance():
     )
 
 
-def test_hidden_svd_ill_conditioned():
-    """SVD of matrix with condition number ~1e10."""
+@pytest.mark.parametrize(
+    "m,n,condition,seed",
+    [(9, 6, 1e2, 5050), (12, 12, 1e6, 5051), (14, 10, 1e10, 5052)],
+)
+def test_hidden_svd_generated_condition_numbers(m, n, condition, seed):
+    """Deterministic generated matrices spanning mild to severe conditioning."""
     mod = _import_module()
 
-    rng = np.random.default_rng(5050)
-    m, n = 20, 20
+    rng = np.random.default_rng(seed)
     U0, _ = np.linalg.qr(rng.standard_normal((m, m)))
     V0, _ = np.linalg.qr(rng.standard_normal((n, n)))
-    svals = np.logspace(0, -10, min(m, n))
-    A = (U0 @ np.diag(svals) @ V0.T).astype(np.float64)
+    k = min(m, n)
+    svals = np.geomspace(1.0, 1.0 / condition, k)
+    A = (U0[:, :k] @ np.diag(svals) @ V0[:k, :]).astype(np.float64)
 
     u, sig, vt = mod.svd(A)
     u = _array64(u, 2)
     sig = _array64(sig, 1)
     vt = _array64(vt, 2)
-    k = min(m, n)
+    observed_condition = sig[0] / sig[-1]
+    condition_rtol = max(5e-6, 200.0 * np.finfo(float).eps * condition)
+    np.testing.assert_allclose(observed_condition, condition, rtol=condition_rtol)
 
-    np.testing.assert_allclose(sig, svals, rtol=1e-6, atol=1e-14)
-    np.testing.assert_allclose(
-        u[:, :k] @ np.diag(sig) @ vt[:k, :], A, atol=1e-6
+    reconstruction = u[:, :k] @ np.diag(sig) @ vt[:k, :]
+    relative_residual = np.linalg.norm(reconstruction - A) / np.linalg.norm(A)
+    residual_limit = max(
+        2e-8,
+        500.0 * np.finfo(float).eps * max(m, n) * math.sqrt(condition),
+    )
+    assert relative_residual < residual_limit, (
+        f"relative reconstruction residual {relative_residual:.3e} "
+        f"exceeds {residual_limit:.3e} at condition {condition:.1e}"
     )
     np.testing.assert_allclose(u.T @ u, np.eye(m), atol=1e-10)
     np.testing.assert_allclose(vt @ vt.T, np.eye(n), atol=1e-10)
@@ -808,49 +965,39 @@ def test_hidden_ordschur_selected_eigenvalues_moved():
 
     T = np.load("/app/fixtures/T_ordschur1.npy")
     Q = np.load("/app/fixtures/Q_ordschur1.npy")
-    n = T.shape[0]
-
-    # Extract eigenvalues from original T (diagonal for 1x1, 2x2 blocks)
-    eigs_orig = np.linalg.eigvals(T)
-
     select = [True, False, True, False, True, False]
-    n_sel = sum(select)
+    expected, leading_size = _schur_selection(T, select)
 
     T_new, Q_new = mod.ordschur(T, Q, select)
     T_new = _array64(T_new, 2)
 
-    # Eigenvalues of the top-left block should be a subset of original eigenvalues
-    eigs_top = np.linalg.eigvals(T_new[:n_sel, :n_sel])
-    eigs_bot = np.linalg.eigvals(T_new[n_sel:, n_sel:])
-
-    # Total eigenvalue set should be preserved
-    eigs_new = np.concatenate([eigs_top, eigs_bot])
-    eigs_orig_sorted = sorted(eigs_orig, key=lambda x: (x.real, x.imag))
-    eigs_new_sorted = sorted(eigs_new, key=lambda x: (x.real, x.imag))
-    np.testing.assert_allclose(
-        np.array(eigs_new_sorted), np.array(eigs_orig_sorted), atol=1e-6
-    )
+    actual = np.linalg.eigvals(T_new[:leading_size, :leading_size])
+    _assert_eigenvalue_multiset(actual, expected)
 
 
 def test_hidden_ordschur_complex_block_swap():
-    """Test with matrix that has 2x2 blocks (complex eigenvalues) needing to swap."""
+    """Selecting one member moves its whole conjugate 2x2 block to the front."""
     mod = _import_module()
 
-    # Use schur_complex fixture which has 2x2 blocks
-    A = np.load("/app/fixtures/A_schur_complex.npy")
-    T_sc, Q_sc = mod.schur(A)
-    T_sc = _array64(T_sc, 2)
-    Q_sc = _array64(Q_sc, 2)
-    n = A.shape[0]
+    T = np.array([
+        [3.0, 0.0, 0.0, 0.0],
+        [0.0, 1.0, -4.0, 0.0],
+        [0.0, 4.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, -2.0],
+    ])
+    Q = np.eye(4)
+    select = [False, True, False, False]
+    expected, leading_size = _schur_selection(T, select)
+    assert leading_size == 2
 
-    # Select alternating to force block swaps
-    select = [True, False, True, False, True, False]
-    T_new, Q_new = mod.ordschur(T_sc, Q_sc, select)
+    T_new, Q_new = mod.ordschur(T, Q, select)
     T_new = _array64(T_new, 2)
     Q_new = _array64(Q_new, 2)
 
-    np.testing.assert_allclose(Q_new @ T_new @ Q_new.T, A, atol=1e-7)
-    np.testing.assert_allclose(Q_new.T @ Q_new, np.eye(n), atol=1e-9)
+    np.testing.assert_allclose(Q_new @ T_new @ Q_new.T, T, atol=1e-8)
+    np.testing.assert_allclose(Q_new.T @ Q_new, np.eye(4), atol=1e-10)
+    actual = np.linalg.eigvals(T_new[:leading_size, :leading_size])
+    _assert_eigenvalue_multiset(actual, expected)
 
 
 def test_hidden_ordschur_15x15():

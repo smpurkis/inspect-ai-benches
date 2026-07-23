@@ -1,11 +1,15 @@
 import subprocess
 import tempfile
+import tomllib
 from pathlib import Path
+
+from generated_oracle import build_error_program, build_program, execute, render
 
 INTERPRETER = "/app/target/release/samscript"
 SAMPLES = Path("/app/files/samples")
 HIDDEN_SAMPLES = Path("/app/hidden/samples")
-BOOTSTRAP = Path("/app/samscript_bootstrap.sam")
+BOOTSTRAP = Path("/app/files/samscript_bootstrap.sam")
+CONTRACT = Path("/app/files/contract.toml")
 PRISTINE_SRC = Path("/app/hidden/reference/main.rs")
 
 
@@ -59,6 +63,15 @@ def test_hidden_arithmetic():
     assert boot.stdout == direct.stdout, (
         f"Output mismatch:\n  direct: {direct.stdout!r}\n  boot: {boot.stdout!r}"
     )
+
+
+def test_hidden_task_card_and_read_budget():
+    """The strict task stays concise and cannot bulk-read every visible file."""
+    task_words = Path("/app/files/TASK.md").read_text(encoding="utf-8").split()
+    assert len(task_words) <= 140, f"TASK.md is {len(task_words)} tokens; maximum is 140"
+    contract = tomllib.loads(CONTRACT.read_text(encoding="utf-8"))
+    corpus_bytes = sum(path.stat().st_size for path in Path("/app/files").rglob("*") if path.is_file())
+    assert contract["limits"]["max_file_read_bytes"] < corpus_bytes
 
 
 def test_hidden_all_features():
@@ -149,34 +162,27 @@ def test_hidden_deterministic():
     )
 
 
-def test_hidden_error_handling():
-    """Division by zero through bootstrap produces non-zero exit code."""
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".sam", dir="/tmp", delete=False
-    ) as f:
-        f.write('fn main() {\n    let x = 1 / 0\n}\n')
-        err_file = f.name
+def test_hidden_generated_runtime_error_class_and_exit():
+    """A dynamic error generated from an AST has the oracle's class and exit status."""
+    program = build_error_program(0x5A17)
+    expected = execute(program)
+    assert expected.status == 1 and expected.error_class == "division_by_zero"
 
-    _ensure_interpreter()
-    result = subprocess.run(
-        [INTERPRETER, "run", str(BOOTSTRAP), "--", "run", err_file],
-        capture_output=True, text=True, timeout=120,
-    )
-    # The bootstrap should propagate the error — either non-zero exit
-    # or error message in output
-    error_detected = (
-        result.returncode != 0
-        or "error" in result.stderr.lower()
-        or "error" in result.stdout.lower()
-        or "division" in result.stderr.lower()
-        or "division" in result.stdout.lower()
-    )
-    assert error_detected, (
-        f"Expected error for division by zero, got rc={result.returncode}\n"
-        f"stdout: {result.stdout!r}\nstderr: {result.stderr!r}"
-    )
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".sam", dir="/tmp", delete=False) as f:
+        f.write(render(program))
+        err_file = Path(f.name)
+    try:
+        result = _run_bootstrap(err_file)
+    finally:
+        err_file.unlink(missing_ok=True)
 
-    Path(err_file).unlink(missing_ok=True)
+    diagnostic = (result.stderr + "\n" + result.stdout).lower()
+    assert result.returncode == expected.status, (
+        f"division_by_zero must exit {expected.status}, got {result.returncode}: {diagnostic}"
+    )
+    assert "division" in diagnostic and "zero" in diagnostic, (
+        f"wrong runtime error class; expected division_by_zero: {diagnostic!r}"
+    )
 
 
 def test_hidden_dynamic_program():
@@ -213,6 +219,36 @@ def test_hidden_dynamic_program():
     )
 
     Path(dyn_file).unlink(missing_ok=True)
+
+
+def test_hidden_generated_semantics_and_mutation_dependence():
+    """Render/evaluate a seeded AST pair and require exact independent-oracle parity."""
+    programs = [build_program(0x51A7C, leaf) for leaf in (6, 7)]
+    expected = [execute(program) for program in programs]
+    assert all(item.status == 0 for item in expected)
+    assert expected[0].stdout != expected[1].stdout, "oracle mutation must be observable"
+
+    solution = BOOTSTRAP.read_text(encoding="utf-8")
+    for item in expected:
+        for line in item.stdout.splitlines():
+            if len(line) >= 12:
+                assert line not in solution, f"generated output was canned in bootstrap: {line!r}"
+
+    actual = []
+    with tempfile.TemporaryDirectory(dir="/tmp", prefix="sam-ast-") as tmp:
+        for index, program in enumerate(programs):
+            source = Path(tmp) / f"generated_{index}.sam"
+            source.write_text(render(program), encoding="utf-8")
+            result = _run_bootstrap(source, timeout=180)
+            assert result.returncode == 0, f"generated program {index} failed:\n{result.stderr}"
+            assert result.stdout == expected[index].stdout, (
+                f"independent-oracle mismatch for generated program {index}:\n"
+                f"expected={expected[index].stdout!r}\nactual={result.stdout!r}"
+            )
+            assert ":BAD:" not in result.stdout, "short-circuited side effect executed"
+            actual.append(result.stdout)
+
+    assert actual[0] != actual[1], "changing one AST literal did not change execution"
 
 
 def test_hidden_multiple_programs():

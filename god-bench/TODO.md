@@ -5,7 +5,7 @@ Go through each task alphabetically. For each: present structure (instructions, 
 
 Benchmark command:
 ```
-cd /home/sam/projects/repos/llm-benchmark/inspect-ai-benches/terminal-bench && uv run inspect eval <task>/run.py --model openai-api/local/<model> --env LOCAL_BASE_URL="https://micha-m6kmcqwd-eastus2.cognitiveservices.azure.com/openai/v1/" --env LOCAL_API_KEY="4stjFlPbWUZYZvIP0EZ77O4AR6j42ab5Pko6isbMv2pISlgUkt6bJQQJ99BAACHYHv6XJ3w3AAAAACOGwozk" --limit 1 -T variant_names=default
+cd god-bench && uv run python run.py --model <model> --base-url <openai-compatible-url> --api-key "$OPENAI_API_KEY" --tasks <task>
 ```
 
 Models to test: `gpt-4.1-mini`, `gpt-5`
@@ -41,5 +41,5 @@ Models to test: `gpt-4.1-mini`, `gpt-5`
 ## Notes
 - Scoring: accuracy = tests_passed / total_tests (partial credit)
 - Files: `files/` → `/app/files/` in sandbox, `hidden/` → `/app/hidden/` only during scoring
-- Don't use Docker bind mounts in inspect sandbox; use staged_eval.py injection instead
+- Harbor runs verification in a separate no-network container and transfers only declared artifacts.
 - Design principle: tasks should NOT be multi-step gated

@@ -1,0 +1,29 @@
+schema_version = "1.4"
+artifacts = ["/app/files/pipeline_polars.py"]
+
+[task]
+name = "god-bench/pandas-to-polars-single"
+version = "1.0.0"
+description = "Port versioned pandas data pipelines to lazy Polars."
+authors = []
+keywords = ["python", "polars", "data-engineering"]
+
+[metadata]
+difficulty = "hard"
+category = "data-engineering"
+strict = true
+
+[agent]
+timeout_sec = 7200.0
+
+[verifier]
+timeout_sec = 3600.0
+environment_mode = "separate"
+
+[environment]
+network_mode = "no-network"
+build_timeout_sec = 3600.0
+cpus = 8
+memory_mb = 8192
+storage_mb = 10240
+gpus = 0

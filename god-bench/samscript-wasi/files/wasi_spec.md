@@ -1,4 +1,6 @@
-# Wasm/WASI Output Specification
+# Archived WASI Integration Draft 3
+
+> Superseded ABI draft retained for migration archaeology. Do not treat it as the release contract.
 
 ## Target
 

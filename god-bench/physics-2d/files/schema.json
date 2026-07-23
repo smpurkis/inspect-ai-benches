@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://god-bench.local/physics-2d/schema.json",
+  "title": "physics-2d configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["width", "height", "dt", "g", "bodies"],
+  "properties": {
+    "width": {"type": "number", "exclusiveMinimum": 0},
+    "height": {"type": "number", "exclusiveMinimum": 0},
+    "dt": {"type": "number", "exclusiveMinimum": 0},
+    "g": {"type": "number"},
+    "solver_iterations": {"type": "integer", "minimum": 1, "default": 10},
+    "bodies": {
+      "type": "array",
+      "description": "Bodies have unique integer id values.",
+      "items": {"$ref": "#/$defs/body"}
+    }
+  },
+  "$defs": {
+    "body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "x", "y", "vx", "vy", "mass"],
+      "properties": {
+        "id": {"type": "integer"},
+        "x": {"type": "number", "description": "Finite JSON number."},
+        "y": {"type": "number", "description": "Finite JSON number."},
+        "vx": {"type": "number", "description": "Finite JSON number."},
+        "vy": {"type": "number", "description": "Finite JSON number."},
+        "angle": {"type": "number", "default": 0},
+        "omega": {"type": "number", "default": 0},
+        "mass": {"type": "number", "exclusiveMinimum": 0},
+        "shape": {"enum": ["rect", "circle"], "default": "rect"},
+        "w": {"type": "number", "exclusiveMinimum": 0},
+        "h": {"type": "number", "exclusiveMinimum": 0},
+        "r": {"type": "number", "exclusiveMinimum": 0},
+        "e": {"type": "number", "minimum": 0, "maximum": 1, "default": 1},
+        "mu": {"type": "number", "minimum": 0, "default": 0}
+      },
+      "oneOf": [
+        {
+          "required": ["r", "shape"],
+          "properties": {"shape": {"const": "circle"}}
+        },
+        {
+          "required": ["w", "h"],
+          "properties": {"shape": {"const": "rect"}}
+        }
+      ]
+    },
+    "output_body": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "x", "y", "vx", "vy", "angle", "omega"],
+      "properties": {
+        "id": {"type": "integer"},
+        "x": {"type": "number"},
+        "y": {"type": "number"},
+        "vx": {"type": "number"},
+        "vy": {"type": "number"},
+        "angle": {"type": "number"},
+        "omega": {"type": "number"}
+      }
+    },
+    "output_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["step", "bodies"],
+      "properties": {
+        "step": {"type": "integer", "minimum": 0},
+        "bodies": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/output_body"}
+        }
+      }
+    }
+  }
+}

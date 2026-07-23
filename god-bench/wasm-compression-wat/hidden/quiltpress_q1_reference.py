@@ -20,6 +20,8 @@ CHUNK_LEN = 5
 DEFAULT_DICT_COUNT_BYTES = 2
 MIN_DICT_COUNT_BYTES = 1
 MAX_DICT_COUNT_BYTES = 4
+MAX_COMPRESS_INPUT_SIZE = 32 * 1024 * 1024
+MAX_ORIGINAL_SIZE = 64 * 1024 * 1024
 
 HEADER_FMT = "<4sBBBQ"
 HEADER_SIZE = struct.calcsize(HEADER_FMT)
@@ -101,6 +103,8 @@ def encode_payload(data: bytes, dictionary: list, dict_count_bytes: int) -> byte
 
 def compress_bytes(data: bytes, dict_count_bytes: int = DEFAULT_DICT_COUNT_BYTES) -> bytes:
     _validate_dict_count_bytes(dict_count_bytes)
+    if len(data) > MAX_COMPRESS_INPUT_SIZE:
+        raise ValueError("compression input exceeds limit")
     max_dict = _max_dict_size(dict_count_bytes)
     dictionary = build_dictionary(data, max_dict=max_dict)
     payload = encode_payload(data, dictionary, dict_count_bytes=dict_count_bytes)
@@ -187,6 +191,8 @@ def decompress_bytes(blob: bytes) -> bytes:
     if method != METHOD_CUSTOM:
         raise ValueError(f"unsupported method: {method}")
     _validate_dict_count_bytes(dict_count_bytes)
+    if original_size > MAX_ORIGINAL_SIZE:
+        raise ValueError("declared original size exceeds limit")
 
     p = HEADER_SIZE
     if p + dict_count_bytes > len(blob):

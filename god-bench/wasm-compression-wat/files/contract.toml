@@ -1,0 +1,35 @@
+[task]
+id = "wasm-compression-wat"
+entry = "/app/files/run_wasm_codec.sh"
+compress = "bash /app/files/run_wasm_codec.sh compress INPUT OUTPUT"
+decompress = "bash /app/files/run_wasm_codec.sh decompress INPUT OUTPUT"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+build = "wat2wasm /app/files/quiltpress_wasi.wat -o /app/files/quiltpress_wasi.wasm"
+outputs = ["/app/files/quiltpress_wasi.wasm"]
+
+[limits]
+max_agent_turns = 24
+max_weighted_tool_cost = 44
+max_public_test_runs = 3
+max_file_read_bytes = 180000
+max_model_tokens = 32000
+wall_clock_seconds = 900
+
+[policy]
+network = false
+editable = ["quiltpress_wasi.wat"]
+require_determinism = true
+
+[format]
+name = "QuiltPress-Q1 / QPX1"
+header = "QPX1, version=1, method=2, index_width=1..4, uint64_le(original_size)"
+dictionary = "uint_le(index_width) count followed by count unmodified five-byte entries"
+literal = "0x00, uint8 count=1..255, count literal bytes"
+tokens = "0x01, uint8 count=1..255, then count little-endian dictionary indexes of index_width bytes"
+token_value = "append the selected five-byte dictionary entry exactly; no rotation or transform"
+
+[codec_limits]
+max_compress_input_bytes = 33554432
+max_original_size = 67108864
+max_output_bytes = 67108864
+command_timeout_seconds = 120

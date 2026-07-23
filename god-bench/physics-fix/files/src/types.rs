@@ -68,7 +68,8 @@ pub struct CollapseConfig {
     /// Initial areal radius of the dust-ball surface.
     pub initial_radius: f64,
 
-    /// Number of integration steps.
+    /// Internal integration resolution. The serialized trajectory always has
+    /// 51 sampled points and is independent of this value.
     #[serde(default = "default_num_steps")]
     pub num_steps: usize,
 

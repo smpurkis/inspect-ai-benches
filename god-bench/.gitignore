@@ -23,6 +23,7 @@ Thumbs.db
 
 # Eval artifacts
 logs/
+jobs/
 **/logs/
 **/out-candidate/
 git-leak-recovery-and-sanitize/repo/

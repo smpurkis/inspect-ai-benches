@@ -1,0 +1,33 @@
+schema_version = "1.4"
+artifacts = [
+    "/app/files/cifar-infer/src/model.rs",
+    "/app/files/cifar-infer/src/train.rs",
+    "/app/files/cifar-infer/training.toml",
+]
+
+[task]
+name = "god-bench/cifar10-burn"
+version = "1.0.0"
+description = "Train a deterministic CIFAR-10 classifier with Burn in Rust."
+authors = []
+keywords = ["rust", "burn", "machine-learning", "cifar10"]
+
+[metadata]
+difficulty = "hard"
+category = "machine-learning"
+strict = true
+
+[agent]
+timeout_sec = 3600.0
+
+[verifier]
+timeout_sec = 3600.0
+environment_mode = "separate"
+
+[environment]
+network_mode = "no-network"
+build_timeout_sec = 3600.0
+cpus = 8
+memory_mb = 8192
+storage_mb = 10240
+gpus = 0

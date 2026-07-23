@@ -4,11 +4,15 @@ import os
 import subprocess
 import tempfile
 import hashlib
+import random
 import pytest
+
+from lz77_oracle import backreference, decode as oracle_decode, encode_literals
 
 FILES = "/app/files"
 RUNNER = os.path.join(FILES, "run_lz77.sh")
 WASM = os.path.join(FILES, "lz77.wasm")
+WAT = os.path.join(FILES, "lz77.wat")
 CORPUS = os.path.join(FILES, "corpus")
 
 
@@ -55,6 +59,52 @@ def get_ratio(data: bytes, *, timeout=60) -> float:
         for p in (orig, compressed):
             if os.path.exists(p):
                 os.unlink(p)
+
+
+def encode(data: bytes, *, timeout=60) -> bytes:
+    with tempfile.NamedTemporaryFile(delete=False) as f:
+        f.write(data)
+        orig = f.name
+    compressed = orig + ".lz77"
+    try:
+        rc, err = compress(orig, compressed, timeout=timeout)
+        assert rc == 0, f"compress failed: {err}"
+        return open(compressed, "rb").read()
+    finally:
+        for p in (orig, compressed):
+            if os.path.exists(p):
+                os.unlink(p)
+
+
+def decode_with_candidate(stream: bytes, *, timeout=60):
+    with tempfile.NamedTemporaryFile(delete=False) as f:
+        f.write(stream)
+        encoded = f.name
+    restored = encoded + ".out"
+    try:
+        rc, err = decompress(encoded, restored, timeout=timeout)
+        data = open(restored, "rb").read() if os.path.exists(restored) else None
+        return rc, err, data
+    finally:
+        for path in (encoded, restored):
+            if os.path.exists(path):
+                os.unlink(path)
+
+
+def run_compiled_wat(mode: str, data: bytes) -> subprocess.CompletedProcess[bytes]:
+    """Compile and execute submitted WAT directly, bypassing any shipped WASM."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        module = os.path.join(tmpdir, "submitted.wasm")
+        compiled = subprocess.run(
+            ["wat2wasm", WAT, "-o", module], capture_output=True, text=True
+        )
+        assert compiled.returncode == 0, compiled.stderr
+        return subprocess.run(
+            ["wasmtime", "run", module, "--", mode],
+            input=data,
+            capture_output=True,
+            timeout=60,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +163,89 @@ def test_roundtrip_single_byte_repeated():
     assert result == data
 
 
+def test_roundtrip_seeded_generated_inputs():
+    """Exercise random, incompressible, repeated-block, overlap, and window-edge data."""
+    rng = random.Random(0x1A77)
+    block = rng.randbytes(257)
+    cases = {
+        "random_bytes": rng.randbytes(1537),
+        "incompressible": rng.randbytes(4096),
+        "repeated_blocks": block * 16,
+        "overlapping_match": b"abc" * 5000,
+        "window_boundary": block + rng.randbytes(32768 - len(block)) + block,
+    }
+    for name, data in cases.items():
+        encoded = encode(data, timeout=180)
+        assert oracle_decode(encoded) == data, f"{name} oracle decode failed"
+        assert roundtrip(data, timeout=180) == data, f"{name} roundtrip failed"
+
+
+def test_seeded_encoding_is_deterministic():
+    rng = random.Random(0xD37E)
+    data = rng.randbytes(1024) + (b"deterministic-block" * 300)
+    assert encode(data) == encode(data), "compression output changed between runs"
+
+
+def test_submitted_wat_is_the_executed_codec():
+    data = b"actual submitted WAT" * 20
+    compressed = run_compiled_wat("compress", data)
+    assert compressed.returncode == 0, compressed.stderr.decode(errors="replace")
+    assert oracle_decode(compressed.stdout) == data
+
+
+def test_oracle_streams_cover_overlap_and_32k_boundary():
+    overlap = encode_literals(b"A") + backreference(130, 1)
+    rc, err, output = decode_with_candidate(overlap)
+    assert rc == 0, err
+    assert output == b"A" * 131
+
+    rng = random.Random(0x8000)
+    prefix = rng.randbytes(32768)
+    boundary = encode_literals(prefix) + backreference(3, 32768)
+    rc, err, output = decode_with_candidate(boundary)
+    assert rc == 0, err
+    assert output == prefix + prefix[:3]
+
+
+@pytest.mark.parametrize(
+    "stream",
+    [
+        b"\x00",
+        b"\x7f" + b"x" * 127,
+        b"\x80",
+        b"\x80\x00",
+        backreference(3, 1),
+        encode_literals(b"x" * 32769) + backreference(3, 32769),
+    ],
+    ids=[
+        "truncated_literal",
+        "short_long_literal",
+        "missing_distance",
+        "short_distance",
+        "distance_before_output",
+        "distance_above_32k",
+    ],
+)
+def test_rejects_malformed_streams(stream):
+    rc, _, _ = decode_with_candidate(stream)
+    assert rc != 0
+
+
+def test_runner_enforces_input_and_output_ceilings():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        oversized = os.path.join(tmpdir, "oversized")
+        output = os.path.join(tmpdir, "output")
+        with open(oversized, "wb") as stream:
+            stream.truncate(8 * 1024 * 1024 + 1)
+        rc, _ = compress(oversized, output)
+        assert rc != 0
+
+    expansion = encode_literals(b"Z") + backreference(130, 1) * 258112
+    rc, _, output = decode_with_candidate(expansion, timeout=150)
+    assert rc != 0
+    assert output is None
+
+
 # ---------------------------------------------------------------------------
 # Compression ratio requirements
 # ---------------------------------------------------------------------------
@@ -164,3 +297,9 @@ def test_wat_uses_standard_instructions():
     finally:
         if os.path.exists(tmp):
             os.unlink(tmp)
+
+
+def test_runner_has_no_precompiled_execution_path():
+    runner = open(RUNNER, encoding="utf-8").read()
+    assert "--allow-precompiled" not in runner
+    assert "wat2wasm" in runner

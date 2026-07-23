@@ -1,0 +1,38 @@
+[task]
+id = "sam2wasi-context"
+kind = "god-context"
+entry = "/app/files/compiler.py"
+evidence = "/app/files/evidence.json"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+build = "bash /app/files/scripts/build_smoke.sh"
+
+[context]
+authoritative_spec = "spec/semantics.md"
+relevant_paths = ["spec/semantics.md", "scripts/build_smoke.sh"]
+corpus_root = "/app/files"
+expected_relevant_fraction = "2-5%"
+
+[limits]
+max_agent_turns = 44
+max_weighted_tool_cost = 72
+max_public_test_runs = 4
+max_file_read_bytes = 60000
+wall_clock_seconds = 1800
+max_model_tokens = 65536
+
+[budgets.compiler]
+max_runs = 20
+seconds_per_run = 180
+
+[budgets.runtime]
+max_runs = 20
+seconds_per_run = 60
+
+[policy]
+network = false
+editable = ["compiler.py", "evidence.json"]
+require_determinism = true
+
+[evidence]
+required_fields = ["authority", "evidence", "summary"]
+citation_format = "relative/path:start-end"

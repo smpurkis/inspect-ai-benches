@@ -1,0 +1,62 @@
+[task]
+id = "pandas-to-polars-single"
+entry = "/app/files/pipeline_polars.py"
+command = "python3 /app/files/pipeline_polars.py --in <input_dir> --out <output_dir>"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+
+[limits]
+max_agent_turns = 24
+max_weighted_tool_cost = 44
+max_public_test_runs = 3
+max_file_read_bytes = 180000
+wall_clock_seconds = 900
+max_model_tokens = 32000
+
+[policy]
+network = false
+editable = ["pipeline_polars.py"]
+forbid_imports = ["pandas"]
+require_determinism = true
+
+[implementation]
+forbid_calls = ["pl.read_parquet", "pl.read_csv", "to_pandas"]
+
+[input]
+v1_marker = "input.parquet"
+v2_marker = "input_v2.parquet"
+schema_authority = "pipeline_contract.md#schema-detection"
+timezone = "UTC"
+
+[output]
+v1_required = [
+  "summary.parquet",
+  "top_merchants.csv",
+  "quality.json",
+  "merchant_analytics.parquet",
+  "country_summary.parquet",
+  "session_analytics.parquet",
+  "promotion_impact.parquet",
+  "pivot_revenue.parquet",
+]
+v2_additional = [
+  "enriched_transactions.parquet",
+  "quarantine.parquet",
+  "quality_v2.json",
+]
+schema_policy = "exact columns and order from pipeline_contract.md and public_data/expected"
+sort_policy = [
+  "summary.parquet:event_month,country,tier,context_bucket",
+  "top_merchants.csv:country,merchant_revenue_desc,merchant_id",
+  "merchant_analytics.parquet:merchant_id,event_date,row_id",
+  "country_summary.parquet:country",
+  "session_analytics.parquet:merchant_id,session_id",
+  "promotion_impact.parquet:merchant_id,event_date,row_id,promo_id",
+  "pivot_revenue.parquet:event_month",
+  "enriched_transactions.parquet:merchant_id,event_date,row_id",
+  "quarantine.parquet:row_id",
+]
+null_policy = "growth-window nulls remain null; quarantine preserves input nulls; pivot cells are 0.0; joined valid rows have complete reference fields"
+timezone_policy = "parse ISO-8601 offsets as instants and emit every datetime as timezone-aware UTC"
+float_policy = "round output floats to 6 decimal places"
+json_policy = "UTF-8, compact separators, lexicographically sorted keys"
+input_isolation = "the --in directory contains input/reference files only and never expected outputs"

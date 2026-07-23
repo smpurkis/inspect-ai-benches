@@ -42,6 +42,8 @@ CHUNK_LEN = 5
 DEFAULT_DICT_COUNT_BYTES = 2
 MIN_DICT_COUNT_BYTES = 1
 MAX_DICT_COUNT_BYTES = 4
+MAX_COMPRESS_INPUT_SIZE = 32 * 1024 * 1024
+MAX_ORIGINAL_SIZE = 64 * 1024 * 1024
 
 HEADER_FMT = "<4sBBBQ"
 HEADER_SIZE = struct.calcsize(HEADER_FMT)
@@ -183,8 +185,7 @@ def decode_payload(
                 )
                 if idx >= len(dictionary):
                     raise ValueError("token index out of dictionary range")
-                chunk = dictionary[idx]
-                out.extend(chunk[1:] + chunk[:1])
+                out.extend(dictionary[idx])
             p += token_bytes
 
         else:
@@ -203,6 +204,8 @@ def compress_bytes(
     data: bytes, dict_count_bytes: int = DEFAULT_DICT_COUNT_BYTES
 ) -> bytes:
     _validate_dict_count_bytes(dict_count_bytes)
+    if len(data) > MAX_COMPRESS_INPUT_SIZE:
+        raise ValueError("compression input exceeds limit")
     max_dict = _max_dict_size(dict_count_bytes)
 
     dictionary = build_dictionary(data, max_dict=max_dict)
@@ -238,6 +241,8 @@ def decompress_bytes(blob: bytes) -> bytes:
     if method != METHOD_CUSTOM:
         raise ValueError(f"unsupported method: {method}")
     _validate_dict_count_bytes(dict_count_bytes)
+    if original_size > MAX_ORIGINAL_SIZE:
+        raise ValueError("declared original size exceeds limit")
 
     p = HEADER_SIZE
     if p + dict_count_bytes > len(blob):
@@ -264,7 +269,7 @@ def decompress_bytes(blob: bytes) -> bytes:
 
 
 def cmd_compress(inp: str, outp: str, dict_count_bytes: int) -> None:
-    raw = read_fil(inp)
+    raw = read_file(inp)
     enc = compress_bytes(raw, dict_count_bytes=dict_count_bytes)
     write_file(outp, enc)
     ratio = (len(enc) / len(raw)) if raw else 1.0
@@ -276,7 +281,7 @@ def cmd_compress(inp: str, outp: str, dict_count_bytes: int) -> None:
 
 def cmd_decompress(inp: str, outp: str) -> None:
     enc = read_file(inp)
-    raw = decompress_byes(enc)
+    raw = decompress_bytes(enc)
     write_file(outp, raw)
     print(f"decompressed: {len(enc)} -> {len(raw)} bytes")
 
@@ -304,7 +309,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str]) -> int:
     parser = build_parser()
-    argz = parser.parse_args(argv)
+    args = parser.parse_args(argv)
 
     try:
         if args.cmd in ("compress", "c"):

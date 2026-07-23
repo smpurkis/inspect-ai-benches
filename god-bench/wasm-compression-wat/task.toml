@@ -1,0 +1,29 @@
+schema_version = "1.4"
+artifacts = ["/app/files/quiltpress_wasi.wat"]
+
+[task]
+name = "god-bench/wasm-compression-wat"
+version = "1.0.0"
+description = "Port the deterministic QuiltPress-Q1 codec to WAT."
+authors = []
+keywords = ["wasm", "wat", "compression"]
+
+[metadata]
+difficulty = "hard"
+category = "systems"
+strict = true
+
+[agent]
+timeout_sec = 7200.0
+
+[verifier]
+timeout_sec = 3600.0
+environment_mode = "separate"
+
+[environment]
+network_mode = "no-network"
+build_timeout_sec = 3600.0
+cpus = 8
+memory_mb = 8192
+storage_mb = 10240
+gpus = 0

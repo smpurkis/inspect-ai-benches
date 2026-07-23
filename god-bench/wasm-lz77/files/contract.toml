@@ -1,0 +1,35 @@
+[task]
+id = "wasm-lz77"
+entry = "/app/files/run_lz77.sh"
+compress = "bash /app/files/run_lz77.sh compress INPUT OUTPUT"
+decompress = "bash /app/files/run_lz77.sh decompress INPUT OUTPUT"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+build = "wat2wasm /app/files/lz77.wat -o /app/files/lz77.wasm"
+outputs = ["/app/files/lz77.wasm"]
+
+[limits]
+max_agent_turns = 24
+max_weighted_tool_cost = 44
+max_public_test_runs = 3
+max_file_read_bytes = 180000
+max_model_tokens = 32000
+wall_clock_seconds = 900
+
+[policy]
+network = false
+editable = ["lz77.wat"]
+require_determinism = true
+
+[format]
+name = "LZ77-T1"
+literal = "control 0x00..0x7f; length = control + 1; followed by length literal bytes"
+backreference = "control 0x80..0xff; length = (control & 0x7f) + 3; followed by uint16_le(distance - 1)"
+distance_range = "1..32768 bytes before the current output position"
+copy_semantics = "copy one byte at a time from output[-distance], so source and destination may overlap"
+stream = "zero or more tokens with no header or terminator; the empty stream encodes empty input"
+canonical_encoder = "deterministic; emit only matches of length >= 3; never use a distance above 32768"
+
+[codec_limits]
+max_input_bytes = 8388608
+max_output_bytes = 33554432
+command_timeout_seconds = 120

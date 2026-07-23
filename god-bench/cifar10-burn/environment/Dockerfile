@@ -28,4 +28,22 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
         pytest-json-ctrf==0.3.5 \
         pytest-timeout
 
+# Resolve, vendor, and compile the exact starter dependency graph while the
+# image can access crates.io. Runtime cargo commands are forced offline.
+WORKDIR /tmp/cifar-infer-cache
+COPY Cargo.toml ./Cargo.toml
+RUN mkdir -p src && \
+    printf 'fn main() {}\n' > src/main.rs && \
+    printf 'fn main() {}\n' > src/train.rs
+RUN cargo vendor --quiet --versioned-dirs /opt/cargo-vendor && \
+    install -m 0444 Cargo.lock /opt/cifar-infer-Cargo.lock && \
+    mkdir -p /usr/local/cargo && \
+    printf '[net]\noffline = true\n\n[source.crates-io]\nreplace-with = "vendored-sources"\n\n[source.vendored-sources]\ndirectory = "/opt/cargo-vendor"\n' \
+        > /usr/local/cargo/config.toml && \
+    cargo check --quiet --offline && \
+    rm -rf /tmp/cifar-infer-cache/target
+
+ENV CARGO_NET_OFFLINE=true \
+    RAYON_NUM_THREADS=8 \
+    OMP_NUM_THREADS=8
 WORKDIR /app

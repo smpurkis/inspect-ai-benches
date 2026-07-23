@@ -23,7 +23,9 @@ import math
 import os
 import random
 import re
+import shutil
 import subprocess
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -32,6 +34,18 @@ from scipy.integrate import solve_ivp, quad
 BINARY = "/app/target/release/gr_sim"
 HIDDEN_FIXTURES = "/app/hidden/fixtures"
 TMP_DIR = "/tmp"
+FILES = Path("/app/files")
+APP = Path("/app")
+
+
+def _stage_project():
+    """Copy canonical read-only project files and the editable library."""
+    shutil.copyfile(FILES / "Cargo.toml", APP / "Cargo.toml")
+    shutil.copytree(FILES / "src", APP / "src", dirs_exist_ok=True)
+    shutil.copytree(FILES / "rust_tests", APP / "tests", dirs_exist_ok=True)
+    shutil.copytree(
+        Path("/app/hidden/rust_tests"), APP / "tests", dirs_exist_ok=True
+    )
 
 
 # ------------------------------------------------------------------
@@ -39,8 +53,9 @@ TMP_DIR = "/tmp"
 # ------------------------------------------------------------------
 
 def _build():
+    _stage_project()
     result = subprocess.run(
-        ["cargo", "build", "--release"],
+        ["cargo", "build", "--release", "--offline"],
         capture_output=True, text=True, cwd="/app", timeout=300,
     )
     assert result.returncode == 0, f"Build failed:\n{result.stderr[-2000:]}"
@@ -62,6 +77,18 @@ def _run_seed_path(path):
     return json.loads(r.stdout)
 
 
+def test_hidden_direct_rust_api_helpers():
+    _stage_project()
+    result = subprocess.run(
+        ["cargo", "test", "--release", "--offline", "--test", "hidden_api"],
+        capture_output=True, text=True, cwd="/app", timeout=300,
+    )
+    assert result.returncode == 0, (
+        f"hidden direct Rust API tests failed:\n"
+        f"{result.stdout[-1500:]}\n{result.stderr[-3000:]}"
+    )
+
+
 def _write_tmp_seed(name, seed):
     path = os.path.join(TMP_DIR, name)
     with open(path, "w") as f:
@@ -79,6 +106,26 @@ def _schwarzschild_pressure(rho_0, M, R, r):
     inner = math.sqrt(max(1.0 - C * (r * r) / (R * R), 0.0))
     outer = math.sqrt(max(1.0 - C, 0.0))
     return rho_0 * (inner - outer) / (3.0 * outer - inner)
+
+
+def _uniform_baryon_mass(rho_0, M, R):
+    compactness = 2.0 * M / R
+    radial_integral = R**3 * (
+        math.asin(math.sqrt(compactness))
+        - math.sqrt(compactness * (1.0 - compactness))
+    ) / (2.0 * compactness**1.5)
+    return 4.0 * math.pi * rho_0 * radial_integral
+
+
+def _assert_finite_tree(value):
+    if isinstance(value, dict):
+        for child in value.values():
+            _assert_finite_tree(child)
+    elif isinstance(value, list):
+        for child in value:
+            _assert_finite_tree(child)
+    elif isinstance(value, (int, float)):
+        assert math.isfinite(value)
 
 
 def _schwarzschild_lapse(M, R, r):
@@ -127,6 +174,88 @@ def _cycloid_eta_h(M, R_b):
     if cos_eta <= -1.0:
         return math.pi
     return math.acos(cos_eta)
+
+
+def test_hidden_visible_uniform_tov_contract():
+    """Retain the detailed public-seed TOV checks behind the hidden boundary."""
+    _build()
+    seed_path = os.path.join(FILES, "fixtures", "seed_tov_uniform.json")
+    seed = json.load(open(seed_path))["tov"]
+    out = _run_seed_path(seed_path)["tov"]
+    rho_0 = seed["central_density"]
+    mass = out["total_mass"]
+    radius = out["stellar_radius"]
+
+    expected_mass = (4.0 / 3.0) * math.pi * rho_0 * radius**3
+    np.testing.assert_allclose(mass, expected_mass, rtol=1e-3)
+    np.testing.assert_allclose(
+        out["baryon_mass"], _uniform_baryon_mass(rho_0, mass, radius), rtol=5e-3
+    )
+
+    profile = out["profile"]
+    assert len(profile) == 50
+    for index in (5, 15, 25, 35, 45):
+        point = profile[index]
+        expected_pressure = _schwarzschild_pressure(
+            rho_0, mass, radius, point["r"]
+        )
+        np.testing.assert_allclose(
+            point["pressure"], expected_pressure, atol=1e-6, rtol=5e-3
+        )
+
+    expected_surface_lapse = math.sqrt(1.0 - 2.0 * mass / radius)
+    np.testing.assert_allclose(profile[-1]["lapse"], expected_surface_lapse, atol=2e-4)
+    pressures = [point["pressure"] for point in profile]
+    assert all(right <= left + 1e-10 for left, right in zip(pressures, pressures[1:]))
+    assert out["central_pressure"] > 0.0 and mass > 0.0 and radius > 0.0
+    assert 0.0 < out["compactness"] < 8.0 / 9.0
+    _assert_finite_tree(out)
+
+
+def test_hidden_visible_os_contract_and_determinism():
+    """Retain exact OS formulas, trajectory invariants, and deterministic output."""
+    _build()
+    seed_path = os.path.join(FILES, "fixtures", "seed_os_standard.json")
+    seed = json.load(open(seed_path))["collapse"]
+    first = _run_seed_path(seed_path)["collapse"]
+    second = _run_seed_path(seed_path)["collapse"]
+    assert first == second
+    _assert_finite_tree(first)
+
+    mass, radius = seed["mass"], seed["initial_radius"]
+    scale = math.sqrt(radius**3 / (8.0 * mass))
+    eta_h = _cycloid_eta_h(mass, radius)
+    np.testing.assert_allclose(first["tau_singularity"], math.pi * scale, rtol=1e-4)
+    np.testing.assert_allclose(
+        first["tau_horizon"], scale * (eta_h + math.sin(eta_h)), rtol=1e-3
+    )
+    np.testing.assert_allclose(first["horizon_radius"], 2.0 * mass, atol=1e-5)
+
+    trajectory = first["trajectory"]
+    initial = trajectory[0]
+    np.testing.assert_allclose(initial["scale_factor"], 1.0, atol=1e-6)
+    np.testing.assert_allclose(initial["r_surface"], radius, atol=1e-6)
+    np.testing.assert_allclose(initial["energy"], -mass / radius**3, atol=1e-9)
+    assert seed["num_steps"] == 10000 and len(trajectory) == 51
+    assert 0.0 < first["tau_horizon"] < first["tau_singularity"]
+    taus = [point["tau"] for point in trajectory]
+    assert taus[0] == 0.0
+    assert all(right > left for left, right in zip(taus, taus[1:]))
+
+    before = [point for point in trajectory if point["tau"] <= first["tau_horizon"]]
+    after = [point for point in trajectory if point["tau"] >= first["tau_horizon"]]
+    assert before[-1]["r_surface"] >= first["horizon_radius"] - 1e-6
+    assert after[0]["r_surface"] <= first["horizon_radius"] + 1e-6
+    surfaces = [point["r_surface"] for point in trajectory]
+    assert all(right <= left + 1e-10 for left, right in zip(surfaces, surfaces[1:]))
+    assert trajectory[-1]["scale_factor"] <= 1e-3
+    energy0 = initial["energy"]
+    drift = max(
+        abs(point["energy"] - energy0)
+        for point in trajectory
+        if point["scale_factor"] > 1e-12
+    )
+    assert drift < 1e-7
 
 
 # ------------------------------------------------------------------
@@ -368,6 +497,11 @@ def test_hidden_tov_polytrope_tooper_grid(K, Gamma, rho_c):
         err_msg=f"K={K} Γ={Gamma} ρ_c={rho_c:.3e}: "
                 f"R={out['stellar_radius']:.6f} vs scipy {R_ref:.6f}"
     )
+    np.testing.assert_allclose(
+        out["baryon_mass"], M_baryon_ref, rtol=2e-2,
+        err_msg=f"K={K} Γ={Gamma} ρ_c={rho_c:.3e}: "
+                f"M_b={out['baryon_mass']:.6f} vs scipy {M_baryon_ref:.6f}"
+    )
 
 
 # ------------------------------------------------------------------
@@ -485,6 +619,10 @@ def test_hidden_os_random_input_cycloid():
             err_msg=f"random[{n}] M={M:.4f} R_b={R_b:.4f}: "
                     f"tau_H {out['tau_horizon']:.6f} != cycloid {tau_H_exp:.6f}"
         )
+        assert 0.0 < out["tau_horizon"] < out["tau_singularity"]
+        assert len(out["trajectory"]) == 51
+        taus = [point["tau"] for point in out["trajectory"]]
+        assert all(right > left for left, right in zip(taus, taus[1:]))
 
 
 # ------------------------------------------------------------------
@@ -607,7 +745,7 @@ def test_hidden_tov_polytrope_random(K, Gamma, rho_c):
     )
     out = _run_seed_path(seed_path)["tov"]
 
-    M_ref, R_ref, _ = _scipy_tov_polytrope(rho_c, K, Gamma)
+    M_ref, R_ref, M_baryon_ref = _scipy_tov_polytrope(rho_c, K, Gamma)
 
     np.testing.assert_allclose(
         out["total_mass"], M_ref, rtol=1e-2,
@@ -618,6 +756,11 @@ def test_hidden_tov_polytrope_random(K, Gamma, rho_c):
         out["stellar_radius"], R_ref, rtol=1e-2,
         err_msg=f"random poly K={K} Γ={Gamma} ρ_c={rho_c:.3e}: "
                 f"R={out['stellar_radius']:.6f} vs scipy {R_ref:.6f}"
+    )
+    np.testing.assert_allclose(
+        out["baryon_mass"], M_baryon_ref, rtol=2e-2,
+        err_msg=f"random poly K={K} Γ={Gamma} ρ_c={rho_c:.3e}: "
+                f"M_b={out['baryon_mass']:.6f} vs scipy {M_baryon_ref:.6f}"
     )
 
 
@@ -631,7 +774,7 @@ def test_hidden_source_no_hardcoded_fixture_literals():
     model that copies numerical answers into a Rust lookup table instead of
     integrating the equations.
     """
-    with open("/app/src/lib.rs") as f:
+    with open("/app/files/src/lib.rs") as f:
         source = f.read()
 
     forbidden = [

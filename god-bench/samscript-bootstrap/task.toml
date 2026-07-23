@@ -1,0 +1,29 @@
+schema_version = "1.4"
+artifacts = ["/app/files/samscript_bootstrap.sam"]
+
+[task]
+name = "god-bench/samscript-bootstrap"
+version = "1.0.0"
+description = "Implement a self-hosted SamScript interpreter."
+authors = []
+keywords = ["interpreter", "bootstrap", "language"]
+
+[metadata]
+difficulty = "hard"
+category = "systems"
+strict = true
+
+[agent]
+timeout_sec = 14400.0
+
+[verifier]
+timeout_sec = 3600.0
+environment_mode = "separate"
+
+[environment]
+network_mode = "no-network"
+build_timeout_sec = 3600.0
+cpus = 8
+memory_mb = 8192
+storage_mb = 10240
+gpus = 0

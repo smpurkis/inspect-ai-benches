@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import hashlib
+import random
 import struct
 import subprocess
 import tempfile
@@ -24,6 +25,16 @@ def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def load_module(name: str, path: Path):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(name, path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def run_runner(*args: str) -> None:
     cmd = ["bash", str(RUNNER), *args]
     try:
@@ -32,6 +43,7 @@ def run_runner(*args: str) -> None:
             check=True,
             capture_output=True,
             text=True,
+            timeout=135,
         )
     except subprocess.CalledProcessError as exc:
         raise AssertionError(
@@ -41,6 +53,17 @@ def run_runner(*args: str) -> None:
             f"stdout:\n{exc.stdout}\n"
             f"stderr:\n{exc.stderr}"
         ) from exc
+    except subprocess.TimeoutExpired as exc:
+        raise AssertionError(f"runner command timed out\ncmd: {cmd}") from exc
+
+
+def run_runner_result(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["bash", str(RUNNER), *args],
+        capture_output=True,
+        text=True,
+        timeout=135,
+    )
 
 
 def _roundtrip(path: Path, tmpdir: Path) -> tuple[bytes, bytes, bytes]:
@@ -58,13 +81,8 @@ def test_hidden_cross_codec_wasm_compress_python_decompress() -> None:
     """Compress with WASM runner, decompress with Python reference codec.
 
     Proves format compatibility between the WASM and Python implementations."""
-    import importlib.util
-
     ref_path = HIDDEN_DIR / "quiltpress_q1_reference.py"
-    spec = importlib.util.spec_from_file_location("quiltpress_q1_reference", ref_path)
-    assert spec is not None and spec.loader is not None
-    ref = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(ref)
+    ref = load_module("quiltpress_q1_reference", ref_path)
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tmp = Path(tmpdir)
@@ -151,13 +169,8 @@ def test_different_inputs_different_compressed() -> None:
 
 def test_cross_codec_python_compress_wasm_decompress() -> None:
     """Compress with Python reference, decompress with WASM runner."""
-    import importlib.util
-
     ref_path = HIDDEN_DIR / "quiltpress_q1_reference.py"
-    spec = importlib.util.spec_from_file_location("quiltpress_q1_ref2", ref_path)
-    assert spec is not None and spec.loader is not None
-    ref = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(ref)
+    ref = load_module("quiltpress_q1_ref2", ref_path)
 
     original = b"The quick brown fox jumps over the lazy dog. " * 50
     compressed = ref.compress_bytes(original)
@@ -207,6 +220,135 @@ def test_roundtrip_large_repetitive() -> None:
         run_runner("compress", str(inp), str(comp))
         run_runner("decompress", str(comp), str(rest))
         assert rest.read_bytes() == data, "roundtrip failed on large repetitive data"
+
+
+def test_roundtrip_seeded_generated_inputs() -> None:
+    """Cover deterministic incompressible data and command-count boundaries."""
+    rng = random.Random(0x51505831)
+    block = rng.randbytes(37)
+    cases = {
+        "incompressible": rng.randbytes(4096),
+        "repeated": block * 300,
+        "literal_boundary": bytes(range(255)) + b"\xff" + bytes(range(255)),
+        "token_boundary": b"abcde" * 256,
+    }
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+        for name, data in cases.items():
+            inp = tmp / f"{name}.bin"
+            inp.write_bytes(data)
+            original, decoded, _ = _roundtrip(inp, tmp)
+            assert decoded == original, f"{name} roundtrip failed"
+
+
+def test_seeded_encoding_is_deterministic() -> None:
+    rng = random.Random(0xD37E)
+    data = rng.randbytes(1024) + b"deterministic-token" * 300
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+        inp = tmp / "deterministic.bin"
+        out_a = tmp / "a.qtp"
+        out_b = tmp / "b.qtp"
+        inp.write_bytes(data)
+        run_runner("compress", str(inp), str(out_a))
+        run_runner("compress", str(inp), str(out_b))
+        assert out_a.read_bytes() == out_b.read_bytes()
+
+
+def test_generated_wasm_output_is_reference_compatible() -> None:
+    ref_path = HIDDEN_DIR / "quiltpress_q1_reference.py"
+    ref = load_module("quiltpress_generated_ref", ref_path)
+
+    rng = random.Random(0xC0DEC)
+    data = rng.randbytes(2048) + b"cross-codec-block" * 200
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+        inp = tmp / "generated.bin"
+        compressed = tmp / "generated.qtp"
+        inp.write_bytes(data)
+        run_runner("compress", str(inp), str(compressed))
+        assert ref.decompress_bytes(compressed.read_bytes()) == data
+
+
+def test_rejects_malformed_qpx1_streams() -> None:
+    header = struct.pack("<4sBBBQ", b"QPX1", 1, 2, 1, 1)
+    malformed = {
+        "bad_magic": b"NOPE" + header[4:] + b"\x00",
+        "bad_version": header[:4] + b"\x02" + header[5:] + b"\x00",
+        "bad_method": header[:5] + b"\x03" + header[6:] + b"\x00",
+        "bad_width": header[:6] + b"\x00" + header[7:] + b"\x00",
+        "truncated_literal": header + b"\x00\x00\x02A",
+        "zero_literal": header + b"\x00\x00\x00",
+        "unknown_command": header + b"\x00\xff\x01A",
+        "invalid_token": header + b"\x00\x01\x01\x00",
+        "size_mismatch": header + b"\x00",
+        "truncated_dictionary": header + b"\x01abcd",
+    }
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+        for name, blob in malformed.items():
+            inp = tmp / f"{name}.qtp"
+            out = tmp / f"{name}.out"
+            inp.write_bytes(blob)
+            result = run_runner_result("decompress", str(inp), str(out))
+            assert result.returncode != 0, f"accepted malformed case {name}"
+
+
+def test_reference_oracle_known_vector_and_candidate_decoder() -> None:
+    ref = load_module(
+        "quiltpress_known_vector", HIDDEN_DIR / "quiltpress_q1_reference.py"
+    )
+    blob = (
+        struct.pack("<4sBBBQ", b"QPX1", 1, 2, 1, 5)
+        + b"\x01"
+        + b"abcde"
+        + b"\x01\x01\x00"
+    )
+    assert ref.decompress_bytes(blob) == b"abcde"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+        encoded = tmp / "known.qpx"
+        output = tmp / "known.out"
+        encoded.write_bytes(blob)
+        run_runner("decompress", str(encoded), str(output))
+        assert output.read_bytes() == b"abcde"
+
+
+def test_visible_and_hidden_format_references_agree() -> None:
+    visible = load_module(
+        "quiltpress_visible", BASE.parent / "files" / "quiltpress_q1.py"
+    )
+    hidden = load_module(
+        "quiltpress_hidden", HIDDEN_DIR / "quiltpress_q1_reference.py"
+    )
+    rng = random.Random(0xA61EE)
+    data = rng.randbytes(513) + b"abcde" * 100
+    visible_blob = visible.compress_bytes(data)
+    hidden_blob = hidden.compress_bytes(data)
+    assert visible_blob == hidden_blob
+    assert visible.decompress_bytes(hidden_blob) == data
+    assert hidden.decompress_bytes(visible_blob) == data
+
+
+def test_resource_limits_and_sandboxed_preopens() -> None:
+    huge_header = struct.pack("<4sBBBQ", b"QPX1", 1, 2, 1, 64 * 1024 * 1024 + 1)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp = Path(tmpdir)
+        encoded = tmp / "huge.qpx"
+        output = tmp / "output"
+        encoded.write_bytes(huge_header + b"\x00")
+        result = run_runner_result("decompress", str(encoded), str(output))
+        assert result.returncode != 0, "accepted oversized declared output"
+
+        oversized = tmp / "oversized.bin"
+        with oversized.open("wb") as stream:
+            stream.truncate(32 * 1024 * 1024 + 1)
+        result = run_runner_result("compress", str(oversized), str(output))
+        assert result.returncode != 0, "accepted oversized compression input"
+
+    runner = RUNNER.read_text()
+    assert "--dir / --" not in runner
+    assert "::/input" in runner and "::/output" in runner
 
 
 # ---------------------------------------------------------------------------
