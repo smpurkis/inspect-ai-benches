@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import json
 from pathlib import Path
 import shlex
@@ -9,7 +10,7 @@ from types import SimpleNamespace
 import pytest
 from harbor.models.task.config import NetworkMode
 
-from common.harbor_agent import GodBenchAgent, validate_plan
+from common.harbor_agent import GodBenchAgent
 
 
 class Result:
@@ -113,22 +114,15 @@ def _response(content="", tool_calls=None, prompt=10, completion=5):
     }
 
 
-def test_plan_requires_exact_typed_json():
-    assert validate_plan('{"target_files":["main.py"],"hypothesis":"x","first_check":"read"}')
-    with pytest.raises(ValueError):
-        validate_plan('{"target_files":[],"hypothesis":"x","first_check":"read"}')
-
-
 def test_agent_uploads_files_runs_one_tool_at_a_time_and_populates_context(tmp_path):
     responses = [
-        _response('{"target_files":["main.py"],"hypothesis":"value is wrong","first_check":"read"}'),
         _response(tool_calls=[{"id": "1", "function": {"name": "strict_edit", "arguments": json.dumps({"path": "main.py", "old_text": "value = 1", "new_text": "value = 2"})}}]),
         _response("implemented"),
     ]
     requests = []
 
     async def completion(**kwargs):
-        requests.append(kwargs)
+        requests.append(copy.deepcopy(kwargs))
         return responses.pop(0)
 
     async def exercise():
@@ -145,17 +139,20 @@ def test_agent_uploads_files_runs_one_tool_at_a_time_and_populates_context(tmp_p
         assert env.files["/app/files/main.py"] == b"value = 2\n"
         assert env.files["/logs/artifacts/god-bench/files/main.py"] == b"value = 2\n"
         artifact = json.loads(env.files["/logs/agent/agent_usage.json"])
-        assert artifact["trace"]["model_tokens"] == 45
+        assert artifact["trace"]["model_tokens"] == 30
         assert artifact["trace"]["weighted_tool_cost"] == 1
-        assert context.n_input_tokens == 30
+        assert context.n_input_tokens == 20
         assert context.n_cache_tokens == 0
-        assert context.n_output_tokens == 15
-        assert context.metadata["plan_valid"] is True
-        assert requests[0]["max_tokens"] == 120
-        assert requests[0]["response_format"] == {"type": "json_object"}
+        assert context.n_output_tokens == 10
         assert requests[0]["temperature"] == 0.0
-        assert requests[1]["parallel_tool_calls"] is False
-        assert all(tool["function"]["name"] != "shell" for tool in requests[1]["tools"])
+        assert [message["role"] for message in requests[0]["messages"]] == [
+            "system",
+            "user",
+        ]
+        assert requests[0]["messages"][1]["content"] == "Fix the value."
+        assert "response_format" not in requests[0]
+        assert requests[0]["parallel_tool_calls"] is False
+        assert all(tool["function"]["name"] != "shell" for tool in requests[0]["tools"])
 
     asyncio.run(exercise())
 
@@ -203,42 +200,5 @@ def test_agent_marks_missing_provider_usage_invalid(tmp_path):
 
         assert context.metadata["usage"]["provider_usage_valid"] is False
         assert "omitted token usage" in context.metadata["final_text"]
-
-    asyncio.run(exercise())
-
-
-def test_agent_retries_invalid_plan_once(tmp_path):
-    responses = [
-        _response("not json"),
-        _response(
-            '{"target_files":["main.py"],"hypothesis":"fix",'
-            '"first_check":"read"}'
-        ),
-        _response("finished"),
-    ]
-
-    async def completion(**kwargs):
-        return responses.pop(0)
-
-    async def exercise():
-        env = MemoryEnvironment()
-        context = SimpleNamespace(
-            n_input_tokens=None,
-            n_cache_tokens=None,
-            n_output_tokens=None,
-            cost_usd=None,
-            metadata=None,
-        )
-        agent = GodBenchAgent(
-            logs_dir=tmp_path / "logs",
-            model_name="openai/test",
-            task_dir=_challenge(tmp_path / "challenge"),
-            completion_fn=completion,
-        )
-
-        await agent.run("Fix the value.", env, context)
-
-        assert context.metadata["plan_valid"] is True
-        assert context.n_output_tokens == 15
 
     asyncio.run(exercise())

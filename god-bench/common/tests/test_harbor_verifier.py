@@ -74,6 +74,8 @@ class VerifierEnvironment:
         if words[:3] == ["stat", "-c", "%s"]:
             path = words[-1]
             return Result(0, f"{len(self.files[path])}\n") if path in self.files else Result(1)
+        if words[:2] == ["test", "-f"]:
+            return Result(0 if words[2] in self.files else 1)
         if words and words[0] in {"mkdir", "rm"}:
             if words[0] == "rm":
                 for root in ("/app/hidden", "/app/.god-bench-verifier-plugin"):

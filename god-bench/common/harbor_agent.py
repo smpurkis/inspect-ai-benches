@@ -19,39 +19,11 @@ from .budgeted_tools import StrictToolRuntime, ToolDefinition
 from .tool_policy import is_editable_path
 
 
-PLAN_PROMPT = (
-    "Before using tools, return only JSON with non-empty target_files (string array), "
-    "hypothesis, and first_check. Use at most 120 output tokens and do not claim to "
-    "have inspected files."
-)
 SYSTEM_PROMPT = (
     "You are a bounded coding agent. Work only through the supplied strict tools. "
     "Never request a shell or hidden tests. Preserve files outside the contract's "
     "editable scope. Make the smallest correct change and finish when ready."
 )
-
-
-def validate_plan(value: str) -> dict[str, Any]:
-    """Validate the mandatory, compact planning handshake."""
-
-    try:
-        plan = json.loads(value)
-    except (TypeError, json.JSONDecodeError) as error:
-        raise ValueError("plan must be one JSON object") from error
-    if not isinstance(plan, dict) or set(plan) != {
-        "target_files",
-        "hypothesis",
-        "first_check",
-    }:
-        raise ValueError("plan must contain exactly the required fields")
-    targets = plan["target_files"]
-    if not isinstance(targets, list) or not targets or not all(
-        isinstance(item, str) and item.strip() for item in targets
-    ):
-        raise ValueError("target_files must be a non-empty string array")
-    if not all(isinstance(plan[key], str) and plan[key].strip() for key in ("hypothesis", "first_check")):
-        raise ValueError("hypothesis and first_check must be non-empty strings")
-    return plan
 
 
 def _get(value: Any, name: str, default: Any = None) -> Any:
@@ -214,7 +186,6 @@ class GodBenchAgent(BaseAgent):
         *,
         max_tokens: int,
         tools: list[dict[str, Any]] | None = None,
-        response_format: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         if not runtime.budget.permits(turns=1):
             raise RuntimeError("agent turn budget exhausted")
@@ -250,8 +221,6 @@ class GodBenchAgent(BaseAgent):
                 tool_choice="auto",
                 parallel_tool_calls=False,
             )
-        if response_format is not None:
-            kwargs["response_format"] = response_format
         try:
             response = await self._completion(**kwargs)
         except BaseException:
@@ -307,48 +276,14 @@ class GodBenchAgent(BaseAgent):
         )
         runtime.trace.task_text_tokens = (len(instruction.encode()) + 3) // 4
         runtime.trace.benchmark_boilerplate_tokens = (
-            len((PLAN_PROMPT + SYSTEM_PROMPT).encode()) + 3
+            len(SYSTEM_PROMPT.encode()) + 3
         ) // 4
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": instruction},
-            {"role": "user", "content": PLAN_PROMPT},
         ]
-        plan_valid = False
         final_text = ""
         try:
-            plan_error = "plan was not attempted"
-            for attempt in range(2):
-                plan_tokens_before = runtime.trace.model_output_tokens
-                plan_message = await self._call_model(
-                    runtime,
-                    messages,
-                    max_tokens=120,
-                    response_format={"type": "json_object"},
-                )
-                messages.append(plan_message)
-                if runtime.trace.model_output_tokens - plan_tokens_before > 120:
-                    plan_error = "plan exceeded 120 billed output tokens"
-                else:
-                    try:
-                        validate_plan(_text_content(plan_message))
-                        plan_valid = True
-                        break
-                    except ValueError as error:
-                        plan_error = str(error)
-                if attempt == 0:
-                    messages.append(
-                        {
-                            "role": "user",
-                            "content": (
-                                "Invalid plan. Retry once with only the required JSON "
-                                "object and no explanation."
-                            ),
-                        }
-                    )
-            if not plan_valid:
-                raise ValueError(plan_error)
-            messages.append({"role": "user", "content": "Plan accepted. Implement it using only the strict tools."})
             definitions = runtime.definitions()
             by_name = {definition.name: definition for definition in definitions}
             schemas = [definition.as_openai_tool() for definition in definitions]
@@ -452,7 +387,6 @@ class GodBenchAgent(BaseAgent):
             context.n_output_tokens = runtime.trace.model_output_tokens
             context.cost_usd = runtime.provider_cost_usd
             context.metadata = {
-                "plan_valid": plan_valid,
                 "final_text": final_text[:2000],
                 "usage": runtime.usage_artifact(),
                 "tool_output_chars": runtime.trace.tool_output_chars,
@@ -468,4 +402,4 @@ def _text_content(message: dict[str, Any]) -> str:
     return content if isinstance(content, str) else str(content)
 
 
-__all__ = ["GodBenchAgent", "validate_plan"]
+__all__ = ["GodBenchAgent"]

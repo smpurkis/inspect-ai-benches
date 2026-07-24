@@ -6,12 +6,12 @@ public_test = "python3 -m pytest -q /app/files/tests.py"
 outputs = ["cylinalg.c", "cylinalg*.so", "build/**"]
 
 [limits]
-max_model_tokens = 32000
+max_model_tokens = 200000
 max_agent_turns = 32
 max_weighted_tool_cost = 64
 max_public_test_runs = 3
 max_file_read_bytes = 300000
-wall_clock_seconds = 2400
+wall_clock_seconds = 10800
 
 [policy]
 network = false

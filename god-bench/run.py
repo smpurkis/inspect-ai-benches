@@ -11,12 +11,20 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
+import tomllib
+from urllib.parse import urlsplit, urlunsplit
 
 from common.reporting import build_report, load_trials
 
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_JOBS_DIR = ROOT / "jobs"
+AGENTS = {
+    "strict": "common.harbor_agent:GodBenchAgent",
+    "pi": "common.harbor_cli_agents:GodBenchPi",
+    "opencode": "common.harbor_cli_agents:GodBenchOpenCode",
+}
 
 
 def active_tasks() -> list[str]:
@@ -37,6 +45,41 @@ def _job_name(model: str) -> str:
     return f"god-bench-{safe_model}-{stamp}"
 
 
+def _container_base_url(value: str) -> str:
+    parsed = urlsplit(value)
+    if parsed.hostname not in {"127.0.0.1", "localhost"}:
+        return value
+    host = "172.17.0.1"
+    if parsed.port is not None:
+        host = f"{host}:{parsed.port}"
+    return urlunsplit((parsed.scheme, host, parsed.path, parsed.query, parsed.fragment))
+
+
+def _prepare_cli_tasks(selected: list[str], destination: Path) -> None:
+    for task in selected:
+        target = destination / task
+        shutil.copytree(ROOT / task, target)
+        contract = tomllib.loads(
+            (target / "files" / "contract.toml").read_text(encoding="utf-8")
+        )
+        wall_clock_seconds = int(contract["limits"]["wall_clock_seconds"])
+        config_path = target / "task.toml"
+        config = config_path.read_text(encoding="utf-8")
+        config = re.sub(
+            r"(?m)^timeout_sec = \d+(?:\.\d+)?$",
+            f"timeout_sec = {wall_clock_seconds}.0",
+            config,
+            count=1,
+        )
+        config = config.replace(
+            'network_mode = "no-network"', 'network_mode = "public"', 1
+        )
+        config = config.replace(
+            "[verifier]\n", '[verifier]\nnetwork_mode = "no-network"\n', 1
+        )
+        config_path.write_text(config, encoding="utf-8")
+
+
 def run_harbor(args: argparse.Namespace) -> int:
     harbor = shutil.which("harbor")
     if harbor is None:
@@ -51,13 +94,20 @@ def run_harbor(args: argparse.Namespace) -> int:
         )
 
     model = _model_name(args.model)
+    temporary_tasks = None
+    task_root = ROOT
+    if args.agent != "strict":
+        temporary_tasks = tempfile.TemporaryDirectory(prefix="god-bench-harbor-")
+        task_root = Path(temporary_tasks.name)
+        _prepare_cli_tasks(selected, task_root)
+
     command = [
         harbor,
         "run",
         "--path",
-        str(ROOT),
+        str(task_root),
         "--agent",
-        "common.harbor_agent:GodBenchAgent",
+        AGENTS[args.agent],
         "--model",
         model,
         "--verifier",
@@ -76,17 +126,28 @@ def run_harbor(args: argparse.Namespace) -> int:
         command.extend(["--include-task-name", task])
 
     environment = os.environ.copy()
-    environment["OPENAI_BASE_URL"] = args.base_url
+    agent_base_url = (
+        args.base_url if args.agent == "strict" else _container_base_url(args.base_url)
+    )
+    environment["OPENAI_BASE_URL"] = agent_base_url
     environment["OPENAI_API_KEY"] = args.api_key
+    if args.agent != "strict":
+        command.extend(["--agent-env", f"OPENAI_BASE_URL={agent_base_url}"])
+        command.extend(["--agent-env", f"OPENAI_API_KEY={args.api_key}"])
     environment["PYTHONPATH"] = os.pathsep.join(
         part for part in (str(ROOT), environment.get("PYTHONPATH", "")) if part
     )
-    return subprocess.run(command, cwd=ROOT, env=environment, check=False).returncode
+    try:
+        return subprocess.run(command, cwd=ROOT, env=environment, check=False).returncode
+    finally:
+        if temporary_tasks is not None:
+            temporary_tasks.cleanup()
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", required=False)
+    parser.add_argument("--agent", choices=sorted(AGENTS), default="strict")
     parser.add_argument("--base-url", default=os.environ.get("OPENAI_BASE_URL", ""))
     parser.add_argument("--api-key", default=os.environ.get("OPENAI_API_KEY", ""))
     parser.add_argument("--tasks", default="")

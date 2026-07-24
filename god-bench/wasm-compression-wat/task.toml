@@ -14,7 +14,7 @@ category = "systems"
 strict = true
 
 [agent]
-timeout_sec = 7200.0
+timeout_sec = 10800.0
 
 [verifier]
 timeout_sec = 3600.0

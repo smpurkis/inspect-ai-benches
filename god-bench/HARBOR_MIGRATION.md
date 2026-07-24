@@ -24,10 +24,12 @@ migrated.
 - [x] Binary correctness gating and correctness-first efficiency rewards.
 - [x] Native Harbor `result.json` reporting and leaderboard aggregation.
 - [x] Harbor live output and `harbor view` workflow.
+- [x] Native Pi and OpenCode adapters with task staging, local endpoint routing,
+  editable artifact publication, hard wall-time termination, and Harbor token telemetry.
 
 ## Verification
 
-- 54 common harness, task-manifest, verifier, tool-policy, usage, and reporting tests pass.
+- 58 common harness, task-manifest, verifier, tool-policy, usage, and reporting tests pass.
 - Harbor 0.20 loads all ten native task manifests.
 - All ten verifier Compose definitions validate.
 - All ten verifier scripts pass `bash -n`.
@@ -36,9 +38,9 @@ migrated.
   `jobs/native-validation/qwen36-native-validation/`.
 - The smoke completed one Harbor trial with no exception, used a separate verifier,
   left no task containers running, and produced complete native results.
-- The final physics smoke stopped before another request could exceed its 32k
-  budget: 23,180 billed tokens, 12 weighted tool cost, 15,974 read bytes, one
-  attempted implementation edit, and valid usage metadata.
+- The final physics smoke stopped before another request could exceed its
+  then-current 32k budget: 23,180 billed tokens, 12 weighted tool cost, 15,974
+  read bytes, one attempted implementation edit, and valid usage metadata.
 - Verification overlaid only `physics2d.py`; public diagnostic pass fraction was
   0.667, hidden diagnostic pass fraction was 0.216, and binary correctness was 0.
 - Missing provider usage fails efficiency validation closed, editable artifact
@@ -48,8 +50,16 @@ migrated.
   Harbor exceptions. The context run recorded 7 unique files opened, 2 relevant
   files opened, and 0.286 retrieval precision, then correctly received binary
   failure from the isolated verifier.
+- A 12-trial Qwen3.6 evaluation covered `pandas-to-polars-single`, `wasm-lz77`,
+  `samscript-bootstrap`, and `rust-python-pyo3` with the strict, Pi, and OpenCode
+  harnesses. All 12 received binary correctness 0. Strict runs retained valid
+  contract usage; Pi and OpenCode retained native Harbor input/cache/output token
+  telemetry while strict efficiency remained invalid by design.
 
 ## Pending Calibration
 
+- All active tasks currently use a permissive 200k billed-token ceiling so
+  difficult successful trajectories can be observed before final calibration.
+- All active tasks currently allow up to three hours of agent wall-clock time.
 - Run multiple capable and weaker model baselines across all ten tasks.
 - Set final task budgets from successful-run percentiles.

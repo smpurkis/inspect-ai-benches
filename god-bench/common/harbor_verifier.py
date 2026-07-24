@@ -234,6 +234,11 @@ class GodBenchVerifier(BaseVerifier):
             await self._cleanup_new_processes(baseline)
 
     async def _read_usage(self) -> dict[str, Any] | None:
+        present = await self.environment.exec(
+            f"test -f {shlex.quote(ARTIFACT_USAGE_FILE)}", timeout_sec=10
+        )
+        if _return_code(present) != 0:
+            return None
         try:
             return json.loads((await _download_bytes(self.environment, ARTIFACT_USAGE_FILE)).decode())
         except (FileNotFoundError, UnicodeDecodeError, json.JSONDecodeError):

@@ -9,8 +9,8 @@ max_agent_turns = 36
 max_weighted_tool_cost = 64
 max_public_test_runs = 4
 max_file_read_bytes = 45000
-wall_clock_seconds = 1800
-max_model_tokens = 32768
+wall_clock_seconds = 10800
+max_model_tokens = 200000
 
 [budgets.compiler]
 max_runs = 4

@@ -10,7 +10,10 @@ def _trial(model: str, task: str, solved: bool, tokens: int, efficiency: float):
         "task_name": task,
         "started_at": "2026-07-23T10:00:00+00:00",
         "finished_at": "2026-07-23T10:00:10+00:00",
-        "agent_info": {"model_info": {"provider": "openai", "name": model}},
+        "agent_info": {
+            "name": "god-bench-strict",
+            "model_info": {"provider": "openai", "name": model},
+        },
         "agent_result": {
             "metadata": {
                 "usage": {
@@ -64,4 +67,25 @@ def test_report_keeps_capability_but_excludes_invalid_efficiency_usage():
 
     assert "1/1" in report
     assert "       0.000" in report
-    assert "            n/a" in report
+    assert "              1" in report
+
+
+def test_report_uses_native_agent_tokens_when_verifier_usage_is_invalid():
+    trial = _trial("native", "a", True, 0, 0.0)
+    trial["verifier_result"]["rewards"]["usage_valid"] = 0
+    trial["agent_result"].update({"n_input_tokens": 120, "n_output_tokens": 30})
+
+    report = build_report([trial])
+
+    assert "            150" in report
+
+
+def test_report_groups_harnesses_separately():
+    strict = _trial("same-model", "a", True, 100, 1.0)
+    native = _trial("same-model", "a", False, 10, 0.0)
+    native["agent_info"]["name"] = "god-bench-pi"
+
+    report = build_report([strict, native])
+
+    assert "god-bench-strict | openai/same-model" in report
+    assert "god-bench-pi | openai/same-model" in report

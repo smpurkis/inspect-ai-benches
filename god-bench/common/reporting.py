@@ -43,6 +43,28 @@ def _usage(trial: dict[str, Any]) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
+def _model_tokens(trial: dict[str, Any]) -> int | None:
+    reward_tokens = _rewards(trial).get("model_tokens")
+    if isinstance(reward_tokens, (int, float)) and not isinstance(reward_tokens, bool):
+        if reward_tokens > 0:
+            return int(reward_tokens)
+    result = trial.get("agent_result") or {}
+    input_tokens = result.get("n_input_tokens")
+    output_tokens = result.get("n_output_tokens")
+    if all(
+        isinstance(value, (int, float)) and not isinstance(value, bool)
+        for value in (input_tokens, output_tokens)
+    ):
+        total = int(input_tokens) + int(output_tokens)
+        return total if total > 0 else None
+    return None
+
+
+def _agent_model(trial: dict[str, Any]) -> str:
+    agent = str((trial.get("agent_info") or {}).get("name") or "unknown-agent")
+    return f"{agent} | {_model(trial)}"
+
+
 def _elapsed(trial: dict[str, Any]) -> float | None:
     try:
         start = datetime.fromisoformat(trial["started_at"])
@@ -60,7 +82,7 @@ def build_report(trials: Iterable[dict[str, Any]]) -> str:
     rows = list(trials)
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for trial in rows:
-        grouped[_model(trial)].append(trial)
+        grouped[_agent_model(trial)].append(trial)
 
     aggregates: list[dict[str, Any]] = []
     for model, attempts in grouped.items():
@@ -77,8 +99,7 @@ def build_report(trials: Iterable[dict[str, Any]]) -> str:
             float(_rewards(trial).get("efficiency", 0.0)) for trial in valid_solved
         ]
         tokens = [
-            int(_rewards(trial).get("model_tokens", 0))
-            for trial in valid_solved
+            value for trial in attempts if (value := _model_tokens(trial)) is not None
         ]
         tool_costs = [
             int(_rewards(trial).get("weighted_tool_cost", 0))
@@ -120,7 +141,7 @@ def build_report(trials: Iterable[dict[str, Any]]) -> str:
     lines = [
         "GOD-Bench native Harbor results",
         "",
-        "Rank  Model                                      Solved  Budgeted  Efficiency  Median tokens  Tool cost  Elapsed  Retrieval",
+        "Rank  Agent / Model                              Solved  Budgeted  Efficiency  Median tokens  Tool cost  Elapsed  Retrieval",
         "----  -----------------------------------------  ------  --------  ----------  -------------  ---------  -------  ---------",
     ]
     for rank, item in enumerate(aggregates, 1):

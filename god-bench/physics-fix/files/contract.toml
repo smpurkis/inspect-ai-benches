@@ -6,12 +6,12 @@ build = "cp /app/files/Cargo.toml /app/Cargo.toml && mkdir -p /app/src && cp /ap
 public_test = "python3 -m pytest -q /app/files/tests.py"
 
 [limits]
-max_model_tokens = 24000
+max_model_tokens = 200000
 max_agent_turns = 28
 max_weighted_tool_cost = 56
 max_public_test_runs = 3
 max_file_read_bytes = 240000
-wall_clock_seconds = 2100
+wall_clock_seconds = 10800
 
 [policy]
 network = false

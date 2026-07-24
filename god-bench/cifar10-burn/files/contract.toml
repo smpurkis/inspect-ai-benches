@@ -20,11 +20,11 @@ inference_binary = "/app/files/cifar-infer/target/release/cifar-infer"
 
 [limits]
 max_agent_turns = 28
-max_model_tokens = 24000
+max_model_tokens = 200000
 max_weighted_tool_cost = 52
 max_public_test_runs = 2
 max_file_read_bytes = 180000
-wall_clock_seconds = 3600
+wall_clock_seconds = 10800
 
 [ml]
 max_training_seconds = 1200
