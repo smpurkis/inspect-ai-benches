@@ -20,8 +20,9 @@ uv sync
 ```
 
 It defaults to `Qwen3.8-Flash-Next-Gufo-Gyro-M-Stream`; override with
-`GOD_BENCH_MODEL`, `GOD_BENCH_BASE_URL`, and `GOD_BENCH_API_KEY`. You can also
-invoke the runner directly:
+`GOD_BENCH_MODEL`, `GOD_BENCH_BASE_URL`, and `GOD_BENCH_API_KEY`, or copy
+`.env.local.example` to `.env.local` (gitignored) to keep local endpoint
+settings out of the repo. You can also invoke the runner directly:
 
 ```bash
 uv run python run.py \
