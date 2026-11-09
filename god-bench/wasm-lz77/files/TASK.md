@@ -1,11 +1,11 @@
-# LZ77 in WAT/WASM
+# Canonical LZ77 Match Search
 
-Edit exactly `/app/files/lz77.wat`.
+Edit exactly `/app/files/candidate_kernel.wat` (target: 70-125 WAT LOC).
 
-Implement the deterministic, lossless LZ77-T1 codec in WAT for entry `/app/files/run_lz77.sh`. Use `bash /app/files/run_lz77.sh compress INPUT OUTPUT` and `bash /app/files/run_lz77.sh decompress INPUT OUTPUT`. The trusted build generates `/app/files/lz77.wasm`; the runner recompiles the submitted WAT for execution.
+Complete `$find_match`. Return the longest length up to 130 in the preceding 32 KiB, choosing the smallest distance on ties. Return `(length << 32) | distance`, or zero below length three.
 
-Follow the exact stream format and codec limits in `contract.toml`. Reject malformed streams. Identical inputs must produce identical encodings, and repetitive inputs must compress below half their original size.
+Trusted fragments supply WASI, I/O, limits, decoder, emitters, and the encoder loop. `build_wasm.sh` assembles them with the candidate into temporary WAT and atomically writes the declared `lz77.wasm` output.
 
-Work offline using only WAT/WASM. Do not modify the generated artifact, runner, tests, or corpus. Each command is limited to 120 seconds, 8 MiB of input, and 32 MiB of output.
+Work offline using only WAT/WASM. Do not modify trusted files or generated output. Limits are in `contract.toml`.
 
 Run `python3 -m pytest -q /app/files/tests.py`.

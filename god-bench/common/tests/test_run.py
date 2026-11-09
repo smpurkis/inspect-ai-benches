@@ -25,5 +25,5 @@ def test_prepare_cli_tasks_changes_only_phase_networking(tmp_path):
     config = (tmp_path / "pandas-to-polars-single" / "task.toml").read_text()
     assert '[environment]\nnetwork_mode = "public"' in config
     assert '[verifier]\nnetwork_mode = "no-network"' in config
-    assert "timeout_sec = 10800.0" in config
+    assert "timeout_sec = 43200.0" in config
     assert (tmp_path / "pandas-to-polars-single" / "files" / "contract.toml").is_file()

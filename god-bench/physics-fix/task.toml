@@ -1,12 +1,12 @@
 schema_version = "1.4"
-artifacts = ["/app/files/src/lib.rs"]
+artifacts = ["/app/files/src/event.rs"]
 
 [task]
 name = "god-bench/physics-fix"
-version = "1.0.0"
-description = "Repair a deterministic general-relativity ODE solver in Rust."
+version = "2.0.0"
+description = "Localize physical events in supplied RK45 dense output."
 authors = []
-keywords = ["rust", "physics", "numerical-methods"]
+keywords = ["rust", "physics", "ode", "dense-output", "root-finding"]
 
 [metadata]
 difficulty = "hard"
@@ -14,7 +14,8 @@ category = "physics"
 strict = true
 
 [agent]
-timeout_sec = 10800.0
+timeout_sec = 43200.0
+max_model_tokens = 72000
 
 [verifier]
 timeout_sec = 3600.0

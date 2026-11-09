@@ -1,0 +1,7 @@
+name: god-bench-aligned-reallocator
+
+services:
+  main:
+    build:
+      context: ../environment
+      dockerfile: Dockerfile

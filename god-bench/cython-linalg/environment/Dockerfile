@@ -22,7 +22,3 @@ WORKDIR /app
 
 # Make agent's compiled module importable
 ENV PYTHONPATH="/app/files"
-
-# --- Fixture data ---
-COPY gen_fixtures.py /tmp/gen_fixtures.py
-RUN python3 /tmp/gen_fixtures.py && rm /tmp/gen_fixtures.py

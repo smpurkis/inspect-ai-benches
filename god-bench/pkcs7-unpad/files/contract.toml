@@ -1,0 +1,30 @@
+[task]
+id = "pkcs7-unpad"
+entry = "/app/files/src/unpad.c"
+build = "make -C /app/files clean all"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+
+[limits]
+max_model_tokens = 72000
+max_agent_turns = 20
+max_weighted_tool_cost = 36
+max_public_test_runs = 4
+max_file_read_bytes = 120000
+wall_clock_seconds = 43200
+
+[policy]
+network = false
+editable = ["src/unpad.c"]
+require_determinism = true
+
+[implementation]
+read_only = ["Makefile", "src/unpad.h", "src/cli.c", "tests.py", "TASK.md", "instructions.md"]
+writable_outputs = ["/app/files/build/**"]
+allowed_dependencies = []
+target_patch_lines = "20-45"
+
+[api]
+signature = "int pkcs7_unpad(const uint8_t *input, size_t input_len, size_t block_size, size_t *output_len)"
+success = "return 1 and set output_len to input_len minus the padding length"
+failure = "return 0 and leave output_len unchanged"
+constant_time = "for equal input_len and block_size, padding-byte values must produce identical branch and input-load traces"

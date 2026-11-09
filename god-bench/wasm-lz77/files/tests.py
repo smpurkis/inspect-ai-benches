@@ -1,110 +1,41 @@
-"""Smoke tests for the public LZ77-T1 contract."""
+"""Public examples for the compact LZ77 match-search task."""
 
-import os
 import subprocess
 import tempfile
+from pathlib import Path
 
-FILES = "/app/files"
-RUNNER = os.path.join(FILES, "run_lz77.sh")
-WAT = os.path.join(FILES, "lz77.wat")
-WASM = os.path.join(FILES, "lz77.wasm")
-CORPUS = os.path.join(FILES, "corpus")
+BASE = Path(__file__).resolve().parent
+RUNNER = BASE / "run_lz77.sh"
 
 
-def compress(src: str, dst: str, *, timeout=30):
-    r = subprocess.run(["bash", RUNNER, "compress", src, dst],
-                       capture_output=True, text=True, timeout=timeout)
-    return r.returncode, r.stdout, r.stderr
+def run(mode: str, data: bytes) -> bytes:
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        source, output = root / "input", root / "output"
+        source.write_bytes(data)
+        result = subprocess.run(
+            ["bash", str(RUNNER), mode, str(source), str(output)],
+            capture_output=True, timeout=30,
+        )
+        assert result.returncode == 0, result.stderr.decode(errors="replace")
+        return output.read_bytes()
 
 
-def decompress(src: str, dst: str, *, timeout=30):
-    r = subprocess.run(["bash", RUNNER, "decompress", src, dst],
-                       capture_output=True, text=True, timeout=timeout)
-    return r.returncode, r.stdout, r.stderr
+def test_normal_known_canonical_match() -> None:
+    assert run("compress", b"abcabcabc") == b"\x02abc\x83\x02\x00"
 
 
-def roundtrip(data: bytes, *, timeout=30) -> bytes:
-    """Compress then decompress data; return decompressed bytes."""
-    with tempfile.NamedTemporaryFile(delete=False) as f:
-        f.write(data)
-        orig = f.name
-    compressed = orig + ".lz77"
-    restored = orig + ".out"
-    try:
-        rc, out, err = compress(orig, compressed, timeout=timeout)
-        assert rc == 0, f"compress failed (rc={rc}):\n{err}"
-        assert os.path.isfile(compressed), "compress produced no output file"
-
-        rc, out, err = decompress(compressed, restored, timeout=timeout)
-        assert rc == 0, f"decompress failed (rc={rc}):\n{err}"
-        assert os.path.isfile(restored), "decompress produced no output file"
-
-        return open(restored, "rb").read()
-    finally:
-        for p in (orig, compressed, restored):
-            if os.path.exists(p):
-                os.unlink(p)
+def test_edge_empty_stream() -> None:
+    assert run("compress", b"") == b""
+    assert run("decompress", b"") == b""
 
 
-# ---------------------------------------------------------------------------
-# Artifact checks
-# ---------------------------------------------------------------------------
-
-def test_trusted_artifacts_present():
-    assert os.path.isfile(WAT), f"{WAT} not found"
-    assert os.path.isfile(WASM), f"{WASM} not found"
-    assert os.path.isfile(RUNNER), "run_lz77.sh not found"
-    assert os.access(RUNNER, os.X_OK), "run_lz77.sh not executable"
+def test_overlap_decoder_invariant() -> None:
+    assert run("decompress", b"\x00A\xff\x00\x00") == b"A" * 131
 
 
-def test_wasm_compiles_from_wat():
-    """WAT source can be compiled by wat2wasm."""
-    with tempfile.NamedTemporaryFile(suffix=".wasm", delete=False) as f:
-        tmp_wasm = f.name
-    try:
-        r = subprocess.run(["wat2wasm", WAT, "-o", tmp_wasm], capture_output=True, text=True)
-        assert r.returncode == 0, f"wat2wasm failed:\n{r.stderr}"
-        assert os.path.getsize(tmp_wasm) > 0
-    finally:
-        if os.path.exists(tmp_wasm):
-            os.unlink(tmp_wasm)
-
-
-def test_basic_roundtrips():
-    for data in (b"", b"Hello, World!", bytes(range(256)), b"abc" * 400):
-        assert roundtrip(data) == data
-
-
-# ---------------------------------------------------------------------------
-# Compression ratio
-# ---------------------------------------------------------------------------
-
-def compression_ratio(data: bytes) -> float:
-    """Return ratio = compressed_size / original_size (lower is better)."""
-    with tempfile.NamedTemporaryFile(delete=False) as f:
-        f.write(data)
-        orig = f.name
-    compressed = orig + ".lz77"
-    try:
-        rc, _, err = compress(orig, compressed)
-        assert rc == 0, f"compress failed: {err}"
-        return os.path.getsize(compressed) / len(data)
-    finally:
-        for p in (orig, compressed):
-            if os.path.exists(p):
-                os.unlink(p)
-
-
-def test_repetitive_data_compresses_deterministically():
-    data = b"abcdefgh" * 1000
-    assert compression_ratio(data) < 0.5
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        source = os.path.join(tmpdir, "input")
-        first = os.path.join(tmpdir, "first")
-        second = os.path.join(tmpdir, "second")
-        with open(source, "wb") as stream:
-            stream.write(data)
-        assert compress(source, first)[0] == 0
-        assert compress(source, second)[0] == 0
-        assert open(first, "rb").read() == open(second, "rb").read()
+def test_deterministic_rerun() -> None:
+    data = b"abcdefgh" * 80
+    first = run("compress", data)
+    assert first == run("compress", data)
+    assert run("decompress", first) == data

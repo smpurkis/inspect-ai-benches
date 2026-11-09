@@ -1,17 +1,9 @@
-Implement `physics2d.py`; it is the only editable file.
+# Collision kernels
 
-Run `python3 /app/files/physics2d.py --config <config.json> --output
-<output.jsonl> --steps <N>`.
-Implement the deterministic semi-implicit 2D rigid-body solver defined in
-`physics_spec.md`: rectangle/circle contacts, rotation, restitution, Coulomb
-friction, accumulated impulses, position correction, and walls.
+Repair the manifold and impulse functions in `collision_kernels.py`; it is the only editable file. `physics2d.py` supplies the complete deterministic engine.
 
-`contract.toml` defines limits and fixed policies. `schema.json` defines config
-and JSONL record schemas. `physics_spec.md` is authoritative for numerical
-behavior and tie-breaking.
+`circle_box_manifold(circle, box)` transforms into box-local coordinates, clamps to the half-extents, and returns `(normal, penetration, contact)` only for strict overlap. The unit normal points from box to circle in world space. For an inside center, choose the nearest face with deterministic x-before-y tie-breaking; penetration is `radius + distance_to_face`. Contact is always `circle_center - radius * normal`.
 
-Use Python stdlib and NumPy only; work offline. Preserve body IDs, emit exactly
-one schema-valid record per step, sort bodies by ID, keep all state finite, round
-state floats to six decimals, and do not modify tests, schemas, or specifications.
+`clamp_normal` and `clamp_friction` add raw increments, clamp the new accumulator, and return `(new, new-old)`. `solve_contact(...)` performs one sequential impulse iteration. Include angular contact velocity and effective mass, low-speed restitution suppression, and geometric material combination. Clamp accumulated normal impulse to `[0,+inf)` and accumulated tangent impulse to `[-sqrt(muA*muB)*accN,+sqrt(muA*muB)*accN]`; apply only each accumulator delta. Recompute contact velocity after the normal delta and preserve accumulators when separating or tangential speed is negligible.
 
-Run `python3 -m pytest -q /app/files/tests.py`.
+Use stdlib only, keep calculations finite and deterministic, and run `python3 -m pytest -q /app/files/tests.py`.

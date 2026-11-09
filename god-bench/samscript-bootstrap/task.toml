@@ -1,12 +1,12 @@
 schema_version = "1.4"
-artifacts = ["/app/files/samscript_bootstrap.sam"]
+artifacts = ["/app/files/runtime.py"]
 
 [task]
 name = "god-bench/samscript-bootstrap"
-version = "1.0.0"
-description = "Implement a self-hosted SamScript interpreter."
+version = "2.0.0"
+description = "Complete lexical scopes and non-local control propagation in a scaffolded SamScript bootstrap runtime."
 authors = []
-keywords = ["interpreter", "bootstrap", "language"]
+keywords = ["interpreter", "bootstrap", "scope", "control-flow"]
 
 [metadata]
 difficulty = "hard"
@@ -14,7 +14,7 @@ category = "systems"
 strict = true
 
 [agent]
-timeout_sec = 10800.0
+timeout_sec = 43200.0
 
 [verifier]
 timeout_sec = 3600.0

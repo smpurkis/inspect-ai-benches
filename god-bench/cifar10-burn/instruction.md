@@ -1,13 +1,14 @@
-# CIFAR-10 with Burn
+# Deterministic CIFAR-10 Training Policy
 
-Edit exactly:
+Edit only `/app/files/cifar-infer/src/training_policy.rs`. The Burn model, data loader, optimizer loop, checkpoint serialization, and policy probe are supplied. Implement four deterministic policy functions used by the trusted trainer:
 
-- `/app/files/cifar-infer/src/model.rs`
-- `/app/files/cifar-infer/src/train.rs`
-- `/app/files/cifar-infer/training.toml`
+- `augmentation(seed, epoch, sample_id)` returns a horizontal-flip flag and integer crop offsets in `[-4, 4]`. Form `state = seed ^ sample_id * 0x9E3779B97F4A7C15 ^ rotate_left(epoch, 32)` with wrapping `u64` arithmetic, apply the SplitMix64 finalizer implemented by the scaffold's `mix64`, then use bit 0 for `flip`, bits starting at 1 modulo 9 minus 4 for `pad_x`, and bits starting at 8 modulo 9 minus 4 for `pad_y`.
+- `learning_rate(base_lr, epoch, total_epochs)` linearly warms up through `min(5, total_epochs)` epochs, reaching `base_lr` on the final warmup epoch. It then follows half-cosine decay from `base_lr` to exactly zero at `epoch == total_epochs`. Reject non-finite/non-positive rates, zero total epochs, and epochs beyond the end.
+- `class_weights(counts)` returns `sum(counts) / (10 * counts[i])` for each of ten strictly positive class counts. Reject zero counts and overflow.
+- `prefer_checkpoint(candidate, current)` compares validation accuracy first (higher), validation loss second (lower), and epoch last (earlier). Reject non-finite metrics. A missing current checkpoint always loses to a valid candidate.
 
-Complete the Rust project entered by `/app/files/cifar-infer/Cargo.toml`. Using Burn 0.20's CPU ndarray backend, train only on `/app/files/cifar_tiny.npz` and write `/app/files/cifar-infer/model.mpk`. The inference CLI is `/app/files/cifar-infer/target/release/cifar-infer --input-npz <images.npz> --output-npy <predictions.npy>`; it must accept NCHW float32 `test_images` and emit a one-dimensional `uint8` array of class IDs 0-9. The trusted build also writes `/app/files/burn_public_test_preds.npy`.
+Do not use randomness, global mutable state, filesystem state, or new dependencies. Preserve the public API and error messages are not graded. A natural solution is 70-130 changed lines.
 
-Public, hidden, and perturbed-hidden accuracy must each be at least 60%. Training and inference must be deterministic. Work offline in Rust/Burn only: no Python, subprocesses, build scripts, pretrained artifacts, or delegated runtimes. Training is limited to 1,200 seconds, inference to 120 seconds, logs to 4,096 bytes per command, the model to 100 MB, and public predictions to 4,096 bytes. Exact commands and constraints are in `contract.toml`.
+Build with `cd /app/files/cifar-infer && cargo build --release --locked --offline`.
 
 Run `python3 -m pytest -q /app/files/tests.py`.

@@ -1,0 +1,29 @@
+schema_version = "1.4"
+artifacts = ["/app/files/src/aligned_pool.zig"]
+
+[task]
+name = "god-bench/aligned-reallocator"
+version = "1.0.0"
+description = "Repair aligned pool resize while preserving data and handle safety."
+authors = []
+keywords = ["zig", "allocator", "alignment"]
+
+[metadata]
+difficulty = "hard"
+category = "systems"
+strict = true
+
+[agent]
+timeout_sec = 43200.0
+
+[verifier]
+timeout_sec = 3600.0
+environment_mode = "separate"
+
+[environment]
+network_mode = "no-network"
+build_timeout_sec = 3600.0
+cpus = 4
+memory_mb = 4096
+storage_mb = 8192
+gpus = 0

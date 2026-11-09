@@ -1,0 +1,31 @@
+[task]
+id = "msgpack-incremental"
+entry = "/app/files/src/decode.rs"
+build = "cp /app/files/Cargo.toml /app/Cargo.toml && mkdir -p /app/src && cp /app/files/src/*.rs /app/src/ && cd /app && cargo build --offline"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+
+[limits]
+max_model_tokens = 72000
+max_agent_turns = 24
+max_weighted_tool_cost = 44
+max_public_test_runs = 3
+max_file_read_bytes = 180000
+wall_clock_seconds = 43200
+
+[policy]
+network = false
+editable = ["src/decode.rs"]
+require_determinism = true
+
+[implementation]
+read_only = ["Cargo.toml", "src/lib.rs", "src/main.rs", "tests.py", "rust_tests/**"]
+writable_outputs = ["/app/files/src/decode.rs", "/app/target/**"]
+allowed_dependencies = []
+
+[decoder]
+supported = ["nil", "bool", "integer", "array", "map"]
+integer_output = "i64"
+canonical_integers = true
+max_container_items = 100000
+depth_rule = "scalar=0; outer container=1; reject depth > configured maximum"
+error_state = "poisoned after the first malformed, non-canonical, limit, or finish-incomplete error"

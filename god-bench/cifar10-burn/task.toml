@@ -1,14 +1,10 @@
 schema_version = "1.4"
-artifacts = [
-    "/app/files/cifar-infer/src/model.rs",
-    "/app/files/cifar-infer/src/train.rs",
-    "/app/files/cifar-infer/training.toml",
-]
+artifacts = ["/app/files/cifar-infer/src/training_policy.rs"]
 
 [task]
 name = "god-bench/cifar10-burn"
-version = "1.0.0"
-description = "Train a deterministic CIFAR-10 classifier with Burn in Rust."
+version = "2.0.0"
+description = "Complete deterministic CIFAR-10 training policy kernels in Rust."
 authors = []
 keywords = ["rust", "burn", "machine-learning", "cifar10"]
 
@@ -18,7 +14,8 @@ category = "machine-learning"
 strict = true
 
 [agent]
-timeout_sec = 10800.0
+timeout_sec = 43200.0
+max_model_tokens = 72000
 
 [verifier]
 timeout_sec = 3600.0

@@ -1,35 +1,30 @@
 [task]
 id = "physics-fix"
-entry = "/app/files/src/lib.rs"
-cli = "/app/target/release/gr_sim --input <seed.json> [--output <out.json>]"
-build = "cp /app/files/Cargo.toml /app/Cargo.toml && mkdir -p /app/src && cp /app/files/src/*.rs /app/src/ && cd /app && cargo build --release --offline"
+entry = "/app/files/src/event.rs"
+build = "cp /app/files/Cargo.toml /app/Cargo.toml && rm -rf /app/src && cp -r /app/files/src /app/src && cd /app && cargo test --release --offline"
 public_test = "python3 -m pytest -q /app/files/tests.py"
 
 [limits]
-max_model_tokens = 200000
-max_agent_turns = 28
-max_weighted_tool_cost = 56
+max_model_tokens = 72000
+max_agent_turns = 20
+max_weighted_tool_cost = 40
 max_public_test_runs = 3
-max_file_read_bytes = 240000
-wall_clock_seconds = 10800
+max_file_read_bytes = 120000
+wall_clock_seconds = 43200
 
 [policy]
 network = false
-editable = ["src/lib.rs"]
+editable = ["src/event.rs"]
 require_determinism = true
 
 [implementation]
-read_only = ["Cargo.toml", "src/main.rs", "src/types.rs", "tests.py", "rust_tests/**", "fixtures/**"]
-writable_outputs = ["/app/src/lib.rs", "/app/target/**"]
-allowed_dependencies = ["serde", "serde_json", "clap"]
+read_only = ["Cargo.toml", "src/lib.rs", "tests.py"]
+writable_outputs = ["/app/src/event.rs", "/app/target/**"]
+allowed_dependencies = []
 
 [numerics]
 finite_outputs = true
-tov_mass_radius_rtol = 5e-3
-uniform_profile_rtol = 5e-3
-collapse_time_rtol = 1e-3
-energy_drift_max = 1e-7
-profile_points = 50
-trajectory_points = 51
-collapse_integration_resolution_field = "num_steps"
-trajectory_endpoints = ["initial", "near_singularity"]
+event_time_atol = 1e-9
+dense_state_atol = 1e-9
+directions = ["rising", "falling", "any"]
+events = ["pressure_zero", "horizon", "collapse"]

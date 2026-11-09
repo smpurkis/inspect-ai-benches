@@ -6,10 +6,12 @@ from pathlib import Path
 import shlex
 from types import SimpleNamespace
 
+import pytest
+
 from harbor.models.task.config import NetworkMode
 
 from budget import BudgetConfig
-from common.harbor_verifier import GodBenchVerifier
+from common.harbor_verifier import GodBenchVerifier, MAX_VERIFIER_LOG_BYTES
 from usage import USAGE_SCHEMA_VERSION, UsageTrace
 
 
@@ -21,12 +23,13 @@ class Result:
 
 
 class VerifierEnvironment:
-    def __init__(self, *, hidden_return_code=0):
+    def __init__(self, *, hidden_return_code=0, cleanup_error=False):
         self.files: dict[str, bytes] = {}
         self.directories = {"/app", "/logs", "/logs/artifacts", "/logs/verifier"}
         self.network_policy = SimpleNamespace(network_mode=NetworkMode.NO_NETWORK)
         self.hidden_return_code = hidden_return_code
         self.hidden_output = "SECRET hidden assertion\n1 failed in 0.01s"
+        self.cleanup_error = cleanup_error
 
     async def empty_dirs(self, dirs, chmod=True):
         for root in dirs:
@@ -78,6 +81,8 @@ class VerifierEnvironment:
             return Result(0 if words[2] in self.files else 1)
         if words and words[0] in {"mkdir", "rm"}:
             if words[0] == "rm":
+                if self.cleanup_error:
+                    raise RuntimeError("cleanup unavailable")
                 for root in ("/app/hidden", "/app/.god-bench-verifier-plugin"):
                     self.files = {p: v for p, v in self.files.items() if not p.startswith(root + "/")}
             return Result()
@@ -90,10 +95,12 @@ class VerifierEnvironment:
         if "/app/files/tests.py" in command:
             assert self.files["/app/files/tests.py"] == b"pristine public"
             assert self.files["/app/files/main.py"] == b"candidate"
+            self.files["/app/files/tests.py"] = b"mutated by public candidate"
             return Result(0, "1 passed in 0.01s")
         if "/app/hidden/hidden_tests.py" in command:
             assert "-p god_bench_order" in command
             assert self.files["/app/files/tests.py"] == b"pristine public"
+            assert self.files["/app/files/main.py"] == b"candidate"
             return Result(self.hidden_return_code, self.hidden_output if self.hidden_return_code else "1 passed in 0.01s")
         raise AssertionError(command)
 
@@ -108,7 +115,7 @@ def _task(tmp_path: Path):
     (files / "tests.py").write_bytes(b"pristine public")
     (files / "contract.toml").write_text(
         "[task]\npublic_test='python3 -m pytest -q /app/files/tests.py'\nbuild='true'\n"
-        "[policy]\neditable=['main.py']\n"
+        "[policy]\neditable=['main.py']\nforbid_imports=['pandas']\n"
     )
     (hidden / "hidden_tests.py").write_text("SECRET = True")
     return SimpleNamespace(task_dir=task_dir)
@@ -141,7 +148,6 @@ def test_verifier_reconstructs_pristine_overlays_editable_and_returns_rewards(tm
     async def exercise():
         env = VerifierEnvironment()
         env.files["/logs/artifacts/god-bench/files/main.py"] = b"candidate"
-        env.files["/logs/artifacts/god-bench/files/tests.py"] = b"tampered public"
         env.files["/logs/artifacts/god-bench/agent_usage.json"] = json.dumps(_usage()).encode()
         paths = SimpleNamespace(verifier_dir=tmp_path / "trial" / "verifier")
         verifier = GodBenchVerifier(task=_task(tmp_path), trial_paths=paths, environment=env)
@@ -156,6 +162,30 @@ def test_verifier_reconstructs_pristine_overlays_editable_and_returns_rewards(tm
         assert metadata["overlaid_files"] == ["main.py"]
         assert metadata["functional_pass"] is True
         assert isinstance(metadata["hidden_order_seed"], int)
+        assert (paths.verifier_dir / "build.stdout.txt").is_file()
+        assert (paths.verifier_dir / "build.stderr.txt").is_file()
+        assert (paths.verifier_dir / "hidden-build.stdout.txt").is_file()
+        assert (paths.verifier_dir / "hidden-build.stderr.txt").is_file()
+        assert (paths.verifier_dir / "public.stdout.txt").read_text() == "1 passed in 0.01s"
+        assert (paths.verifier_dir / "hidden.stdout.txt").read_text() == "1 passed in 0.01s"
+
+    asyncio.run(exercise())
+
+
+def test_verifier_rejects_undeclared_candidate_files(tmp_path):
+    async def exercise():
+        env = VerifierEnvironment()
+        env.files["/logs/artifacts/god-bench/files/main.py"] = b"candidate"
+        env.files["/logs/artifacts/god-bench/files/tests.py"] = b"tampered public"
+        paths = SimpleNamespace(verifier_dir=tmp_path / "trial" / "verifier")
+        verifier = GodBenchVerifier(task=_task(tmp_path), trial_paths=paths, environment=env)
+
+        result = await verifier.verify()
+
+        assert result.rewards["reward"] == 0
+        metadata = json.loads((paths.verifier_dir / "god_bench_metadata.json").read_text())
+        assert metadata["failure_category"] == "verifier_error"
+        assert env.files["/app/files/tests.py"] == b"pristine public"
 
     asyncio.run(exercise())
 
@@ -172,6 +202,46 @@ def test_hidden_failure_is_binary_and_hidden_output_is_redacted(tmp_path):
         assert result.rewards["efficiency"] == 0.0
         assert "SECRET" not in encoded
         assert "hidden assertion" not in encoded
+
+    asyncio.run(exercise())
+
+
+def test_verifier_logs_are_bounded_and_hidden_output_is_retained_for_audit(tmp_path):
+    async def exercise():
+        env = VerifierEnvironment(hidden_return_code=1)
+        env.hidden_output = (
+            "candidate.py:1\nE       assert false\nSECRET\n"
+            + "x\n" * MAX_VERIFIER_LOG_BYTES
+            + "1 failed in 0.01s\n"
+        )
+        env.files["/logs/artifacts/god-bench/files/main.py"] = b"candidate"
+        paths = SimpleNamespace(verifier_dir=tmp_path / "trial" / "verifier")
+
+        await GodBenchVerifier(
+            task=_task(tmp_path), trial_paths=paths, environment=env
+        ).verify()
+
+        hidden_log = paths.verifier_dir / "hidden.stdout.txt"
+        assert hidden_log.stat().st_size == MAX_VERIFIER_LOG_BYTES
+        assert b"SECRET" in hidden_log.read_bytes()
+        assert b"verifier log truncated" in hidden_log.read_bytes()
+
+    asyncio.run(exercise())
+
+
+def test_verifier_rejects_contract_forbidden_imports_from_cli_agents(tmp_path):
+    async def exercise():
+        env = VerifierEnvironment()
+        env.files["/logs/artifacts/god-bench/files/main.py"] = b"import pandas as pd\n"
+        paths = SimpleNamespace(verifier_dir=tmp_path / "trial" / "verifier")
+
+        result = await GodBenchVerifier(
+            task=_task(tmp_path), trial_paths=paths, environment=env
+        ).verify()
+
+        assert result.rewards["correctness"] == 0
+        metadata = json.loads((paths.verifier_dir / "god_bench_metadata.json").read_text())
+        assert metadata["failure_category"] == "policy_violation"
 
     asyncio.run(exercise())
 
@@ -204,7 +274,27 @@ def test_verifier_fails_closed_when_environment_is_not_offline(tmp_path):
         env.network_policy.network_mode = NetworkMode.PUBLIC
         paths = SimpleNamespace(verifier_dir=tmp_path / "trial" / "verifier")
         verifier = GodBenchVerifier(task=_task(tmp_path), trial_paths=paths, environment=env)
-        result = await verifier.verify()
-        assert result.rewards["reward"] == 0
+        with pytest.raises(RuntimeError, match="no-network"):
+            await verifier.verify()
+        metadata = json.loads((paths.verifier_dir / "god_bench_metadata.json").read_text())
+        assert metadata["failure_category"] == "verifier_error"
+        assert metadata["verifier_error_type"] == "RuntimeError"
+
+    asyncio.run(exercise())
+
+
+def test_verifier_reports_cleanup_infrastructure_errors_to_harbor(tmp_path):
+    async def exercise():
+        env = VerifierEnvironment(cleanup_error=True)
+        env.files["/logs/artifacts/god-bench/files/main.py"] = b"candidate"
+        paths = SimpleNamespace(verifier_dir=tmp_path / "trial" / "verifier")
+        verifier = GodBenchVerifier(task=_task(tmp_path), trial_paths=paths, environment=env)
+
+        with pytest.raises(RuntimeError, match="cleanup unavailable"):
+            await verifier.verify()
+
+        metadata = json.loads((paths.verifier_dir / "god_bench_metadata.json").read_text())
+        assert metadata["failure_category"] == "verifier_error"
+        assert metadata["verifier_error_type"] == "RuntimeError"
 
     asyncio.run(exercise())

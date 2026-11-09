@@ -1,0 +1,29 @@
+schema_version = "1.4"
+artifacts = ["/app/files/src/applyOperation.ts"]
+
+[task]
+name = "god-bench/json-patch-transactional"
+version = "1.0.0"
+description = "Repair transactional RFC 6902 move and copy operations."
+authors = []
+keywords = ["typescript", "json", "rfc6902", "transactions"]
+
+[metadata]
+difficulty = "hard"
+category = "software-engineering"
+strict = true
+
+[agent]
+timeout_sec = 43200.0
+
+[verifier]
+timeout_sec = 3600.0
+environment_mode = "separate"
+
+[environment]
+network_mode = "no-network"
+build_timeout_sec = 3600.0
+cpus = 4
+memory_mb = 4096
+storage_mb = 4096
+gpus = 0

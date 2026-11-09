@@ -1,0 +1,29 @@
+schema_version = "1.4"
+artifacts = ["/app/files/query.sql"]
+
+[task]
+name = "god-bench/bitemporal-entitlement"
+version = "1.0.0"
+description = "Resolve bitemporal entitlements with corrections and tombstones."
+authors = []
+keywords = ["postgresql", "sql", "bitemporal"]
+
+[metadata]
+difficulty = "hard"
+category = "database"
+strict = true
+
+[agent]
+timeout_sec = 43200.0
+
+[verifier]
+timeout_sec = 3600.0
+environment_mode = "separate"
+
+[environment]
+network_mode = "no-network"
+build_timeout_sec = 3600.0
+cpus = 4
+memory_mb = 4096
+storage_mb = 8192
+gpus = 0

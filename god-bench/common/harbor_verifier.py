@@ -18,6 +18,7 @@ from .budget import load_task_contract, parse_public_test_argv
 from .budgeted_tools import ARTIFACT_FILES_ROOT, ARTIFACT_USAGE_FILE
 from .budgeted_tools import MAX_EDITABLE_ARTIFACT_BYTES, MAX_TOTAL_ARTIFACT_BYTES
 from .tool_policy import (
+    forbidden_import,
     is_editable_path,
     is_output_path,
     normalize_test_feedback,
@@ -30,6 +31,7 @@ from .usage import summarize_usage_artifact
 METADATA_FILE = "/logs/verifier/god_bench_metadata.json"
 PLUGIN_ROOT = "/app/.god-bench-verifier-plugin"
 PLUGIN_FILE = f"{PLUGIN_ROOT}/god_bench_order.py"
+MAX_VERIFIER_LOG_BYTES = 256 * 1024
 
 
 def _return_code(result: Any) -> int:
@@ -149,7 +151,7 @@ class GodBenchVerifier(BaseVerifier):
             relative = source.removeprefix(prefix)
             destination = validate_app_files_path(relative)
             if not is_editable_path(destination, contract.editable):
-                continue
+                raise _CandidateRejected(f"undeclared candidate artifact: {relative}")
             if is_output_path(destination, contract.outputs):
                 continue
             canonical = await self.environment.exec(
@@ -174,11 +176,21 @@ class GodBenchVerifier(BaseVerifier):
             )
             if _return_code(made) != 0:
                 raise RuntimeError("could not create candidate parent")
-            await _upload_bytes(
-                self.environment,
-                destination,
-                await _download_bytes(self.environment, source),
-            )
+            payload = await _download_bytes(self.environment, source)
+            if Path(relative).suffix in {".py", ".pyx", ".pxd"}:
+                try:
+                    denied = forbidden_import(
+                        payload.decode("utf-8"), contract.policy.forbid_imports
+                    )
+                except UnicodeDecodeError as error:
+                    raise RuntimeError(
+                        f"candidate source is not UTF-8: {relative}"
+                    ) from error
+                if denied:
+                    raise _VerificationFailed(
+                        f"contract-forbidden import in {relative}: {denied}"
+                    )
+            await _upload_bytes(self.environment, destination, payload)
             copied.append(relative_app_files_path(destination))
         return copied
 
@@ -256,6 +268,18 @@ class GodBenchVerifier(BaseVerifier):
         except Exception:
             self.logger.warning("could not mirror GOD-Bench metadata into verifier environment")
 
+    def _write_phase_logs(self, phase: str, stdout: str, stderr: str) -> None:
+        directory = self.trial_paths.verifier_dir
+        directory.mkdir(parents=True, exist_ok=True)
+        marker = b"\n... verifier log truncated ...\n"
+        for stream, value in (("stdout", stdout), ("stderr", stderr)):
+            payload = value.encode("utf-8", errors="replace")
+            if len(payload) > MAX_VERIFIER_LOG_BYTES:
+                available = MAX_VERIFIER_LOG_BYTES - len(marker)
+                prefix = available // 2
+                payload = payload[:prefix] + marker + payload[-(available - prefix):]
+            (directory / f"{phase}.{stream}.txt").write_bytes(payload)
+
     async def verify(self) -> VerifierResult:
         safe: dict[str, Any] = {
             "functional_pass": False,
@@ -265,6 +289,7 @@ class GodBenchVerifier(BaseVerifier):
         }
         usage_artifact: dict[str, Any] | None = None
         cleanup_needed = False
+        infrastructure_error: Exception | None = None
         try:
             await self._require_offline()
             cleanup_needed = True
@@ -284,6 +309,7 @@ class GodBenchVerifier(BaseVerifier):
                 build_rc, build_out, build_err = await self._run_candidate(
                     contract.build, self.build_timeout
                 )
+                self._write_phase_logs("build", build_out, build_err)
                 if build_rc != 0:
                     safe["failure_category"] = normalize_test_feedback(
                         build_out, build_err, returncode=build_rc
@@ -296,6 +322,7 @@ class GodBenchVerifier(BaseVerifier):
             public_rc, public_out, public_err = await self._run_candidate(
                 public_command, self.test_timeout
             )
+            self._write_phase_logs("public", public_out, public_err)
             public_passed, public_total = _pytest_counts(
                 public_out, public_err, public_rc
             )
@@ -306,6 +333,21 @@ class GodBenchVerifier(BaseVerifier):
                 public_out, public_err, returncode=public_rc
             )
             safe["public_failure_category"] = public_feedback["failure_category"]
+
+            # Public candidate code is untrusted and may have changed task-owned files.
+            await self._reset_pristine(files)
+            copied = await self._overlay_candidates(contract)
+            safe["overlaid_files"] = copied
+            if contract.build:
+                build_rc, build_out, build_err = await self._run_candidate(
+                    contract.build, self.build_timeout
+                )
+                self._write_phase_logs("hidden-build", build_out, build_err)
+                if build_rc != 0:
+                    safe["failure_category"] = normalize_test_feedback(
+                        build_out, build_err, returncode=build_rc
+                    )["failure_category"]
+                    raise _VerificationFailed
 
             hidden_result = await self.environment.empty_dirs(["/app/hidden"], chmod=True)
             if hidden_result is not None and _return_code(hidden_result) != 0:
@@ -332,6 +374,7 @@ class GodBenchVerifier(BaseVerifier):
             hidden_rc, hidden_out, hidden_err = await self._run_candidate(
                 hidden_command, self.test_timeout
             )
+            self._write_phase_logs("hidden", hidden_out, hidden_err)
             hidden_passed, hidden_total = _pytest_counts(hidden_out, hidden_err, hidden_rc)
             safe["hidden_pass_fraction"] = (
                 hidden_passed / hidden_total if hidden_total else float(hidden_rc == 0)
@@ -347,11 +390,16 @@ class GodBenchVerifier(BaseVerifier):
                     "failure_category"
                 ]
             )
-        except _VerificationFailed:
+        except _CandidateRejected:
             pass
-        except TimeoutError:
-            safe["failure_category"] = "timeout"
+        except _VerificationFailed as error:
+            if str(error):
+                safe["failure_category"] = "policy_violation"
         except Exception as error:
+            infrastructure_error = error
+            if isinstance(error, TimeoutError):
+                safe["failure_category"] = "timeout"
+            safe["verifier_error_type"] = type(error).__name__
             self.logger.warning("GOD-Bench verification failed closed: %s", error)
         finally:
             if cleanup_needed:
@@ -359,7 +407,11 @@ class GodBenchVerifier(BaseVerifier):
                     await self.environment.exec(
                         f"rm -rf -- /app/hidden {shlex.quote(PLUGIN_ROOT)}", timeout_sec=30
                     )
-                except Exception:
+                except Exception as error:
+                    if infrastructure_error is None:
+                        infrastructure_error = error
+                        safe["failure_category"] = "verifier_error"
+                        safe["verifier_error_type"] = type(error).__name__
                     self.logger.warning("could not clean verifier-only hidden files")
 
         usage = summarize_usage_artifact(
@@ -367,6 +419,8 @@ class GodBenchVerifier(BaseVerifier):
         )
         metadata = {**safe, **usage}
         await self._write_metadata(metadata)
+        if infrastructure_error is not None:
+            raise infrastructure_error
         correctness = int(safe["functional_pass"] is True)
         return VerifierResult(
             rewards={
@@ -387,4 +441,8 @@ class _VerificationFailed(Exception):
     pass
 
 
-__all__ = ["GodBenchVerifier", "METADATA_FILE"]
+class _CandidateRejected(Exception):
+    pass
+
+
+__all__ = ["GodBenchVerifier", "MAX_VERIFIER_LOG_BYTES", "METADATA_FILE"]

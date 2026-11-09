@@ -1,11 +1,7 @@
-# Self-hosted SamScript interpreter
+# SamScript bootstrap runtime
 
-Edit only `/app/files/samscript_bootstrap.sam`. Implement a SamScript program that reads and executes another SamScript program when invoked as:
+Edit only `/app/files/runtime.py`. The supplied scanner, parser, expression evaluator, builtins, imports, and CLI are complete. Implement lexical scope lookup/assignment and statement execution so `return`, `break`, and `continue` propagate to the correct function or loop.
 
-```text
-/app/target/release/samscript run /app/files/samscript_bootstrap.sam -- run program.sam
-```
+Blocks create scopes. Shadowing never changes an outer binding, while assignment updates the nearest existing binding. Function calls have isolated frames; block scopes must be unwound on every control path. Loops consume only their own `break`/`continue`; functions consume only `return`. Invalid escaped control raises `RuntimeFault`.
 
-Its stdout and error behavior must match the reference interpreter for valid and invalid inputs. Work offline; do not invoke another interpreter from the solution or use canned output. The language contract and bootstrap builtins are in `language_spec.md`.
-
-Run `python3 -m pytest -q /app/files/tests.py`.
+Run `python3 -m pytest -q /app/files/tests.py`. Work offline and do not modify scaffold files.

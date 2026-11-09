@@ -1,0 +1,28 @@
+[task]
+id = "bitemporal-entitlement"
+entry = "/app/files/query.sql"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+
+[limits]
+max_model_tokens = 72000
+max_agent_turns = 24
+max_weighted_tool_cost = 44
+max_public_test_runs = 3
+max_file_read_bytes = 160000
+wall_clock_seconds = 43200
+
+[policy]
+network = false
+editable = ["query.sql"]
+require_determinism = true
+
+[implementation]
+read_only = ["schema.sql", "run_query.sh", "run_tests.sh", "tests.py", "TASK.md", "instructions.md"]
+writable_outputs = ["/tmp/bitemporal-pg/**"]
+allowed_dependencies = []
+
+[semantics]
+intervals = "half-open [start,end); NULL end is infinity"
+partition = ["tenant_id", "subject_id", "entitlement_key"]
+precedence = ["system_from DESC", "valid_from DESC", "revision_id DESC"]
+tombstone = "the winning tombstone suppresses the entitlement"

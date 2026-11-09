@@ -1,154 +1,63 @@
-"""Compact public smoke suite for the deterministic 2D physics CLI."""
+"""Public normal, edge, invariant, and determinism tests."""
 
-import json
+from __future__ import annotations
+
+import copy
 import math
-import os
-import subprocess
-import tempfile
+
+from collision_kernels import clamp_friction, clamp_normal, circle_box_manifold
+from physics2d import simulate
 
 
-SCRIPT = "/app/files/physics2d.py"
-STATE_KEYS = ("x", "y", "vx", "vy", "angle", "omega")
+def _circle(**values):
+    return {"id": 0, "shape": "circle", "x": 46.0, "y": 50.0, "vx": 8.0,
+            "vy": 0.0, "angle": 0.0, "omega": 0.0, "mass": 1.0, "r": 3.0,
+            "e": 0.5, "mu": 0.4} | values
 
 
-def run_sim(config: dict, steps: int, *, timeout=60):
-    with tempfile.NamedTemporaryFile(suffix=".json", mode="w", delete=False) as cf:
-        json.dump(config, cf)
-        config_path = cf.name
-    with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as output_file:
-        output_path = output_file.name
-    try:
-        result = subprocess.run(
-            [
-                "python3",
-                SCRIPT,
-                "--config",
-                config_path,
-                "--output",
-                output_path,
-                "--steps",
-                str(steps),
-            ],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
-        assert result.returncode == 0, result.stderr
-        with open(output_path, encoding="utf-8") as output:
-            lines = output.read().splitlines()
-        assert len(lines) == steps
-        return [json.loads(line) for line in lines]
-    finally:
-        os.unlink(config_path)
-        if os.path.exists(output_path):
-            os.unlink(output_path)
+def _box(**values):
+    return {"id": 1, "shape": "rect", "x": 50.0, "y": 50.0, "vx": 0.0,
+            "vy": 0.0, "angle": 0.0, "omega": 0.0, "mass": 2.0, "w": 4.0,
+            "h": 8.0, "e": 0.5, "mu": 0.4} | values
 
 
-def body(
-    id=0,
-    x=50.0,
-    y=50.0,
-    vx=0.0,
-    vy=0.0,
-    angle=0.0,
-    omega=0.0,
-    mass=1.0,
-    w=2.0,
-    h=2.0,
-    e=1.0,
-    mu=0.0,
-):
-    return {
-        "id": id,
-        "x": x,
-        "y": y,
-        "vx": vx,
-        "vy": vy,
-        "angle": angle,
-        "omega": omega,
-        "mass": mass,
-        "w": w,
-        "h": h,
-        "e": e,
-        "mu": mu,
-    }
+def _config(bodies, iterations=12):
+    return {"width": 200.0, "height": 200.0, "dt": 0.01, "g": 0.0,
+            "solver_iterations": iterations, "bodies": bodies}
 
 
-def config(bodies, width=200.0, height=200.0, dt=0.01, g=0.0):
-    return {
-        "width": width,
-        "height": height,
-        "dt": dt,
-        "g": g,
-        "solver_iterations": 10,
-        "bodies": bodies,
-    }
+def test_normal_axis_aligned_circle_box_contact() -> None:
+    hit = circle_box_manifold(_circle(), _box())
+    assert hit is not None
+    normal, depth, point = hit
+    assert normal == (-1.0, 0.0)
+    assert abs(depth - 1.0) < 1e-12
+    assert point == (49.0, 50.0)
 
 
-def test_cli_writes_requested_step_count():
-    assert os.path.isfile(SCRIPT), f"{SCRIPT} not found"
-    records = run_sim(config([body()]), 4)
-    assert [record["step"] for record in records] == [0, 1, 2, 3]
+def test_edge_inside_rotated_box_uses_nearest_face() -> None:
+    box = _box(angle=math.pi / 2, w=8.0, h=4.0)
+    hit = circle_box_manifold(_circle(x=50.0, y=53.8, r=0.5), box)
+    assert hit is not None
+    normal, depth, _ = hit
+    assert normal[1] > 0.999 and abs(normal[0]) < 1e-10
+    assert abs(depth - 0.7) < 1e-10
 
 
-def test_output_schema_and_body_order():
-    records = run_sim(config([body(id=2), body(id=0, x=20.0)]), 2)
-    for step, record in enumerate(records):
-        assert set(record) == {"step", "bodies"}
-        assert record["step"] == step
-        assert [item["id"] for item in record["bodies"]] == [0, 2]
-        for item in record["bodies"]:
-            assert set(item) == {"id", *STATE_KEYS}
-            for key in STATE_KEYS:
-                assert type(item[key]) in (int, float) and math.isfinite(item[key])
-                assert item[key] == round(item[key], 6)
+def test_invariant_many_iterations_do_not_add_energy() -> None:
+    assert clamp_normal(5.0, -8.0) == (0.0, -5.0)
+    assert clamp_friction(2.0, 4.0, 0.5, 6.0) == (3.0, 1.0)
+    bodies = [_circle(x=48.0, vx=8.0, e=0.6), _box(x=52.0, vx=-4.0, e=0.6)]
+    initial = sum(0.5 * b["mass"] * (b["vx"] ** 2 + b["vy"] ** 2) for b in bodies)
+    final = simulate(_config(bodies, iterations=30), copy.deepcopy(bodies), 1)[0]
+    mass = {body["id"]: body["mass"] for body in bodies}
+    energy = sum(0.5 * mass[b["id"]] * (b["vx"] ** 2 + b["vy"] ** 2)
+                 for b in final["bodies"])
+    assert energy <= initial + 1e-5
 
 
-def test_free_motion():
-    records = run_sim(
-        config(
-            [body(x=100.0, y=100.0, vx=5.0, vy=-3.0, angle=0.5, omega=2.0)],
-            width=1000.0,
-            height=1000.0,
-            dt=0.1,
-        ),
-        5,
-    )
-    for index, record in enumerate(records, start=1):
-        state = record["bodies"][0]
-        assert abs(state["x"] - (100.0 + 0.5 * index)) < 1e-4
-        assert abs(state["y"] - (100.0 - 0.3 * index)) < 1e-4
-        assert abs(state["angle"] - (0.5 + 0.2 * index)) < 1e-4
-        assert state["vx"] == 5.0 and state["vy"] == -3.0 and state["omega"] == 2.0
-
-
-def test_basic_wall_collision():
-    records = run_sim(
-        config([body(x=25.0, vx=10.0)], width=30.0, height=100.0, dt=0.1),
-        10,
-    )
-    velocities = [record["bodies"][0]["vx"] for record in records]
-    assert any(vx < 0 for vx in velocities)
-    assert all(abs(abs(vx) - 10.0) < 0.5 for vx in velocities)
-
-
-def test_basic_body_contact():
-    bodies = [
-        body(id=0, x=49.0, y=100.0, vx=10.0),
-        body(id=1, x=51.0, y=100.0, vx=-10.0),
-    ]
-    state = run_sim(config(bodies, dt=0.01), 1)[0]["bodies"]
-    assert state[0]["vx"] < -9.0
-    assert state[1]["vx"] > 9.0
-    assert state[0]["x"] < state[1]["x"]
-
-
-def test_deterministic():
-    simulation = config(
-        [
-            body(id=0, x=20.0, vx=5.0, omega=1.0),
-            body(id=1, x=80.0, vx=-3.0, mass=2.0, w=3.0, h=3.0),
-        ],
-        g=9.81,
-    )
-    assert run_sim(simulation, 20) == run_sim(simulation, 20)
+def test_deterministic_and_input_order_independent() -> None:
+    bodies = [_circle(), _box(), _circle(id=2, x=100.0, y=100.0)]
+    first = simulate(_config(bodies), copy.deepcopy(bodies), 20)
+    second = simulate(_config(list(reversed(bodies))), copy.deepcopy(sorted(bodies, key=lambda b: b["id"])), 20)
+    assert first == second

@@ -1,0 +1,23 @@
+[task]
+id = "async-cache-generation"
+entry = "/app/files/src/main/java/VersionedCache.java"
+build = "bash /app/files/run_tests.sh build"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+
+[limits]
+max_agent_turns = 24
+max_weighted_tool_cost = 44
+max_public_test_runs = 4
+max_file_read_bytes = 180000
+max_model_tokens = 72000
+wall_clock_seconds = 43200
+
+[policy]
+network = false
+editable = ["src/main/java/VersionedCache.java"]
+require_determinism = true
+
+[implementation]
+read_only = ["TASK.md", "run_tests.sh", "tests.py", "scaffold/**"]
+writable_outputs = ["/app/files/src/main/java/VersionedCache.java", "/tmp/async-cache-generation-build/**"]
+allowed_dependencies = []

@@ -1,9 +1,13 @@
-# PyO3 Linear Algebra Kernel
+# Francis Double-Shift QR Kernel
 
-Edit only `src/lib.rs`. Implement the existing `rustlinalg` API: `svd`, `schur`, `matrix_log`, `sqrtm`, `qz`, `signm`, `solve_sylvester`, `eig`, `ordschur`, and `matrix_power`.
+Edit only `src/francis.rs`. PyO3 marshaling, row-major matrix storage, Householder Hessenberg reduction, Schur iteration control, and Python wrappers are supplied and read-only.
 
-Preserve signatures, return shapes, ordering, validation, and real-valued conventions documented in the source and exercised by `numpy_pipeline.py`. For `ordschur`, selecting either entry of a real-Schur conjugate 2x2 block selects and moves the whole block. All matrix storage and numerical computation must be implemented in this Rust crate using only PyO3 and the standard library. PyO3 may marshal inputs and outputs but must not import, evaluate, or call Python numerical code. Python numerical delegation, linear-algebra crates, alternate FFI systems, network access, and nondeterministic behavior are forbidden.
+Implement `francis_double_shift` as one implicit real double-shift sweep on the inclusive unreduced Hessenberg block `lo..=hi`. Form the shifts from its trailing 2x2 block, introduce and chase a three-entry bulge with stable Householder reflectors, apply every reflector from the left and right over the mathematically required ranges, and accumulate the right transformations into `q`. Preserve upper-Hessenberg structure and the similarity invariant.
 
-Build with `cp /app/files/src/lib.rs /app/src/lib.rs && cd /app && maturin develop --release`.
+Implement `deflatable` using a scale-aware, underflow-safe criterion. It must not split a coupled block merely because all entries are tiny, and it must work under multiplication of the matrix by very large or small powers of ten. Real 2x2 blocks are valid terminal Schur blocks.
+
+Do not alter wrappers or add numerical dependencies. The expected solution changes roughly 110-150 lines. Python delegation and network access are forbidden.
+
+Build with `cp /app/files/Cargo.toml /app/Cargo.toml && cp /app/files/pyproject.toml /app/pyproject.toml && rm -rf /app/src && cp -r /app/files/src /app/src && cd /app && maturin develop --release --offline`.
 
 Run `python3 -m pytest -q /app/files/tests.py`.
