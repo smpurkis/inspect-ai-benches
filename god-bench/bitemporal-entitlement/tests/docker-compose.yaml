@@ -1,0 +1,7 @@
+name: god-bench-bitemporal-entitlement
+
+services:
+  main:
+    build:
+      context: ../environment
+      dockerfile: Dockerfile

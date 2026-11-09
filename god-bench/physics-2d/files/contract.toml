@@ -9,12 +9,12 @@ max_agent_turns = 24
 max_weighted_tool_cost = 44
 max_public_test_runs = 3
 max_file_read_bytes = 180000
-wall_clock_seconds = 10800
-max_model_tokens = 200000
+wall_clock_seconds = 43200
+max_model_tokens = 72000
 
 [policy]
 network = false
-editable = ["physics2d.py"]
+editable = ["collision_kernels.py"]
 require_determinism = true
 
 [implementation]
@@ -44,3 +44,8 @@ position_factor = 0.2
 contact_epsilon = 1e-10
 collision_detection = "discrete at the post-integration state; no swept/continuous collision detection"
 invariance = "away from walls/gravity, global rigid transforms preserve trajectories; input body permutations do not change output"
+
+[kernel]
+functions = ["circle_box_manifold", "clamp_normal", "clamp_friction", "solve_contact"]
+target_patch_loc = "90-145"
+trusted_engine = "physics2d.py"

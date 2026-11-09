@@ -1,0 +1,32 @@
+[task]
+id = "json-patch-transactional"
+entry = "/app/files/src/applyOperation.ts"
+cli = "node /app/files/build/cli.js (one JSON request per stdin line)"
+build = "make -C /app/files clean all"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+
+[limits]
+max_model_tokens = 72000
+max_agent_turns = 24
+max_weighted_tool_cost = 42
+max_public_test_runs = 4
+max_file_read_bytes = 140000
+wall_clock_seconds = 43200
+
+[policy]
+network = false
+editable = ["src/applyOperation.ts"]
+require_determinism = true
+
+[implementation]
+read_only = ["Makefile", "package.json", "tsconfig.json", "src/types.ts", "src/pointer.ts", "src/cli.ts", "tests.py", "TASK.md", "instructions.md"]
+writable_outputs = ["/app/files/build/**"]
+allowed_dependencies = []
+target_patch_lines = "60-110"
+
+[semantics]
+standards = ["RFC 6901", "RFC 6902 sections 4.4 and 4.5"]
+success = "mutate the supplied document atomically and return the resulting root"
+failure = "throw PatchError and restore the exact JSON value present before the call"
+copy = "deep copy; no mutable object or array may alias the source"
+move = "remove then add semantics; reject a move into a proper descendant"

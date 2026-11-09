@@ -34,7 +34,7 @@ WORKDIR /tmp/cifar-infer-cache
 COPY Cargo.toml ./Cargo.toml
 RUN mkdir -p src && \
     printf 'fn main() {}\n' > src/main.rs && \
-    printf 'fn main() {}\n' > src/train.rs
+    printf 'fn main() {}\n' > src/policy_probe.rs
 RUN cargo vendor --quiet --versioned-dirs /opt/cargo-vendor && \
     install -m 0444 Cargo.lock /opt/cifar-infer-Cargo.lock && \
     mkdir -p /usr/local/cargo && \

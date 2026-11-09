@@ -1,11 +1,11 @@
-# SamScript to WASI
+# SamScript structured WASI lowering
 
-Edit only `compiler.py` and `evidence.json`. Implement:
+Edit only `/app/files/lowering.py`. Parsing, lexical binding resolution, type checking, WAT assembly, Wasm encoding, WASI output, integer formatting, and CLI handling are supplied. Complete lowering for expressions and statements, especially:
 
-`python3 /app/files/compiler.py compile INPUT -o OUTPUT --target wasm32-wasi`
+- lazy `&&` and `||` with exactly-once left-to-right evaluation;
+- correctly targeted `break` and `continue` in nested loops;
+- early `return` from any nested conditional or loop.
 
-Compile SamScript into deterministic, executable WASI modules; source computation must remain reachable at runtime. The workspace contains conflicting versioned material. Follow the authority named by `contract.toml`.
+Emit structured WAT through the supplied `Emitter`; do not evaluate source during compilation or embed computed output. Preserve source evaluation order. The generated `_start` must reach the lowered instructions at runtime.
 
-Record exactly `authority`, `evidence`, and `summary` in `evidence.json`; cite every relevant path from the contract using `path:start-end` line ranges.
-
-Use `strict_build` for the fixed toolchain smoke, then run `python3 -m pytest -q /app/files/tests.py`.
+Compile with `python3 /app/files/compiler.py compile INPUT -o OUTPUT --target wasm32-wasi`. Run `python3 -m pytest -q /app/files/tests.py`.

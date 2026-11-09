@@ -1,0 +1,30 @@
+[task]
+id = "aligned-reallocator"
+entry = "/app/files/src/aligned_pool.zig"
+build = "cd /app/files && zig build-exe src/harness.zig -O ReleaseSafe -femit-bin=/tmp/aligned-pool"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+
+[limits]
+max_model_tokens = 72000
+max_agent_turns = 24
+max_weighted_tool_cost = 44
+max_public_test_runs = 3
+max_file_read_bytes = 180000
+wall_clock_seconds = 43200
+
+[policy]
+network = false
+editable = ["src/aligned_pool.zig"]
+require_determinism = true
+
+[implementation]
+read_only = ["build.zig", "src/pool.zig", "src/harness.zig", "tests.py", "run_tests.sh", "TASK.md", "instructions.md"]
+writable_outputs = ["/tmp/aligned-pool", "/tmp/zig-cache/**"]
+allowed_dependencies = []
+
+[pool]
+capacity_bytes = 131072
+max_live_allocations = 128
+max_alignment = 4096
+resize_zero = "free and return null"
+failure = "original allocation remains valid and unchanged"

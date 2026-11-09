@@ -11,8 +11,8 @@ name = "cifar-infer"
 path = "src/main.rs"
 
 [[bin]]
-name = "cifar-train"
-path = "src/train.rs"
+name = "policy-probe"
+path = "src/policy_probe.rs"
 
 [dependencies]
 burn = { version = "=0.20.0", default-features = false, features = ["std", "ndarray", "autodiff"] }

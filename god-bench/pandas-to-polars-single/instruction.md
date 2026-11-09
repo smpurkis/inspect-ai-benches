@@ -1,10 +1,3 @@
-Implement the TODOs in `pipeline_polars.py`; it is the only editable file.
+Repair `normalization.py`, the only editable file. Implement lazy v2 normalization and a first-match quarantine split exactly as specified in `TASK.md`; the supplied CLI and analytics are not candidate work.
 
-Run `python3 /app/files/pipeline_polars.py --in <input_dir> --out <output_dir>`.
-Match the pandas reference pipelines exactly for v1 and v2 inputs, including lazy Polars execution, quarantine precedence, schemas, ordering, nulls, UTC timestamps, and six-decimal numeric outputs.
-
-The machine contract is `contract.toml`. Detailed semantics are authoritative in `pipeline_contract.md`; executable references are `pipeline_pandas.py`, `pipeline_pandas_advanced.py`, and `pipeline_pandas_v2.py`. Public expected artifacts are under `public_data/expected/`.
-
-Work offline. Do not use pandas, eager `pl.read_*`, `to_pandas()`, or modify tests, specifications, references, or data.
-
-Run `python3 -m pytest -q /app/files/tests.py`.
+Keep both results lazy, preserve source values in quarantine, parse offset timestamps as UTC instants, retain optional text nulls, and emit exact columns and deterministic ordering. Work offline without pandas or eager Polars reads. Run `python3 -m pytest -q /app/files/tests.py`.

@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def test_all_active_tasks_are_native_harbor_tasks() -> None:
     manifests = sorted(ROOT.glob("*/task.toml"))
-    assert len(manifests) == 10
+    assert len(manifests) == 20
 
     for manifest in manifests:
         task_dir = manifest.parent

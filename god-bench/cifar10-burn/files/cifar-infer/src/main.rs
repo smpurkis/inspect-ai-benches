@@ -1,4 +1,6 @@
 mod model;
+mod trainer;
+mod training_policy;
 
 use std::{
     env,

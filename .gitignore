@@ -37,3 +37,7 @@ logs/hardened_bench/
 .pytest_cache/
 .ruff_cache/
 logs/
+
+# Zig build artifacts
+.zig-cache/
+zig-out/

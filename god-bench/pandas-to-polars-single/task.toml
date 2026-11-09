@@ -1,10 +1,10 @@
 schema_version = "1.4"
-artifacts = ["/app/files/pipeline_polars.py"]
+artifacts = ["/app/files/normalization.py"]
 
 [task]
 name = "god-bench/pandas-to-polars-single"
-version = "1.0.0"
-description = "Port versioned pandas data pipelines to lazy Polars."
+version = "2.0.0"
+description = "Repair lazy Polars normalization and prioritized quarantine."
 authors = []
 keywords = ["python", "polars", "data-engineering"]
 
@@ -14,7 +14,7 @@ category = "data-engineering"
 strict = true
 
 [agent]
-timeout_sec = 10800.0
+timeout_sec = 43200.0
 
 [verifier]
 timeout_sec = 3600.0

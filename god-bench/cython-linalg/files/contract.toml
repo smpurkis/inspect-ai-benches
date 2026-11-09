@@ -1,28 +1,36 @@
 [task]
 id = "cython-linalg"
-entry = "/app/files/cylinalg.pyx"
+entry = "/app/files/reorder_kernel.pxi"
 build = "cd /app/files && python3 setup_build.py build_ext --inplace"
 public_test = "python3 -m pytest -q /app/files/tests.py"
 outputs = ["cylinalg.c", "cylinalg*.so", "build/**"]
 
 [limits]
-max_model_tokens = 200000
+max_model_tokens = 72000
 max_agent_turns = 32
 max_weighted_tool_cost = 64
 max_public_test_runs = 3
 max_file_read_bytes = 300000
-wall_clock_seconds = 10800
+wall_clock_seconds = 43200
 
 [policy]
 network = false
-editable = ["cylinalg.pyx"]
+editable = ["reorder_kernel.pxi"]
 forbid_imports = ["numpy.linalg", "scipy", "ctypes", "cffi", "pyo3"]
 require_determinism = true
+
+[security]
+read_only = ["cylinalg.pyx", "setup_build.py", "TASK.md", "contract.toml", "tests.py"]
+writable_files = ["reorder_kernel.pxi"]
+writable_generated_dirs = ["/app/files/build"]
+generated_files = ["/app/files/cylinalg.c", "/app/files/cylinalg*.so"]
+reject_extra_source_files = true
+reject_symlinks = true
 
 [numerics]
 dtype = "float64"
 reconstruction_atol = 5e-8
 orthogonality_atol = 5e-11
-stress_atol = 1e-6
+stress_atol = 1e-7
 finite_outputs = true
 ordschur_selects_whole_real_blocks = true

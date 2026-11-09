@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+import subprocess
+import sys
+
+patch = sys.stdin.read()
+if not patch.strip():
+    raise SystemExit("apply_patch: no patch provided on stdin")
+result = subprocess.run(["git", "apply", "--whitespace=nowarn", "-"], input=patch, text=True)
+raise SystemExit(result.returncode)

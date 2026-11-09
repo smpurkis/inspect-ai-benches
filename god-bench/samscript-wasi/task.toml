@@ -1,12 +1,12 @@
 schema_version = "1.4"
-artifacts = ["/app/files/compiler.py", "/app/files/evidence.json"]
+artifacts = ["/app/files/lowering.py"]
 
 [task]
 name = "god-bench/samscript-wasi"
-version = "1.0.0"
-description = "Compile SamScript programs into deterministic WASI modules."
+version = "2.0.0"
+description = "Complete structured control-flow lowering in a scaffolded SamScript-to-WASI compiler."
 authors = []
-keywords = ["compiler", "wasm", "wasi"]
+keywords = ["compiler", "wasm", "wasi", "control-flow"]
 
 [metadata]
 difficulty = "hard"
@@ -14,7 +14,7 @@ category = "systems"
 strict = true
 
 [agent]
-timeout_sec = 10800.0
+timeout_sec = 43200.0
 
 [verifier]
 timeout_sec = 3600.0

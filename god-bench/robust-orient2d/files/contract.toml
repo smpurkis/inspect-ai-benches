@@ -1,0 +1,26 @@
+[task]
+id = "robust-orient2d"
+entry = "python3 /app/files/predicate_runtime.py"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+
+[limits]
+max_agent_turns = 24
+max_weighted_tool_cost = 44
+max_public_test_runs = 4
+max_file_read_bytes = 160000
+max_model_tokens = 72000
+wall_clock_seconds = 43200
+
+[policy]
+network = false
+editable = ["predicates.py"]
+require_determinism = true
+
+[api]
+orientation = "orient2d(a, b, c) -> -1 | 0 | 1"
+segments = "classify_segments(a, b, c, d) -> proper | touch | overlap | disjoint"
+coordinates = "finite Python floats; each coordinate is zero or 1e-100 <= abs(value) <= 1e140"
+arithmetic = "uncertain determinants must use the supplied expansion.py primitives"
+
+[diagnostics]
+target_changed_lines = "60-120"

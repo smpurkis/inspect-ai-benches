@@ -1,0 +1,27 @@
+[task]
+id = "capability-module-loader"
+entry = "lua /app/files/loader_runtime.lua SCENARIO.lua"
+public_test = "python3 -m pytest -q /app/files/tests.py"
+
+[limits]
+max_agent_turns = 24
+max_weighted_tool_cost = 44
+max_public_test_runs = 4
+max_file_read_bytes = 160000
+max_model_tokens = 72000
+wall_clock_seconds = 43200
+
+[policy]
+network = false
+editable = ["loader.lua"]
+require_determinism = true
+
+[api]
+constructor = "require('loader').new(sources, capabilities)"
+import = "instance:require(name) -> stable export table"
+module = "chunk receives exports as ... and returns table or nil"
+name_pattern = "^[A-Za-z][A-Za-z0-9_.-]*$"
+failure = "rollback entries first created by the failed outer require"
+
+[diagnostics]
+target_changed_lines = "70-130"

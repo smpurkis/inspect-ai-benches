@@ -27,8 +27,6 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
     rustc --version && cargo --version
 
 RUN python3 -m pip install --break-system-packages --no-cache-dir \
-        numpy==2.2.6 \
-        scipy==1.14.1 \
         pytest==8.4.1 \
         pytest-timeout \
         pytest-json-ctrf==0.3.5
@@ -36,9 +34,7 @@ RUN python3 -m pip install --break-system-packages --no-cache-dir \
 # Pre-compile Rust dependencies with a stub for offline builds
 COPY Cargo.toml .
 RUN mkdir -p src && \
-    echo 'pub mod types;' > src/lib.rs && \
-    echo 'fn main() {}' > src/main.rs && \
-    echo '' > src/types.rs && \
+    printf 'pub fn cached() {}\n' > src/lib.rs && \
     cargo vendor && \
     mkdir -p .cargo && \
     printf '[source.crates-io]\nreplace-with = "vendored"\n\n[source.vendored]\ndirectory = "vendor"\n' > .cargo/config.toml && \

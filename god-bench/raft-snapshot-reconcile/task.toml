@@ -1,0 +1,29 @@
+schema_version = "1.4"
+artifacts = ["/app/files/raft/reconcile.go"]
+
+[task]
+name = "god-bench/raft-snapshot-reconcile"
+version = "1.0.0"
+description = "Repair deterministic Raft log reconciliation at snapshot boundaries."
+authors = []
+keywords = ["go", "raft", "consensus", "distributed-systems"]
+
+[metadata]
+difficulty = "hard"
+category = "systems"
+strict = true
+
+[agent]
+timeout_sec = 43200.0
+
+[verifier]
+timeout_sec = 3600.0
+environment_mode = "separate"
+
+[environment]
+network_mode = "no-network"
+build_timeout_sec = 3600.0
+cpus = 8
+memory_mb = 8192
+storage_mb = 10240
+gpus = 0

@@ -14,7 +14,8 @@ INPUT="${2:?missing input file}"
 OUTPUT="${3:?missing output file}"
 
 SCRIPT_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
-WAT="${SCRIPT_DIR}/lz77.wat"
+BUILD="${SCRIPT_DIR}/build_wasm.sh"
+WASM="${SCRIPT_DIR}/lz77.wasm"
 MAX_INPUT_BYTES=$((8 * 1024 * 1024))
 MAX_OUTPUT_KIB=$((32 * 1024))
 
@@ -26,8 +27,8 @@ case "$MODE" in
         ;;
 esac
 
-if [ ! -f "$WAT" ]; then
-    echo "missing WAT source: $WAT" >&2
+if [ ! -f "$SCRIPT_DIR/candidate_kernel.wat" ]; then
+    echo "missing candidate kernel" >&2
     exit 1
 fi
 
@@ -42,16 +43,15 @@ if (( INPUT_SIZE > MAX_INPUT_BYTES )); then
     exit 1
 fi
 
-TMP_WASM="$(mktemp /tmp/lz77-XXXXXX.wasm)"
 OUTPUT_DIR="$(dirname -- "$OUTPUT")"
 TMP_OUTPUT="$(mktemp "${OUTPUT_DIR}/.lz77-output-XXXXXX")"
-trap 'rm -f -- "$TMP_WASM" "$TMP_OUTPUT"' EXIT
+trap 'rm -f -- "$TMP_OUTPUT"' EXIT
 
-wat2wasm "$WAT" -o "$TMP_WASM"
+bash "$BUILD"
 
 (
     ulimit -f "$MAX_OUTPUT_KIB"
-    exec timeout --signal=KILL 120s wasmtime run "$TMP_WASM" -- "$MODE" < "$INPUT" > "$TMP_OUTPUT"
+    exec timeout --signal=KILL 120s wasmtime run "$WASM" -- "$MODE" < "$INPUT" > "$TMP_OUTPUT"
 )
 
 mv -- "$TMP_OUTPUT" "$OUTPUT"

@@ -1,9 +1,11 @@
-# General-Relativity ODE Repair
+# RK45 Dense-Output Event Localization
 
-Edit only `src/lib.rs`. Implement `solve_tov`, `os_collapse`, `polytropic_eos`, `rk45_step`, and any private helpers while preserving the public Rust API and `gr_sim --input <seed.json> [--output <out.json>]` CLI.
+Edit only `src/event.rs`. The supplied crate contains the ODE systems, adaptive Dormand-Prince RK45 integrator, dense-step interpolation, and physical wrappers. Implement `localize_event` to find the first event within one accepted step.
 
-Produce the JSON schema defined by `src/types.rs`. TOV results must support uniform-density and polytropic equations of state, surface interpolation, Schwarzschild lapse matching, baryon mass, and a 50-point profile. Collapse results must satisfy the Oppenheimer-Snyder trajectory, horizon event, singularity time, and energy conservation. `CollapseConfig.num_steps` controls the internal numerical integration resolution; it is not the serialized trajectory length. Return exactly 51 ordered trajectory samples, including the initial state and the final near-singularity state, regardless of `num_steps`. Outputs must be finite, deterministic, and physically admissible. New dependencies and network access are forbidden.
+The event may represent pressure reaching zero, a surface crossing its horizon, or collapse reaching its cutoff. Respect rising/falling/any direction, accept roots at either endpoint, evaluate returned state through `DenseStep::evaluate`, and return `None` when the endpoint values do not bracket an allowed crossing. Localization must remain accurate when values are badly scaled, an endpoint is nearly zero, or a secant proposal is unsafe. Use a safeguarded method with a bisection fallback and terminate using both the supplied time and value tolerances. Results must be finite and deterministic.
 
-Build with `cp /app/files/Cargo.toml /app/Cargo.toml && mkdir -p /app/src && cp /app/files/src/*.rs /app/src/ && cd /app && cargo build --release --offline`.
+Do not edit the integrator or add dependencies. The expected solution changes roughly 60-120 lines.
+
+Build with `cp /app/files/Cargo.toml /app/Cargo.toml && rm -rf /app/src && cp -r /app/files/src /app/src && cd /app && cargo test --release --offline`.
 
 Run `python3 -m pytest -q /app/files/tests.py`.

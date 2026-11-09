@@ -1,0 +1,31 @@
+[task]
+id = "raft-snapshot-reconcile"
+entry = "/app/files/raft/reconcile.go"
+build = "cd /app/files && GOTOOLCHAIN=local GOPROXY=off go test ./..."
+public_test = "python3 -m pytest -q /app/files/tests.py"
+
+[limits]
+max_model_tokens = 72000
+max_agent_turns = 24
+max_weighted_tool_cost = 44
+max_public_test_runs = 3
+max_file_read_bytes = 180000
+wall_clock_seconds = 43200
+
+[policy]
+network = false
+editable = ["raft/reconcile.go"]
+require_determinism = true
+
+[implementation]
+read_only = ["go.mod", "raft/types.go", "cmd/raft-reconcile/**", "tests.py", "public_tests/**"]
+writable_outputs = ["/app/files/raft/reconcile.go", "/tmp/**"]
+allowed_dependencies = []
+
+[raft]
+snapshot = "compacted prefix endpoint"
+conflict_identity = "index, term, and data"
+stale_term = "reject without mutation"
+newer_term = "observe even when log match fails"
+committed_prefix = "immutable"
+match_index_on_reject = 0

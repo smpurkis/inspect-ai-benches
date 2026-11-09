@@ -1,12 +1,12 @@
 schema_version = "1.4"
-artifacts = ["/app/files/src/lib.rs"]
+artifacts = ["/app/files/src/francis.rs"]
 
 [task]
 name = "god-bench/rust-python-pyo3"
-version = "1.0.0"
-description = "Implement restricted linear algebra kernels in Rust through PyO3."
+version = "2.0.0"
+description = "Complete a Francis double-shift QR sweep and robust deflation."
 authors = []
-keywords = ["rust", "python", "pyo3", "linear-algebra"]
+keywords = ["rust", "python", "pyo3", "linear-algebra", "francis-qr"]
 
 [metadata]
 difficulty = "hard"
@@ -14,7 +14,8 @@ category = "systems"
 strict = true
 
 [agent]
-timeout_sec = 10800.0
+timeout_sec = 43200.0
+max_model_tokens = 96000
 
 [verifier]
 timeout_sec = 3600.0

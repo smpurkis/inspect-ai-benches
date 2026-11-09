@@ -14,7 +14,6 @@ extensions = [
         sources=["cylinalg.pyx"],
         include_dirs=[np.get_include()],
         extra_compile_args=["-O2"],
-        libraries=["m"],
     )
 ]
 
