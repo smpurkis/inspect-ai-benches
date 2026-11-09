@@ -2,7 +2,7 @@
 
 ## Scope
 
-The ten active token-efficient GOD-Bench tasks use
+The twenty active token-efficient GOD-Bench tasks use
 `harbor-framework/harbor==0.25.0` directly. Inspect AI is not installed by the
 GOD-Bench project and is not present in the active runner, agent, verifier, or
 reporting path.
@@ -13,7 +13,7 @@ migrated.
 
 ## Completed
 
-- [x] Native Harbor `task.toml` and `instruction.md` for all ten active tasks.
+- [x] Native Harbor `task.toml` and `instruction.md` for all twenty active tasks.
 - [x] No-network agent environments.
 - [x] Fresh no-network verifier environments under `tests/`.
 - [x] Native custom Harbor agent with bounded model turns and controlled tools.
@@ -29,10 +29,10 @@ migrated.
 
 ## Verification
 
-- 58 common harness, task-manifest, verifier, tool-policy, usage, and reporting tests pass.
+- 63 common harness, task-manifest, verifier, tool-policy, usage, and reporting tests pass.
 - Harbor 0.25 loads all native task manifests.
-- All ten verifier Compose definitions validate.
-- All ten verifier scripts pass `bash -n`.
+- All twenty verifier Compose definitions validate.
+- All twenty verifier scripts pass `bash -n`.
 - Native real-model runs:
   `jobs/native-smoke/qwen36-physics2d-native-smoke-7/` and
   `jobs/native-validation/qwen36-native-validation/`.

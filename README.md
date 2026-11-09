@@ -10,7 +10,7 @@ and repository-level reasoning.
 
 ### god-bench
 
-A hardened benchmark suite of ~15 tasks designed so that frontier models
+A hardened benchmark suite of 20 tasks designed so that frontier models
 score near zero. Each task requires genuine reasoning, tool-building, or
 domain expertise — not pattern-matching. It runs natively on
 [Harbor](https://github.com/harbor-framework/harbor); Inspect AI is not part
