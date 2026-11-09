@@ -12,7 +12,9 @@ and repository-level reasoning.
 
 A hardened benchmark suite of ~15 tasks designed so that frontier models
 score near zero. Each task requires genuine reasoning, tool-building, or
-domain expertise — not pattern-matching. Tasks include:
+domain expertise — not pattern-matching. It runs natively on
+[Harbor](https://github.com/harbor-framework/harbor); Inspect AI is not part
+of its execution path. Tasks include:
 
 - **physics-fix** — GR collapsing star simulation (TOV + Oppenheimer-Snyder)
 - **cython-linalg** — 10-hard-op linear algebra via Cython
@@ -23,15 +25,20 @@ domain expertise — not pattern-matching. Tasks include:
 - **physics-2d / cifar10-burn** — physics simulation / ML inference
 - **archive/** — 17 retired tasks from earlier iterations
 
-Run a single task or all of them:
+Run a single task or a subset with the local llama-swap model:
 
 ```bash
-uv run python run_bench.py                              # god-bench only
-uv run python run_bench.py --all                        # include archive
-uv run python run_bench.py --tasks physics-fix
-uv run python run_bench.py --models gpt-5 --rounds 3
-uv run python run_bench.py --parallel 10
+cd god-bench
+uv sync
+
+./run-local.sh --tasks physics-fix --rounds 1 --parallel 1
 ```
+
+`run-local.sh` defaults to the model currently served by llama-swap at
+`http://127.0.0.1:8234/v1`
+(`Qwen3.8-Flash-Next-Gufo-Gyro-M-Stream`). Override the target with
+`GOD_BENCH_MODEL`, `GOD_BENCH_BASE_URL`, and `GOD_BENCH_API_KEY`. See
+`god-bench/README.md` for agent and reporting options.
 
 ### sanity-bench
 
@@ -80,10 +87,11 @@ size beyond simple needle-in-a-haystack.
 
 ```
 inspect-ai-benches/
-├── run_bench.py              # Unified runner for god-bench
 ├── pyproject.toml             # Project dependencies
-├── god-bench/                # Hardened benchmark suite
-│   ├── run_all.py
+├── god-bench/                # Harbor-native hardened benchmark suite
+│   ├── run.py                # Harbor runner
+│   ├── run-local.sh          # llama-swap local-model defaults
+│   ├── run_all.py            # Compatibility entry point
 │   ├── common/               # Shared eval harness helpers
 │   ├── archive/              # Retired tasks
 │   ├── physics-fix/          # GR collapsing star simulation
@@ -95,8 +103,7 @@ inspect-ai-benches/
 │   ├── wasm-lz77/            # LZ77 compression
 │   ├── pandas-to-polars-single/
 │   ├── physics-2d/
-│   ├── cifar10-burn/
-│   └── hello-world/
+│   └── cifar10-burn/
 ├── sanity-bench/             # Broad-coverage multi-category eval
 │   ├── run.py                # 17 @task functions
 │   ├── scoring.py            # Deterministic scorers
@@ -104,18 +111,20 @@ inspect-ai-benches/
 │   └── schema.md             # Task/scoring format reference
 ├── reporeason-bench/         # Repository-level reasoning eval
 ├── roses-longctx-bench/      # Long-context eval tasks
-├── ruler/                    # NVIDIA RULER long-context framework
-└── logs/                     # Evaluation result archives
+└── ruler/                    # NVIDIA RULER long-context framework
 ```
 
 ## Quickstart
 
 ```bash
-# Install dependencies
+# Install inspect-ai benchmark dependencies
 uv sync
 
-# Run god-bench (hardened tasks)
-uv run python run_bench.py
+# Install god-bench (Harbor) dependencies
+(cd god-bench && uv sync)
+
+# Run god-bench (hardened tasks) against llama-swap
+god-bench/run-local.sh --tasks physics-fix
 
 # Run sanity-bench (broad coverage)
 uv run inspect eval sanity-bench/run.py --model openai-api/local/your-model
@@ -129,6 +138,7 @@ uv run inspect eval reporeason-bench/run.py --model openai-api/local/your-model
 
 ## Dependencies
 
+- `harbor == 0.20.0` (god-bench, via `god-bench/pyproject.toml`)
 - `inspect-ai >= 0.3.217`
 - `inspect-evals[all,ifeval,scicode,terminal-bench-2] >= 0.10.0`
 - `inspect-cyber >= 0.1.0`
