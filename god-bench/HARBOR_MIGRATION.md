@@ -3,7 +3,7 @@
 ## Scope
 
 The ten active token-efficient GOD-Bench tasks use
-`harbor-framework/harbor==0.20.0` directly. Inspect AI is not installed by the
+`harbor-framework/harbor==0.25.0` directly. Inspect AI is not installed by the
 GOD-Bench project and is not present in the active runner, agent, verifier, or
 reporting path.
 
@@ -30,7 +30,7 @@ migrated.
 ## Verification
 
 - 58 common harness, task-manifest, verifier, tool-policy, usage, and reporting tests pass.
-- Harbor 0.20 loads all ten native task manifests.
+- Harbor 0.25 loads all native task manifests.
 - All ten verifier Compose definitions validate.
 - All ten verifier scripts pass `bash -n`.
 - Native real-model runs:

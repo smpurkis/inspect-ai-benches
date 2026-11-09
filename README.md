@@ -138,7 +138,7 @@ uv run inspect eval reporeason-bench/run.py --model openai-api/local/your-model
 
 ## Dependencies
 
-- `harbor == 0.20.0` (god-bench, via `god-bench/pyproject.toml`)
+- `harbor == 0.25.0` (god-bench, via `god-bench/pyproject.toml`)
 - `inspect-ai >= 0.3.217`
 - `inspect-evals[all,ifeval,scicode,terminal-bench-2] >= 0.10.0`
 - `inspect-cyber >= 0.1.0`

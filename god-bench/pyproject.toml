@@ -5,7 +5,7 @@ description = "Correctness-first, token-efficient GOD-Bench tasks for Harbor"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "harbor==0.20.0",
+    "harbor==0.25.0",
 ]
 
 [dependency-groups]
