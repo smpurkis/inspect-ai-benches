@@ -58,8 +58,8 @@ migrated.
 
 ## Pending Calibration
 
-- Compact tasks use calibrated 72k billed-token ceilings, with 96k reserved for
-  the focused context-heavy compiler, WAT, and numerical kernels.
+- All twenty active tasks use a 264k billed-token ceiling for the 2026-11-09
+  best-of-5 run (raised from the earlier 72k/96k calibration ceilings).
 - All active tasks currently allow up to 12 hours of agent wall-clock time.
 - Run multiple capable and weaker model baselines across all twenty tasks.
 - Set final task budgets from successful-run percentiles.

@@ -11,7 +11,7 @@ max_weighted_tool_cost = 52
 max_public_test_runs = 3
 max_file_read_bytes = 220000
 wall_clock_seconds = 43200
-max_model_tokens = 72000
+max_model_tokens = 264000
 
 [policy]
 network = false

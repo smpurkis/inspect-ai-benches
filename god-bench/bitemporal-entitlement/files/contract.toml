@@ -4,7 +4,7 @@ entry = "/app/files/query.sql"
 public_test = "python3 -m pytest -q /app/files/tests.py"
 
 [limits]
-max_model_tokens = 72000
+max_model_tokens = 264000
 max_agent_turns = 24
 max_weighted_tool_cost = 44
 max_public_test_runs = 3

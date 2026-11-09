@@ -10,7 +10,7 @@ max_weighted_tool_cost = 72
 max_public_test_runs = 4
 max_file_read_bytes = 80000
 wall_clock_seconds = 43200
-max_model_tokens = 96000
+max_model_tokens = 264000
 
 [budgets.compiler]
 max_runs = 40

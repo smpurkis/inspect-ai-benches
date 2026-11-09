@@ -6,7 +6,7 @@ public_test = "python3 -m pytest -q /app/files/tests.py"
 outputs = ["cylinalg.c", "cylinalg*.so", "build/**"]
 
 [limits]
-max_model_tokens = 72000
+max_model_tokens = 264000
 max_agent_turns = 32
 max_weighted_tool_cost = 64
 max_public_test_runs = 3
