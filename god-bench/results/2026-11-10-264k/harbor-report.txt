@@ -1,0 +1,5 @@
+GOD-Bench native Harbor results
+
+Rank  Agent / Model                              Solved  Budgeted  Efficiency  Median tokens  Tool cost  Elapsed  Retrieval
+----  -----------------------------------------  ------  --------  ----------  -------------  ---------  -------  ---------
+   1  god-bench-strict | openai/Qwen3.8-Flash-Next-Gufo-Gyro-M-Stream   31/100        31      30.762         160810       26.0    471.4        n/a

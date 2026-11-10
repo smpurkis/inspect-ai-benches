@@ -1,0 +1,42 @@
+{
+    "job_name": "god-bench-20261109-best5-264k",
+    "jobs_dir": "/tmp/opencode/god-bench-best5-264k",
+    "n_attempts": 5,
+    "n_concurrent_trials": 2,
+    "verifier": {
+        "import_path": "common.harbor_verifier:GodBenchVerifier"
+    },
+    "agents": [
+        {
+            "name": "common.harbor_agent:GodBenchAgent",
+            "model_name": "openai/Qwen3.8-Flash-Next-Gufo-Gyro-M-Stream"
+        }
+    ],
+    "datasets": [
+        {
+            "path": "/home/sam/projects/repos/llm-benchmark/inspect-ai-benches-main/god-bench",
+            "task_names": [
+                "aligned-reallocator",
+                "async-cache-generation",
+                "bitemporal-entitlement",
+                "capability-module-loader",
+                "cifar10-burn",
+                "cython-linalg",
+                "indentation-layout",
+                "json-patch-transactional",
+                "msgpack-incremental",
+                "pandas-to-polars-single",
+                "physics-2d",
+                "physics-fix",
+                "pkcs7-unpad",
+                "raft-snapshot-reconcile",
+                "robust-orient2d",
+                "rust-python-pyo3",
+                "samscript-bootstrap",
+                "samscript-wasi",
+                "wasm-compression-wat",
+                "wasm-lz77"
+            ]
+        }
+    ]
+}
