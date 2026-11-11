@@ -109,9 +109,8 @@ regression case for a candidate that uses `scale_expansion`/`two_sum` directly.
 NF raw: **31/100 attempts, 7/20 tasks**.
 NF with the two false negatives corrected: **41/100 attempts, 9/20 tasks**.
 
-27B current: **24/64 attempts (37.5%), 8/20 tasks** (still running;
-64/100 completed, 2 running, 34 pending, 0 errors/retries, ETA roughly 4.8 h
-from 2026-11-10T21:38Z).
+27B final: **35/100 attempts (35.0%), 8/20 tasks** (100/100 completed,
+0 errors/retries, 100/100 usage valid and within budget, 13h 06m wall time).
 
 The 27B's task set is:
 
@@ -122,13 +121,13 @@ robust-orient2d, wasm-compression-wat
 ```
 
 NF's corrected task set is the same eight **plus** `msgpack-incremental`
-(NF 4/5, 27B 0/3). So the 27B is not genuinely ahead on task coverage:
+(NF 4/5, 27B 0/5). So the 27B is not genuinely ahead on task coverage:
 its apparent 8-vs-7 lead comes from the two judge false negatives. At attempt
-level, NF's corrected 41% is also above the 27B's current 37.5%.
+level, NF's corrected 41% is also above the 27B's final 35.0%.
 
 The 27B's only genuine relative advantage is the pass rate on
-`wasm-compression-wat` (2/3 vs NF 2/5), but both solve the task. NF's clear
-genuine win is `msgpack-incremental`.
+`wasm-compression-wat` (4/5 vs NF 2/5), but both solve the task. NF's clear
+genuine win is `msgpack-incremental` (4/5 vs 0/5).
 
 ## What is not a judge problem
 
@@ -149,11 +148,9 @@ genuine win is `msgpack-incremental`.
 
 ## Recommended next steps
 
-1. Do not change the official run mid-flight. Finish the 27B run first.
-2. Patch the two hidden tests as above and add regression cases.
-3. Rescore the saved candidate artifacts for `bitemporal-entitlement` and
+1. Patch the two hidden tests as above and add regression cases.
+2. Rescore the saved candidate artifacts for `bitemporal-entitlement` and
    `robust-orient2d` without rerunning the models; the artifact files are
    preserved under each trial's `artifacts/app/files/`.
-4. Recompute the final table with both raw and judge-corrected scores. The
-   corrected comparison should show NF at least level with, and on task
-   coverage ahead of, the 27B.
+3. Recompute the final table with both raw and judge-corrected scores. The
+   corrected comparison shows NF ahead: 41/100 vs 35/100, 9/20 vs 8/20 tasks.
