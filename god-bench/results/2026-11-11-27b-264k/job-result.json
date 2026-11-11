@@ -1,0 +1,1250 @@
+{
+    "id": "40acb350-5cda-4407-b3d0-35845940e634",
+    "started_at": "2026-11-10T13:02:27.036275",
+    "updated_at": "2026-11-11T02:08:35.429343",
+    "finished_at": "2026-11-11T02:08:35.429343",
+    "n_total_trials": 100,
+    "stats": {
+        "n_completed_trials": 100,
+        "n_errored_trials": 0,
+        "n_running_trials": 0,
+        "n_pending_trials": 0,
+        "n_cancelled_trials": 0,
+        "n_retries": 0,
+        "evals": {
+            "god-bench-strict__Qwen3.8-27B-UD-Q4_K_XL-thinking__god-bench": {
+                "n_trials": 100,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "correctness": 0.35,
+                        "efficiency": 0.35,
+                        "file_read_bytes": 13328.74,
+                        "model_tokens": 168750.05,
+                        "public_test_runs": 1.22,
+                        "reward": 0.35,
+                        "usage_valid": 1.0,
+                        "weighted_tool_cost": 20.52,
+                        "within_budget": 1.0
+                    }
+                ],
+                "pass_at_k": {},
+                "reward_stats": {
+                    "reward": {
+                        "1": [
+                            "aligned-reallocator__ZpyGtpg",
+                            "async-cache-generation__ucVyZt6",
+                            "bitemporal-entitlement__ZbrQHYe",
+                            "capability-module-loader__MEk5iLu",
+                            "pandas-to-polars-single__FdKPSj9",
+                            "physics-2d__ffG5523",
+                            "robust-orient2d__BpA6iXZ",
+                            "wasm-compression-wat__H765pKo",
+                            "aligned-reallocator__MqDMt8r",
+                            "bitemporal-entitlement__x38qiQT",
+                            "capability-module-loader__wNX3PaT",
+                            "pandas-to-polars-single__V4vMkD4",
+                            "physics-2d__Nrm4gZw",
+                            "robust-orient2d__tLzjWoz",
+                            "wasm-compression-wat__A2PXrT7",
+                            "aligned-reallocator__WUddwq6",
+                            "async-cache-generation__7XAsE54",
+                            "bitemporal-entitlement__9aEE8on",
+                            "capability-module-loader__2fzR2bA",
+                            "pandas-to-polars-single__foSLPYX",
+                            "physics-2d__eBex7Mj",
+                            "robust-orient2d__pmjwxMy",
+                            "bitemporal-entitlement__26NYRFK",
+                            "capability-module-loader__hvMX3CL",
+                            "pandas-to-polars-single__JQ9LZXs",
+                            "physics-2d__T5HWcGS",
+                            "robust-orient2d__xdNnLwd",
+                            "wasm-compression-wat__uS4LKfb",
+                            "aligned-reallocator__8xchs3m",
+                            "bitemporal-entitlement__o6dV34Z",
+                            "capability-module-loader__c8rnWtP",
+                            "pandas-to-polars-single__8JHAcAv",
+                            "physics-2d__3qE6CUA",
+                            "robust-orient2d__irL49FF",
+                            "wasm-compression-wat__cAZ8vgZ"
+                        ],
+                        "0": [
+                            "cifar10-burn__NH8kwMR",
+                            "cython-linalg__y8ncMoB",
+                            "indentation-layout__vDFBL2y",
+                            "json-patch-transactional__QAKe8PQ",
+                            "msgpack-incremental__mCQ6HPM",
+                            "physics-fix__d56A6aF",
+                            "pkcs7-unpad__xSGdhwh",
+                            "raft-snapshot-reconcile__sZ5gKtZ",
+                            "rust-python-pyo3__foLuH89",
+                            "samscript-bootstrap__gyPgj35",
+                            "samscript-wasi__aXNDm6q",
+                            "wasm-lz77__vvKPgvd",
+                            "async-cache-generation__bMAkCRK",
+                            "cifar10-burn__kM8xjB8",
+                            "cython-linalg__Wg9woH6",
+                            "indentation-layout__iNTitdJ",
+                            "json-patch-transactional__m68Lj7H",
+                            "msgpack-incremental__DVbFAxv",
+                            "physics-fix__ei2ozPe",
+                            "pkcs7-unpad__fErwYyA",
+                            "raft-snapshot-reconcile__2Ga7sK3",
+                            "rust-python-pyo3__3MJg2a9",
+                            "samscript-bootstrap__nSavCgy",
+                            "samscript-wasi__uNfVuZf",
+                            "wasm-lz77__zTaLMD7",
+                            "cifar10-burn__wiegfCx",
+                            "cython-linalg__FzpN2xP",
+                            "indentation-layout__UVbaYdK",
+                            "json-patch-transactional__sjAgdiG",
+                            "msgpack-incremental__W7x7tbz",
+                            "physics-fix__vQe7D7B",
+                            "pkcs7-unpad__3deri8F",
+                            "raft-snapshot-reconcile__HEMEwBF",
+                            "rust-python-pyo3__UfV2YMY",
+                            "samscript-bootstrap__iVmfCig",
+                            "samscript-wasi__fcVb7vm",
+                            "wasm-compression-wat__KDAz5W2",
+                            "wasm-lz77__VXQjxfd",
+                            "aligned-reallocator__jxVunM9",
+                            "async-cache-generation__DG2sabY",
+                            "cifar10-burn__eBwgQCP",
+                            "cython-linalg__RTNhwgx",
+                            "indentation-layout__xcpH93Y",
+                            "json-patch-transactional__3XEs5Ph",
+                            "msgpack-incremental__UBW4xcA",
+                            "physics-fix__6X4HdLs",
+                            "pkcs7-unpad__gUHjtSA",
+                            "raft-snapshot-reconcile__YoiVyNA",
+                            "rust-python-pyo3__aftqh5F",
+                            "samscript-bootstrap__q52kQfj",
+                            "samscript-wasi__iFGbM4d",
+                            "wasm-lz77__du42CgX",
+                            "async-cache-generation__Y9YEbcy",
+                            "cifar10-burn__Gs2nQEg",
+                            "cython-linalg__GFDExMn",
+                            "indentation-layout__JNCMjoz",
+                            "json-patch-transactional__XEqD8Pb",
+                            "msgpack-incremental__v68xCz8",
+                            "physics-fix__kp3YJKf",
+                            "pkcs7-unpad__4bcL5EN",
+                            "raft-snapshot-reconcile__NgeGnSH",
+                            "rust-python-pyo3__2p8pRTx",
+                            "samscript-bootstrap__TSdiG5f",
+                            "samscript-wasi__xvVw9F6",
+                            "wasm-lz77__YQNczbc"
+                        ]
+                    },
+                    "correctness": {
+                        "1": [
+                            "aligned-reallocator__ZpyGtpg",
+                            "async-cache-generation__ucVyZt6",
+                            "bitemporal-entitlement__ZbrQHYe",
+                            "capability-module-loader__MEk5iLu",
+                            "pandas-to-polars-single__FdKPSj9",
+                            "physics-2d__ffG5523",
+                            "robust-orient2d__BpA6iXZ",
+                            "wasm-compression-wat__H765pKo",
+                            "aligned-reallocator__MqDMt8r",
+                            "bitemporal-entitlement__x38qiQT",
+                            "capability-module-loader__wNX3PaT",
+                            "pandas-to-polars-single__V4vMkD4",
+                            "physics-2d__Nrm4gZw",
+                            "robust-orient2d__tLzjWoz",
+                            "wasm-compression-wat__A2PXrT7",
+                            "aligned-reallocator__WUddwq6",
+                            "async-cache-generation__7XAsE54",
+                            "bitemporal-entitlement__9aEE8on",
+                            "capability-module-loader__2fzR2bA",
+                            "pandas-to-polars-single__foSLPYX",
+                            "physics-2d__eBex7Mj",
+                            "robust-orient2d__pmjwxMy",
+                            "bitemporal-entitlement__26NYRFK",
+                            "capability-module-loader__hvMX3CL",
+                            "pandas-to-polars-single__JQ9LZXs",
+                            "physics-2d__T5HWcGS",
+                            "robust-orient2d__xdNnLwd",
+                            "wasm-compression-wat__uS4LKfb",
+                            "aligned-reallocator__8xchs3m",
+                            "bitemporal-entitlement__o6dV34Z",
+                            "capability-module-loader__c8rnWtP",
+                            "pandas-to-polars-single__8JHAcAv",
+                            "physics-2d__3qE6CUA",
+                            "robust-orient2d__irL49FF",
+                            "wasm-compression-wat__cAZ8vgZ"
+                        ],
+                        "0": [
+                            "cifar10-burn__NH8kwMR",
+                            "cython-linalg__y8ncMoB",
+                            "indentation-layout__vDFBL2y",
+                            "json-patch-transactional__QAKe8PQ",
+                            "msgpack-incremental__mCQ6HPM",
+                            "physics-fix__d56A6aF",
+                            "pkcs7-unpad__xSGdhwh",
+                            "raft-snapshot-reconcile__sZ5gKtZ",
+                            "rust-python-pyo3__foLuH89",
+                            "samscript-bootstrap__gyPgj35",
+                            "samscript-wasi__aXNDm6q",
+                            "wasm-lz77__vvKPgvd",
+                            "async-cache-generation__bMAkCRK",
+                            "cifar10-burn__kM8xjB8",
+                            "cython-linalg__Wg9woH6",
+                            "indentation-layout__iNTitdJ",
+                            "json-patch-transactional__m68Lj7H",
+                            "msgpack-incremental__DVbFAxv",
+                            "physics-fix__ei2ozPe",
+                            "pkcs7-unpad__fErwYyA",
+                            "raft-snapshot-reconcile__2Ga7sK3",
+                            "rust-python-pyo3__3MJg2a9",
+                            "samscript-bootstrap__nSavCgy",
+                            "samscript-wasi__uNfVuZf",
+                            "wasm-lz77__zTaLMD7",
+                            "cifar10-burn__wiegfCx",
+                            "cython-linalg__FzpN2xP",
+                            "indentation-layout__UVbaYdK",
+                            "json-patch-transactional__sjAgdiG",
+                            "msgpack-incremental__W7x7tbz",
+                            "physics-fix__vQe7D7B",
+                            "pkcs7-unpad__3deri8F",
+                            "raft-snapshot-reconcile__HEMEwBF",
+                            "rust-python-pyo3__UfV2YMY",
+                            "samscript-bootstrap__iVmfCig",
+                            "samscript-wasi__fcVb7vm",
+                            "wasm-compression-wat__KDAz5W2",
+                            "wasm-lz77__VXQjxfd",
+                            "aligned-reallocator__jxVunM9",
+                            "async-cache-generation__DG2sabY",
+                            "cifar10-burn__eBwgQCP",
+                            "cython-linalg__RTNhwgx",
+                            "indentation-layout__xcpH93Y",
+                            "json-patch-transactional__3XEs5Ph",
+                            "msgpack-incremental__UBW4xcA",
+                            "physics-fix__6X4HdLs",
+                            "pkcs7-unpad__gUHjtSA",
+                            "raft-snapshot-reconcile__YoiVyNA",
+                            "rust-python-pyo3__aftqh5F",
+                            "samscript-bootstrap__q52kQfj",
+                            "samscript-wasi__iFGbM4d",
+                            "wasm-lz77__du42CgX",
+                            "async-cache-generation__Y9YEbcy",
+                            "cifar10-burn__Gs2nQEg",
+                            "cython-linalg__GFDExMn",
+                            "indentation-layout__JNCMjoz",
+                            "json-patch-transactional__XEqD8Pb",
+                            "msgpack-incremental__v68xCz8",
+                            "physics-fix__kp3YJKf",
+                            "pkcs7-unpad__4bcL5EN",
+                            "raft-snapshot-reconcile__NgeGnSH",
+                            "rust-python-pyo3__2p8pRTx",
+                            "samscript-bootstrap__TSdiG5f",
+                            "samscript-wasi__xvVw9F6",
+                            "wasm-lz77__YQNczbc"
+                        ]
+                    },
+                    "efficiency": {
+                        "1.0": [
+                            "aligned-reallocator__ZpyGtpg",
+                            "async-cache-generation__ucVyZt6",
+                            "bitemporal-entitlement__ZbrQHYe",
+                            "capability-module-loader__MEk5iLu",
+                            "pandas-to-polars-single__FdKPSj9",
+                            "physics-2d__ffG5523",
+                            "robust-orient2d__BpA6iXZ",
+                            "wasm-compression-wat__H765pKo",
+                            "aligned-reallocator__MqDMt8r",
+                            "bitemporal-entitlement__x38qiQT",
+                            "capability-module-loader__wNX3PaT",
+                            "pandas-to-polars-single__V4vMkD4",
+                            "physics-2d__Nrm4gZw",
+                            "robust-orient2d__tLzjWoz",
+                            "wasm-compression-wat__A2PXrT7",
+                            "aligned-reallocator__WUddwq6",
+                            "async-cache-generation__7XAsE54",
+                            "bitemporal-entitlement__9aEE8on",
+                            "capability-module-loader__2fzR2bA",
+                            "pandas-to-polars-single__foSLPYX",
+                            "physics-2d__eBex7Mj",
+                            "robust-orient2d__pmjwxMy",
+                            "bitemporal-entitlement__26NYRFK",
+                            "capability-module-loader__hvMX3CL",
+                            "pandas-to-polars-single__JQ9LZXs",
+                            "physics-2d__T5HWcGS",
+                            "robust-orient2d__xdNnLwd",
+                            "wasm-compression-wat__uS4LKfb",
+                            "aligned-reallocator__8xchs3m",
+                            "bitemporal-entitlement__o6dV34Z",
+                            "capability-module-loader__c8rnWtP",
+                            "pandas-to-polars-single__8JHAcAv",
+                            "physics-2d__3qE6CUA",
+                            "robust-orient2d__irL49FF",
+                            "wasm-compression-wat__cAZ8vgZ"
+                        ],
+                        "0.0": [
+                            "cifar10-burn__NH8kwMR",
+                            "cython-linalg__y8ncMoB",
+                            "indentation-layout__vDFBL2y",
+                            "json-patch-transactional__QAKe8PQ",
+                            "msgpack-incremental__mCQ6HPM",
+                            "physics-fix__d56A6aF",
+                            "pkcs7-unpad__xSGdhwh",
+                            "raft-snapshot-reconcile__sZ5gKtZ",
+                            "rust-python-pyo3__foLuH89",
+                            "samscript-bootstrap__gyPgj35",
+                            "samscript-wasi__aXNDm6q",
+                            "wasm-lz77__vvKPgvd",
+                            "async-cache-generation__bMAkCRK",
+                            "cifar10-burn__kM8xjB8",
+                            "cython-linalg__Wg9woH6",
+                            "indentation-layout__iNTitdJ",
+                            "json-patch-transactional__m68Lj7H",
+                            "msgpack-incremental__DVbFAxv",
+                            "physics-fix__ei2ozPe",
+                            "pkcs7-unpad__fErwYyA",
+                            "raft-snapshot-reconcile__2Ga7sK3",
+                            "rust-python-pyo3__3MJg2a9",
+                            "samscript-bootstrap__nSavCgy",
+                            "samscript-wasi__uNfVuZf",
+                            "wasm-lz77__zTaLMD7",
+                            "cifar10-burn__wiegfCx",
+                            "cython-linalg__FzpN2xP",
+                            "indentation-layout__UVbaYdK",
+                            "json-patch-transactional__sjAgdiG",
+                            "msgpack-incremental__W7x7tbz",
+                            "physics-fix__vQe7D7B",
+                            "pkcs7-unpad__3deri8F",
+                            "raft-snapshot-reconcile__HEMEwBF",
+                            "rust-python-pyo3__UfV2YMY",
+                            "samscript-bootstrap__iVmfCig",
+                            "samscript-wasi__fcVb7vm",
+                            "wasm-compression-wat__KDAz5W2",
+                            "wasm-lz77__VXQjxfd",
+                            "aligned-reallocator__jxVunM9",
+                            "async-cache-generation__DG2sabY",
+                            "cifar10-burn__eBwgQCP",
+                            "cython-linalg__RTNhwgx",
+                            "indentation-layout__xcpH93Y",
+                            "json-patch-transactional__3XEs5Ph",
+                            "msgpack-incremental__UBW4xcA",
+                            "physics-fix__6X4HdLs",
+                            "pkcs7-unpad__gUHjtSA",
+                            "raft-snapshot-reconcile__YoiVyNA",
+                            "rust-python-pyo3__aftqh5F",
+                            "samscript-bootstrap__q52kQfj",
+                            "samscript-wasi__iFGbM4d",
+                            "wasm-lz77__du42CgX",
+                            "async-cache-generation__Y9YEbcy",
+                            "cifar10-burn__Gs2nQEg",
+                            "cython-linalg__GFDExMn",
+                            "indentation-layout__JNCMjoz",
+                            "json-patch-transactional__XEqD8Pb",
+                            "msgpack-incremental__v68xCz8",
+                            "physics-fix__kp3YJKf",
+                            "pkcs7-unpad__4bcL5EN",
+                            "raft-snapshot-reconcile__NgeGnSH",
+                            "rust-python-pyo3__2p8pRTx",
+                            "samscript-bootstrap__TSdiG5f",
+                            "samscript-wasi__xvVw9F6",
+                            "wasm-lz77__YQNczbc"
+                        ]
+                    },
+                    "weighted_tool_cost": {
+                        "32": [
+                            "aligned-reallocator__ZpyGtpg"
+                        ],
+                        "28": [
+                            "async-cache-generation__ucVyZt6",
+                            "json-patch-transactional__QAKe8PQ",
+                            "msgpack-incremental__mCQ6HPM",
+                            "json-patch-transactional__m68Lj7H",
+                            "physics-fix__ei2ozPe",
+                            "json-patch-transactional__sjAgdiG",
+                            "physics-fix__kp3YJKf"
+                        ],
+                        "12": [
+                            "bitemporal-entitlement__ZbrQHYe",
+                            "bitemporal-entitlement__x38qiQT",
+                            "samscript-bootstrap__nSavCgy",
+                            "bitemporal-entitlement__9aEE8on",
+                            "bitemporal-entitlement__26NYRFK",
+                            "bitemporal-entitlement__o6dV34Z"
+                        ],
+                        "17": [
+                            "capability-module-loader__MEk5iLu",
+                            "pandas-to-polars-single__FdKPSj9",
+                            "pkcs7-unpad__xSGdhwh",
+                            "capability-module-loader__wNX3PaT",
+                            "pandas-to-polars-single__V4vMkD4",
+                            "capability-module-loader__2fzR2bA",
+                            "pandas-to-polars-single__foSLPYX",
+                            "samscript-wasi__fcVb7vm",
+                            "capability-module-loader__hvMX3CL",
+                            "pkcs7-unpad__gUHjtSA",
+                            "capability-module-loader__c8rnWtP",
+                            "pandas-to-polars-single__8JHAcAv"
+                        ],
+                        "20": [
+                            "cifar10-burn__NH8kwMR",
+                            "robust-orient2d__tLzjWoz",
+                            "cifar10-burn__Gs2nQEg"
+                        ],
+                        "9": [
+                            "cython-linalg__y8ncMoB",
+                            "cython-linalg__Wg9woH6",
+                            "cython-linalg__FzpN2xP",
+                            "cython-linalg__RTNhwgx"
+                        ],
+                        "31": [
+                            "indentation-layout__vDFBL2y",
+                            "aligned-reallocator__MqDMt8r",
+                            "aligned-reallocator__WUddwq6",
+                            "aligned-reallocator__8xchs3m"
+                        ],
+                        "21": [
+                            "physics-2d__ffG5523",
+                            "physics-2d__Nrm4gZw",
+                            "physics-2d__eBex7Mj",
+                            "robust-orient2d__pmjwxMy",
+                            "physics-2d__T5HWcGS",
+                            "json-patch-transactional__XEqD8Pb",
+                            "physics-2d__3qE6CUA",
+                            "samscript-wasi__xvVw9F6"
+                        ],
+                        "36": [
+                            "physics-fix__d56A6aF",
+                            "json-patch-transactional__3XEs5Ph"
+                        ],
+                        "14": [
+                            "raft-snapshot-reconcile__sZ5gKtZ",
+                            "rust-python-pyo3__foLuH89",
+                            "wasm-lz77__vvKPgvd",
+                            "rust-python-pyo3__3MJg2a9",
+                            "raft-snapshot-reconcile__HEMEwBF",
+                            "rust-python-pyo3__UfV2YMY",
+                            "rust-python-pyo3__aftqh5F",
+                            "rust-python-pyo3__2p8pRTx"
+                        ],
+                        "23": [
+                            "robust-orient2d__BpA6iXZ"
+                        ],
+                        "16": [
+                            "samscript-bootstrap__gyPgj35",
+                            "samscript-wasi__uNfVuZf",
+                            "samscript-bootstrap__iVmfCig",
+                            "pandas-to-polars-single__JQ9LZXs",
+                            "samscript-bootstrap__q52kQfj",
+                            "samscript-wasi__iFGbM4d",
+                            "cython-linalg__GFDExMn",
+                            "samscript-bootstrap__TSdiG5f"
+                        ],
+                        "13": [
+                            "samscript-wasi__aXNDm6q",
+                            "physics-fix__vQe7D7B",
+                            "physics-fix__6X4HdLs",
+                            "robust-orient2d__xdNnLwd"
+                        ],
+                        "27": [
+                            "wasm-compression-wat__H765pKo",
+                            "wasm-compression-wat__A2PXrT7",
+                            "wasm-compression-wat__KDAz5W2",
+                            "wasm-compression-wat__uS4LKfb",
+                            "wasm-compression-wat__cAZ8vgZ"
+                        ],
+                        "26": [
+                            "async-cache-generation__bMAkCRK",
+                            "pkcs7-unpad__3deri8F",
+                            "async-cache-generation__DG2sabY",
+                            "async-cache-generation__Y9YEbcy"
+                        ],
+                        "29": [
+                            "cifar10-burn__kM8xjB8",
+                            "async-cache-generation__7XAsE54",
+                            "cifar10-burn__wiegfCx",
+                            "aligned-reallocator__jxVunM9",
+                            "cifar10-burn__eBwgQCP"
+                        ],
+                        "25": [
+                            "indentation-layout__iNTitdJ",
+                            "indentation-layout__UVbaYdK",
+                            "indentation-layout__xcpH93Y",
+                            "wasm-lz77__du42CgX"
+                        ],
+                        "24": [
+                            "msgpack-incremental__DVbFAxv",
+                            "msgpack-incremental__W7x7tbz",
+                            "msgpack-incremental__UBW4xcA",
+                            "msgpack-incremental__v68xCz8"
+                        ],
+                        "22": [
+                            "pkcs7-unpad__fErwYyA",
+                            "indentation-layout__JNCMjoz",
+                            "pkcs7-unpad__4bcL5EN",
+                            "wasm-lz77__YQNczbc"
+                        ],
+                        "18": [
+                            "raft-snapshot-reconcile__2Ga7sK3",
+                            "wasm-lz77__zTaLMD7",
+                            "wasm-lz77__VXQjxfd",
+                            "raft-snapshot-reconcile__YoiVyNA",
+                            "raft-snapshot-reconcile__NgeGnSH"
+                        ],
+                        "15": [
+                            "robust-orient2d__irL49FF"
+                        ]
+                    },
+                    "model_tokens": {
+                        "113750": [
+                            "aligned-reallocator__ZpyGtpg"
+                        ],
+                        "212620": [
+                            "async-cache-generation__ucVyZt6"
+                        ],
+                        "39332": [
+                            "bitemporal-entitlement__ZbrQHYe"
+                        ],
+                        "116671": [
+                            "capability-module-loader__MEk5iLu"
+                        ],
+                        "143906": [
+                            "cifar10-burn__NH8kwMR"
+                        ],
+                        "211702": [
+                            "cython-linalg__y8ncMoB"
+                        ],
+                        "229177": [
+                            "indentation-layout__vDFBL2y"
+                        ],
+                        "168601": [
+                            "json-patch-transactional__QAKe8PQ",
+                            "json-patch-transactional__m68Lj7H",
+                            "json-patch-transactional__sjAgdiG"
+                        ],
+                        "232808": [
+                            "msgpack-incremental__mCQ6HPM"
+                        ],
+                        "68064": [
+                            "pandas-to-polars-single__FdKPSj9",
+                            "pandas-to-polars-single__foSLPYX",
+                            "pandas-to-polars-single__8JHAcAv"
+                        ],
+                        "179901": [
+                            "physics-2d__ffG5523"
+                        ],
+                        "218747": [
+                            "physics-fix__d56A6aF"
+                        ],
+                        "89115": [
+                            "pkcs7-unpad__xSGdhwh",
+                            "pkcs7-unpad__gUHjtSA"
+                        ],
+                        "67736": [
+                            "raft-snapshot-reconcile__sZ5gKtZ",
+                            "raft-snapshot-reconcile__HEMEwBF"
+                        ],
+                        "233818": [
+                            "robust-orient2d__BpA6iXZ"
+                        ],
+                        "217269": [
+                            "rust-python-pyo3__foLuH89",
+                            "rust-python-pyo3__UfV2YMY",
+                            "rust-python-pyo3__aftqh5F"
+                        ],
+                        "68619": [
+                            "samscript-bootstrap__gyPgj35",
+                            "samscript-bootstrap__iVmfCig",
+                            "samscript-bootstrap__q52kQfj",
+                            "samscript-bootstrap__TSdiG5f"
+                        ],
+                        "122246": [
+                            "samscript-wasi__aXNDm6q"
+                        ],
+                        "226773": [
+                            "wasm-compression-wat__H765pKo",
+                            "wasm-compression-wat__A2PXrT7",
+                            "wasm-compression-wat__uS4LKfb",
+                            "wasm-compression-wat__cAZ8vgZ"
+                        ],
+                        "209442": [
+                            "wasm-lz77__vvKPgvd"
+                        ],
+                        "172245": [
+                            "aligned-reallocator__MqDMt8r",
+                            "aligned-reallocator__WUddwq6",
+                            "aligned-reallocator__8xchs3m"
+                        ],
+                        "223470": [
+                            "async-cache-generation__bMAkCRK",
+                            "async-cache-generation__DG2sabY",
+                            "async-cache-generation__Y9YEbcy"
+                        ],
+                        "40623": [
+                            "bitemporal-entitlement__x38qiQT"
+                        ],
+                        "114687": [
+                            "capability-module-loader__wNX3PaT",
+                            "capability-module-loader__2fzR2bA",
+                            "capability-module-loader__hvMX3CL"
+                        ],
+                        "201960": [
+                            "cifar10-burn__kM8xjB8",
+                            "cifar10-burn__wiegfCx",
+                            "cifar10-burn__eBwgQCP"
+                        ],
+                        "211656": [
+                            "cython-linalg__Wg9woH6",
+                            "cython-linalg__FzpN2xP",
+                            "cython-linalg__RTNhwgx"
+                        ],
+                        "235398": [
+                            "indentation-layout__iNTitdJ",
+                            "indentation-layout__UVbaYdK",
+                            "indentation-layout__xcpH93Y"
+                        ],
+                        "227756": [
+                            "msgpack-incremental__DVbFAxv",
+                            "msgpack-incremental__W7x7tbz",
+                            "msgpack-incremental__UBW4xcA",
+                            "msgpack-incremental__v68xCz8"
+                        ],
+                        "107520": [
+                            "pandas-to-polars-single__V4vMkD4"
+                        ],
+                        "179888": [
+                            "physics-2d__Nrm4gZw",
+                            "physics-2d__eBex7Mj",
+                            "physics-2d__T5HWcGS"
+                        ],
+                        "221312": [
+                            "physics-fix__ei2ozPe",
+                            "physics-fix__kp3YJKf"
+                        ],
+                        "221447": [
+                            "pkcs7-unpad__fErwYyA",
+                            "pkcs7-unpad__4bcL5EN"
+                        ],
+                        "97360": [
+                            "raft-snapshot-reconcile__2Ga7sK3",
+                            "raft-snapshot-reconcile__YoiVyNA",
+                            "raft-snapshot-reconcile__NgeGnSH"
+                        ],
+                        "238425": [
+                            "robust-orient2d__tLzjWoz"
+                        ],
+                        "214799": [
+                            "rust-python-pyo3__3MJg2a9"
+                        ],
+                        "60551": [
+                            "samscript-bootstrap__nSavCgy"
+                        ],
+                        "227457": [
+                            "samscript-wasi__uNfVuZf"
+                        ],
+                        "217971": [
+                            "wasm-lz77__zTaLMD7",
+                            "wasm-lz77__VXQjxfd"
+                        ],
+                        "234848": [
+                            "async-cache-generation__7XAsE54"
+                        ],
+                        "42067": [
+                            "bitemporal-entitlement__9aEE8on"
+                        ],
+                        "101595": [
+                            "physics-fix__vQe7D7B",
+                            "physics-fix__6X4HdLs"
+                        ],
+                        "225093": [
+                            "pkcs7-unpad__3deri8F"
+                        ],
+                        "175232": [
+                            "robust-orient2d__pmjwxMy"
+                        ],
+                        "227536": [
+                            "samscript-wasi__fcVb7vm"
+                        ],
+                        "220733": [
+                            "wasm-compression-wat__KDAz5W2"
+                        ],
+                        "221381": [
+                            "aligned-reallocator__jxVunM9"
+                        ],
+                        "35135": [
+                            "bitemporal-entitlement__26NYRFK",
+                            "bitemporal-entitlement__o6dV34Z"
+                        ],
+                        "184033": [
+                            "json-patch-transactional__3XEs5Ph"
+                        ],
+                        "112019": [
+                            "pandas-to-polars-single__JQ9LZXs"
+                        ],
+                        "150466": [
+                            "robust-orient2d__xdNnLwd"
+                        ],
+                        "214070": [
+                            "samscript-wasi__iFGbM4d"
+                        ],
+                        "243136": [
+                            "wasm-lz77__du42CgX"
+                        ],
+                        "115037": [
+                            "capability-module-loader__c8rnWtP"
+                        ],
+                        "137253": [
+                            "cifar10-burn__Gs2nQEg"
+                        ],
+                        "223943": [
+                            "cython-linalg__GFDExMn"
+                        ],
+                        "238364": [
+                            "indentation-layout__JNCMjoz"
+                        ],
+                        "91188": [
+                            "json-patch-transactional__XEqD8Pb"
+                        ],
+                        "179896": [
+                            "physics-2d__3qE6CUA"
+                        ],
+                        "133951": [
+                            "robust-orient2d__irL49FF"
+                        ],
+                        "214772": [
+                            "rust-python-pyo3__2p8pRTx"
+                        ],
+                        "225909": [
+                            "samscript-wasi__xvVw9F6"
+                        ],
+                        "237575": [
+                            "wasm-lz77__YQNczbc"
+                        ]
+                    },
+                    "file_read_bytes": {
+                        "15690": [
+                            "aligned-reallocator__ZpyGtpg"
+                        ],
+                        "15248": [
+                            "async-cache-generation__ucVyZt6"
+                        ],
+                        "6671": [
+                            "bitemporal-entitlement__ZbrQHYe"
+                        ],
+                        "9528": [
+                            "capability-module-loader__MEk5iLu"
+                        ],
+                        "13289": [
+                            "cifar10-burn__NH8kwMR"
+                        ],
+                        "8196": [
+                            "cython-linalg__y8ncMoB",
+                            "cython-linalg__Wg9woH6",
+                            "cython-linalg__FzpN2xP",
+                            "cython-linalg__RTNhwgx"
+                        ],
+                        "15065": [
+                            "indentation-layout__vDFBL2y"
+                        ],
+                        "12642": [
+                            "json-patch-transactional__QAKe8PQ",
+                            "json-patch-transactional__m68Lj7H",
+                            "json-patch-transactional__sjAgdiG",
+                            "json-patch-transactional__3XEs5Ph"
+                        ],
+                        "13213": [
+                            "msgpack-incremental__mCQ6HPM"
+                        ],
+                        "8636": [
+                            "pandas-to-polars-single__FdKPSj9",
+                            "pandas-to-polars-single__foSLPYX",
+                            "pandas-to-polars-single__8JHAcAv"
+                        ],
+                        "22678": [
+                            "physics-2d__ffG5523",
+                            "physics-2d__Nrm4gZw",
+                            "physics-2d__eBex7Mj",
+                            "physics-2d__T5HWcGS",
+                            "physics-2d__3qE6CUA"
+                        ],
+                        "7234": [
+                            "physics-fix__d56A6aF",
+                            "physics-fix__ei2ozPe",
+                            "physics-fix__vQe7D7B",
+                            "physics-fix__6X4HdLs",
+                            "physics-fix__kp3YJKf"
+                        ],
+                        "7262": [
+                            "pkcs7-unpad__xSGdhwh",
+                            "pkcs7-unpad__gUHjtSA"
+                        ],
+                        "6295": [
+                            "raft-snapshot-reconcile__sZ5gKtZ",
+                            "raft-snapshot-reconcile__HEMEwBF"
+                        ],
+                        "9086": [
+                            "robust-orient2d__BpA6iXZ"
+                        ],
+                        "13798": [
+                            "rust-python-pyo3__foLuH89",
+                            "rust-python-pyo3__UfV2YMY",
+                            "rust-python-pyo3__aftqh5F"
+                        ],
+                        "13334": [
+                            "samscript-bootstrap__gyPgj35",
+                            "samscript-bootstrap__iVmfCig",
+                            "samscript-bootstrap__q52kQfj",
+                            "samscript-bootstrap__TSdiG5f"
+                        ],
+                        "16819": [
+                            "samscript-wasi__aXNDm6q"
+                        ],
+                        "31120": [
+                            "wasm-compression-wat__H765pKo",
+                            "wasm-compression-wat__A2PXrT7",
+                            "wasm-compression-wat__uS4LKfb",
+                            "wasm-compression-wat__cAZ8vgZ"
+                        ],
+                        "20628": [
+                            "wasm-lz77__vvKPgvd",
+                            "wasm-lz77__zTaLMD7",
+                            "wasm-lz77__VXQjxfd"
+                        ],
+                        "15827": [
+                            "aligned-reallocator__MqDMt8r",
+                            "aligned-reallocator__WUddwq6",
+                            "aligned-reallocator__8xchs3m"
+                        ],
+                        "15300": [
+                            "async-cache-generation__bMAkCRK",
+                            "async-cache-generation__DG2sabY",
+                            "async-cache-generation__Y9YEbcy"
+                        ],
+                        "6544": [
+                            "bitemporal-entitlement__x38qiQT",
+                            "bitemporal-entitlement__26NYRFK",
+                            "bitemporal-entitlement__o6dV34Z"
+                        ],
+                        "9566": [
+                            "capability-module-loader__wNX3PaT",
+                            "capability-module-loader__2fzR2bA",
+                            "capability-module-loader__hvMX3CL"
+                        ],
+                        "13649": [
+                            "cifar10-burn__kM8xjB8",
+                            "cifar10-burn__wiegfCx",
+                            "cifar10-burn__eBwgQCP"
+                        ],
+                        "17075": [
+                            "indentation-layout__iNTitdJ",
+                            "indentation-layout__UVbaYdK",
+                            "indentation-layout__xcpH93Y",
+                            "indentation-layout__JNCMjoz"
+                        ],
+                        "7076": [
+                            "msgpack-incremental__DVbFAxv",
+                            "msgpack-incremental__W7x7tbz",
+                            "msgpack-incremental__UBW4xcA",
+                            "msgpack-incremental__v68xCz8"
+                        ],
+                        "8785": [
+                            "pandas-to-polars-single__V4vMkD4"
+                        ],
+                        "7713": [
+                            "pkcs7-unpad__fErwYyA",
+                            "pkcs7-unpad__3deri8F",
+                            "pkcs7-unpad__4bcL5EN"
+                        ],
+                        "7365": [
+                            "raft-snapshot-reconcile__2Ga7sK3",
+                            "raft-snapshot-reconcile__YoiVyNA",
+                            "raft-snapshot-reconcile__NgeGnSH"
+                        ],
+                        "9727": [
+                            "robust-orient2d__tLzjWoz"
+                        ],
+                        "14539": [
+                            "rust-python-pyo3__3MJg2a9",
+                            "rust-python-pyo3__2p8pRTx"
+                        ],
+                        "13368": [
+                            "samscript-bootstrap__nSavCgy"
+                        ],
+                        "21401": [
+                            "samscript-wasi__uNfVuZf",
+                            "samscript-wasi__fcVb7vm"
+                        ],
+                        "14954": [
+                            "async-cache-generation__7XAsE54"
+                        ],
+                        "6633": [
+                            "bitemporal-entitlement__9aEE8on"
+                        ],
+                        "12669": [
+                            "robust-orient2d__pmjwxMy"
+                        ],
+                        "36917": [
+                            "wasm-compression-wat__KDAz5W2"
+                        ],
+                        "15750": [
+                            "aligned-reallocator__jxVunM9"
+                        ],
+                        "8723": [
+                            "pandas-to-polars-single__JQ9LZXs"
+                        ],
+                        "9676": [
+                            "robust-orient2d__xdNnLwd"
+                        ],
+                        "15413": [
+                            "samscript-wasi__iFGbM4d"
+                        ],
+                        "13073": [
+                            "wasm-lz77__du42CgX"
+                        ],
+                        "9608": [
+                            "capability-module-loader__c8rnWtP"
+                        ],
+                        "13467": [
+                            "cifar10-burn__Gs2nQEg"
+                        ],
+                        "7390": [
+                            "cython-linalg__GFDExMn"
+                        ],
+                        "12403": [
+                            "json-patch-transactional__XEqD8Pb"
+                        ],
+                        "13263": [
+                            "robust-orient2d__irL49FF"
+                        ],
+                        "16331": [
+                            "samscript-wasi__xvVw9F6"
+                        ],
+                        "16711": [
+                            "wasm-lz77__YQNczbc"
+                        ]
+                    },
+                    "public_test_runs": {
+                        "1": [
+                            "aligned-reallocator__ZpyGtpg",
+                            "bitemporal-entitlement__ZbrQHYe",
+                            "cifar10-burn__NH8kwMR",
+                            "msgpack-incremental__mCQ6HPM",
+                            "physics-2d__ffG5523",
+                            "pkcs7-unpad__xSGdhwh",
+                            "raft-snapshot-reconcile__sZ5gKtZ",
+                            "samscript-wasi__aXNDm6q",
+                            "wasm-compression-wat__H765pKo",
+                            "aligned-reallocator__MqDMt8r",
+                            "async-cache-generation__bMAkCRK",
+                            "bitemporal-entitlement__x38qiQT",
+                            "physics-2d__Nrm4gZw",
+                            "pkcs7-unpad__fErwYyA",
+                            "raft-snapshot-reconcile__2Ga7sK3",
+                            "samscript-bootstrap__nSavCgy",
+                            "samscript-wasi__uNfVuZf",
+                            "wasm-compression-wat__A2PXrT7",
+                            "wasm-lz77__zTaLMD7",
+                            "aligned-reallocator__WUddwq6",
+                            "bitemporal-entitlement__9aEE8on",
+                            "physics-2d__eBex7Mj",
+                            "physics-fix__vQe7D7B",
+                            "raft-snapshot-reconcile__HEMEwBF",
+                            "samscript-wasi__fcVb7vm",
+                            "wasm-compression-wat__KDAz5W2",
+                            "wasm-lz77__VXQjxfd",
+                            "aligned-reallocator__jxVunM9",
+                            "async-cache-generation__DG2sabY",
+                            "bitemporal-entitlement__26NYRFK",
+                            "physics-2d__T5HWcGS",
+                            "physics-fix__6X4HdLs",
+                            "pkcs7-unpad__gUHjtSA",
+                            "raft-snapshot-reconcile__YoiVyNA",
+                            "robust-orient2d__xdNnLwd",
+                            "samscript-wasi__iFGbM4d",
+                            "wasm-compression-wat__uS4LKfb",
+                            "aligned-reallocator__8xchs3m",
+                            "async-cache-generation__Y9YEbcy",
+                            "bitemporal-entitlement__o6dV34Z",
+                            "cifar10-burn__Gs2nQEg",
+                            "cython-linalg__GFDExMn",
+                            "indentation-layout__JNCMjoz",
+                            "json-patch-transactional__XEqD8Pb",
+                            "physics-2d__3qE6CUA",
+                            "pkcs7-unpad__4bcL5EN",
+                            "raft-snapshot-reconcile__NgeGnSH",
+                            "robust-orient2d__irL49FF",
+                            "wasm-compression-wat__cAZ8vgZ"
+                        ],
+                        "2": [
+                            "async-cache-generation__ucVyZt6",
+                            "capability-module-loader__MEk5iLu",
+                            "json-patch-transactional__QAKe8PQ",
+                            "pandas-to-polars-single__FdKPSj9",
+                            "robust-orient2d__BpA6iXZ",
+                            "samscript-bootstrap__gyPgj35",
+                            "capability-module-loader__wNX3PaT",
+                            "cifar10-burn__kM8xjB8",
+                            "json-patch-transactional__m68Lj7H",
+                            "msgpack-incremental__DVbFAxv",
+                            "pandas-to-polars-single__V4vMkD4",
+                            "physics-fix__ei2ozPe",
+                            "robust-orient2d__tLzjWoz",
+                            "async-cache-generation__7XAsE54",
+                            "capability-module-loader__2fzR2bA",
+                            "cifar10-burn__wiegfCx",
+                            "json-patch-transactional__sjAgdiG",
+                            "msgpack-incremental__W7x7tbz",
+                            "pandas-to-polars-single__foSLPYX",
+                            "pkcs7-unpad__3deri8F",
+                            "robust-orient2d__pmjwxMy",
+                            "samscript-bootstrap__iVmfCig",
+                            "capability-module-loader__hvMX3CL",
+                            "cifar10-burn__eBwgQCP",
+                            "json-patch-transactional__3XEs5Ph",
+                            "msgpack-incremental__UBW4xcA",
+                            "pandas-to-polars-single__JQ9LZXs",
+                            "samscript-bootstrap__q52kQfj",
+                            "wasm-lz77__du42CgX",
+                            "capability-module-loader__c8rnWtP",
+                            "msgpack-incremental__v68xCz8",
+                            "pandas-to-polars-single__8JHAcAv",
+                            "physics-fix__kp3YJKf",
+                            "samscript-bootstrap__TSdiG5f",
+                            "samscript-wasi__xvVw9F6"
+                        ],
+                        "0": [
+                            "cython-linalg__y8ncMoB",
+                            "indentation-layout__vDFBL2y",
+                            "rust-python-pyo3__foLuH89",
+                            "wasm-lz77__vvKPgvd",
+                            "cython-linalg__Wg9woH6",
+                            "indentation-layout__iNTitdJ",
+                            "rust-python-pyo3__3MJg2a9",
+                            "cython-linalg__FzpN2xP",
+                            "indentation-layout__UVbaYdK",
+                            "rust-python-pyo3__UfV2YMY",
+                            "cython-linalg__RTNhwgx",
+                            "indentation-layout__xcpH93Y",
+                            "rust-python-pyo3__aftqh5F",
+                            "rust-python-pyo3__2p8pRTx",
+                            "wasm-lz77__YQNczbc"
+                        ],
+                        "3": [
+                            "physics-fix__d56A6aF"
+                        ]
+                    },
+                    "within_budget": {
+                        "1": [
+                            "aligned-reallocator__ZpyGtpg",
+                            "async-cache-generation__ucVyZt6",
+                            "bitemporal-entitlement__ZbrQHYe",
+                            "capability-module-loader__MEk5iLu",
+                            "cifar10-burn__NH8kwMR",
+                            "cython-linalg__y8ncMoB",
+                            "indentation-layout__vDFBL2y",
+                            "json-patch-transactional__QAKe8PQ",
+                            "msgpack-incremental__mCQ6HPM",
+                            "pandas-to-polars-single__FdKPSj9",
+                            "physics-2d__ffG5523",
+                            "physics-fix__d56A6aF",
+                            "pkcs7-unpad__xSGdhwh",
+                            "raft-snapshot-reconcile__sZ5gKtZ",
+                            "robust-orient2d__BpA6iXZ",
+                            "rust-python-pyo3__foLuH89",
+                            "samscript-bootstrap__gyPgj35",
+                            "samscript-wasi__aXNDm6q",
+                            "wasm-compression-wat__H765pKo",
+                            "wasm-lz77__vvKPgvd",
+                            "aligned-reallocator__MqDMt8r",
+                            "async-cache-generation__bMAkCRK",
+                            "bitemporal-entitlement__x38qiQT",
+                            "capability-module-loader__wNX3PaT",
+                            "cifar10-burn__kM8xjB8",
+                            "cython-linalg__Wg9woH6",
+                            "indentation-layout__iNTitdJ",
+                            "json-patch-transactional__m68Lj7H",
+                            "msgpack-incremental__DVbFAxv",
+                            "pandas-to-polars-single__V4vMkD4",
+                            "physics-2d__Nrm4gZw",
+                            "physics-fix__ei2ozPe",
+                            "pkcs7-unpad__fErwYyA",
+                            "raft-snapshot-reconcile__2Ga7sK3",
+                            "robust-orient2d__tLzjWoz",
+                            "rust-python-pyo3__3MJg2a9",
+                            "samscript-bootstrap__nSavCgy",
+                            "samscript-wasi__uNfVuZf",
+                            "wasm-compression-wat__A2PXrT7",
+                            "wasm-lz77__zTaLMD7",
+                            "aligned-reallocator__WUddwq6",
+                            "async-cache-generation__7XAsE54",
+                            "bitemporal-entitlement__9aEE8on",
+                            "capability-module-loader__2fzR2bA",
+                            "cifar10-burn__wiegfCx",
+                            "cython-linalg__FzpN2xP",
+                            "indentation-layout__UVbaYdK",
+                            "json-patch-transactional__sjAgdiG",
+                            "msgpack-incremental__W7x7tbz",
+                            "pandas-to-polars-single__foSLPYX",
+                            "physics-2d__eBex7Mj",
+                            "physics-fix__vQe7D7B",
+                            "pkcs7-unpad__3deri8F",
+                            "raft-snapshot-reconcile__HEMEwBF",
+                            "robust-orient2d__pmjwxMy",
+                            "rust-python-pyo3__UfV2YMY",
+                            "samscript-bootstrap__iVmfCig",
+                            "samscript-wasi__fcVb7vm",
+                            "wasm-compression-wat__KDAz5W2",
+                            "wasm-lz77__VXQjxfd",
+                            "aligned-reallocator__jxVunM9",
+                            "async-cache-generation__DG2sabY",
+                            "bitemporal-entitlement__26NYRFK",
+                            "capability-module-loader__hvMX3CL",
+                            "cifar10-burn__eBwgQCP",
+                            "cython-linalg__RTNhwgx",
+                            "indentation-layout__xcpH93Y",
+                            "json-patch-transactional__3XEs5Ph",
+                            "msgpack-incremental__UBW4xcA",
+                            "pandas-to-polars-single__JQ9LZXs",
+                            "physics-2d__T5HWcGS",
+                            "physics-fix__6X4HdLs",
+                            "pkcs7-unpad__gUHjtSA",
+                            "raft-snapshot-reconcile__YoiVyNA",
+                            "robust-orient2d__xdNnLwd",
+                            "rust-python-pyo3__aftqh5F",
+                            "samscript-bootstrap__q52kQfj",
+                            "samscript-wasi__iFGbM4d",
+                            "wasm-compression-wat__uS4LKfb",
+                            "wasm-lz77__du42CgX",
+                            "aligned-reallocator__8xchs3m",
+                            "async-cache-generation__Y9YEbcy",
+                            "bitemporal-entitlement__o6dV34Z",
+                            "capability-module-loader__c8rnWtP",
+                            "cifar10-burn__Gs2nQEg",
+                            "cython-linalg__GFDExMn",
+                            "indentation-layout__JNCMjoz",
+                            "json-patch-transactional__XEqD8Pb",
+                            "msgpack-incremental__v68xCz8",
+                            "pandas-to-polars-single__8JHAcAv",
+                            "physics-2d__3qE6CUA",
+                            "physics-fix__kp3YJKf",
+                            "pkcs7-unpad__4bcL5EN",
+                            "raft-snapshot-reconcile__NgeGnSH",
+                            "robust-orient2d__irL49FF",
+                            "rust-python-pyo3__2p8pRTx",
+                            "samscript-bootstrap__TSdiG5f",
+                            "samscript-wasi__xvVw9F6",
+                            "wasm-compression-wat__cAZ8vgZ",
+                            "wasm-lz77__YQNczbc"
+                        ]
+                    },
+                    "usage_valid": {
+                        "1": [
+                            "aligned-reallocator__ZpyGtpg",
+                            "async-cache-generation__ucVyZt6",
+                            "bitemporal-entitlement__ZbrQHYe",
+                            "capability-module-loader__MEk5iLu",
+                            "cifar10-burn__NH8kwMR",
+                            "cython-linalg__y8ncMoB",
+                            "indentation-layout__vDFBL2y",
+                            "json-patch-transactional__QAKe8PQ",
+                            "msgpack-incremental__mCQ6HPM",
+                            "pandas-to-polars-single__FdKPSj9",
+                            "physics-2d__ffG5523",
+                            "physics-fix__d56A6aF",
+                            "pkcs7-unpad__xSGdhwh",
+                            "raft-snapshot-reconcile__sZ5gKtZ",
+                            "robust-orient2d__BpA6iXZ",
+                            "rust-python-pyo3__foLuH89",
+                            "samscript-bootstrap__gyPgj35",
+                            "samscript-wasi__aXNDm6q",
+                            "wasm-compression-wat__H765pKo",
+                            "wasm-lz77__vvKPgvd",
+                            "aligned-reallocator__MqDMt8r",
+                            "async-cache-generation__bMAkCRK",
+                            "bitemporal-entitlement__x38qiQT",
+                            "capability-module-loader__wNX3PaT",
+                            "cifar10-burn__kM8xjB8",
+                            "cython-linalg__Wg9woH6",
+                            "indentation-layout__iNTitdJ",
+                            "json-patch-transactional__m68Lj7H",
+                            "msgpack-incremental__DVbFAxv",
+                            "pandas-to-polars-single__V4vMkD4",
+                            "physics-2d__Nrm4gZw",
+                            "physics-fix__ei2ozPe",
+                            "pkcs7-unpad__fErwYyA",
+                            "raft-snapshot-reconcile__2Ga7sK3",
+                            "robust-orient2d__tLzjWoz",
+                            "rust-python-pyo3__3MJg2a9",
+                            "samscript-bootstrap__nSavCgy",
+                            "samscript-wasi__uNfVuZf",
+                            "wasm-compression-wat__A2PXrT7",
+                            "wasm-lz77__zTaLMD7",
+                            "aligned-reallocator__WUddwq6",
+                            "async-cache-generation__7XAsE54",
+                            "bitemporal-entitlement__9aEE8on",
+                            "capability-module-loader__2fzR2bA",
+                            "cifar10-burn__wiegfCx",
+                            "cython-linalg__FzpN2xP",
+                            "indentation-layout__UVbaYdK",
+                            "json-patch-transactional__sjAgdiG",
+                            "msgpack-incremental__W7x7tbz",
+                            "pandas-to-polars-single__foSLPYX",
+                            "physics-2d__eBex7Mj",
+                            "physics-fix__vQe7D7B",
+                            "pkcs7-unpad__3deri8F",
+                            "raft-snapshot-reconcile__HEMEwBF",
+                            "robust-orient2d__pmjwxMy",
+                            "rust-python-pyo3__UfV2YMY",
+                            "samscript-bootstrap__iVmfCig",
+                            "samscript-wasi__fcVb7vm",
+                            "wasm-compression-wat__KDAz5W2",
+                            "wasm-lz77__VXQjxfd",
+                            "aligned-reallocator__jxVunM9",
+                            "async-cache-generation__DG2sabY",
+                            "bitemporal-entitlement__26NYRFK",
+                            "capability-module-loader__hvMX3CL",
+                            "cifar10-burn__eBwgQCP",
+                            "cython-linalg__RTNhwgx",
+                            "indentation-layout__xcpH93Y",
+                            "json-patch-transactional__3XEs5Ph",
+                            "msgpack-incremental__UBW4xcA",
+                            "pandas-to-polars-single__JQ9LZXs",
+                            "physics-2d__T5HWcGS",
+                            "physics-fix__6X4HdLs",
+                            "pkcs7-unpad__gUHjtSA",
+                            "raft-snapshot-reconcile__YoiVyNA",
+                            "robust-orient2d__xdNnLwd",
+                            "rust-python-pyo3__aftqh5F",
+                            "samscript-bootstrap__q52kQfj",
+                            "samscript-wasi__iFGbM4d",
+                            "wasm-compression-wat__uS4LKfb",
+                            "wasm-lz77__du42CgX",
+                            "aligned-reallocator__8xchs3m",
+                            "async-cache-generation__Y9YEbcy",
+                            "bitemporal-entitlement__o6dV34Z",
+                            "capability-module-loader__c8rnWtP",
+                            "cifar10-burn__Gs2nQEg",
+                            "cython-linalg__GFDExMn",
+                            "indentation-layout__JNCMjoz",
+                            "json-patch-transactional__XEqD8Pb",
+                            "msgpack-incremental__v68xCz8",
+                            "pandas-to-polars-single__8JHAcAv",
+                            "physics-2d__3qE6CUA",
+                            "physics-fix__kp3YJKf",
+                            "pkcs7-unpad__4bcL5EN",
+                            "raft-snapshot-reconcile__NgeGnSH",
+                            "robust-orient2d__irL49FF",
+                            "rust-python-pyo3__2p8pRTx",
+                            "samscript-bootstrap__TSdiG5f",
+                            "samscript-wasi__xvVw9F6",
+                            "wasm-compression-wat__cAZ8vgZ",
+                            "wasm-lz77__YQNczbc"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            }
+        },
+        "n_input_tokens": 15144170,
+        "n_cache_tokens": 12953605,
+        "n_output_tokens": 1730835,
+        "cost_usd": 0.0
+    }
+}

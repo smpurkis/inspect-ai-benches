@@ -1,0 +1,5 @@
+GOD-Bench native Harbor results
+
+Rank  Agent / Model                              Solved  Budgeted  Efficiency  Median tokens  Tool cost  Elapsed  Retrieval
+----  -----------------------------------------  ------  --------  ----------  -------------  ---------  -------  ---------
+   1  god-bench-strict | openai/Qwen3.8-27B-UD-Q4_K_XL-thinking   35/100        35      35.000         201960       20.0    736.0        n/a
